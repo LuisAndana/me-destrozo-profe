@@ -1,1 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: #111;
+}
+
+/* src/styles.css */
+:root{
+  --bg:#0B0B0C; --panel:#050507; --panel-2:#0F0F11;
+  --text:#F4F5F7; --muted:#9DA3AE; --brand:#FF4D4F;
+  --accent:#0B84FE; --item-hover:#14161A; --item-active:#0D1117;
+  --ring:rgba(11,132,254,.35); --sidebar-w:256px;
+  --radius:10px; --gap:12px; --item-h:40px; --icon:18px; --fs:14px;
+}
+

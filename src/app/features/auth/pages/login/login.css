@@ -1,0 +1,130 @@
+/* ==== CONTENEDOR PRINCIPAL ==== */
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;               /* antes 100vw -> evita scroll horizontal */
+  background: #181818;
+  font-family: 'Arial', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ==== BANNER ==== */
+.login-banner {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: hidden;
+}
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1;
+}
+
+/* ==== COLUMNA DERECHA ==== */
+.login-form-section {
+  flex: 1;
+  background: #232323;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2.5rem 2rem;      /* más aire y sin margin negativo */
+}
+
+/* ==== TÍTULO ==== */
+.login-title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.25rem;    /* antes 5rem */
+  text-align: center;
+}
+
+/* ==== FORM ==== */
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Inputs */
+.login-form input {
+  background: #181818;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+.login-form input:focus {
+  border-color: #4d90fe;
+  box-shadow: 0 0 0 3px rgba(77,144,254,.18);
+}
+
+/* Separador + etiqueta */
+.divider-form {
+  height: 1px;
+  background: #444;
+  margin: .6rem 0 .9rem;
+}
+.login-google-label {
+  color: #aaa;
+  text-align: center;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: .45rem;
+}
+
+/* ==== BOTÓN OFICIAL DE GOOGLE ==== */
+.google-wrap{
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+#googleSignInBtn{
+  width: 100%;
+  max-width: 340px;         /* casa con width 320 del renderButton */
+}
+
+/* Si quedara el botón antiguo por error, ocultarlo */
+.google-btn, .google-btn img { display: none !important; }
+
+/* ==== SUBMIT ==== */
+.continue-btn {
+  background: #4d90fe;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .9rem 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: .55rem;
+  transition: background .2s, transform .06s;
+  box-shadow: 0 10px 24px rgba(77,144,254,.25);
+}
+.continue-btn:hover { background: #357ae8; }
+.continue-btn:active { transform: translateY(1px); }
+
+/* ==== RESPONSIVE ==== */
+@media (max-width: 900px) {
+  .login-container { flex-direction: column; }
+  .login-banner, .login-form-section {
+    min-height: 50vh;
+    width: 100%;            /* antes 100vw */
+  }
+  .login-form-section { padding: 2rem 1rem; }
+}

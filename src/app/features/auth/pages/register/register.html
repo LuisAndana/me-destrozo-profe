@@ -1,0 +1,49 @@
+<head>
+  <!-- ... -->
+  <meta
+    name="144363202163-juhhgsrj47dp46co5bevehtmrpo54h9n.apps.googleusercontent.com"
+    content="TU_CLIENT_ID.apps.googleusercontent.com"
+  />
+  <script
+    src="https://accounts.google.com/gsi/client"
+    async
+    defer
+    onload="window.onGoogleLibraryLoad && window.onGoogleLibraryLoad()"
+  ></script>
+</head>
+
+<div class="register-container">
+  <div class="register-banner">
+    <div class="banner-overlay"></div>
+    <img src="assets/gym-banner_page.jpg" alt="Banner" class="banner-img" />
+  </div>
+
+  <div class="register-form-section">
+    <h2 class="register-title">Registro de usuario</h2>
+
+    <form class="register-form" (ngSubmit)="register()">
+      <input type="text" name="nombre" [(ngModel)]="nombre" placeholder="Nombres" required />
+      <input type="text" name="apellido" [(ngModel)]="apellido" placeholder="Apellidos" required />
+      <input type="email" name="email" [(ngModel)]="email" placeholder="E-Mail" required />
+      <input type="password" name="password" [(ngModel)]="password" placeholder="Contraseña" required />
+      <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" placeholder="Confirmar contraseña" required />
+
+      <select name="rol" [(ngModel)]="rol" required>
+        <option value="" disabled selected>Tipo de usuario</option>
+        <option value="alumno">Alumno</option>
+        <option value="entrenador">Entrenador</option>
+      </select>
+
+      <div class="divider-form"></div>
+      <span class="login-google-label">Inicia sesión con</span>
+
+      <!-- Contenedor centrado del botón oficial de Google -->
+      <div class="google-wrap">
+        <div #googleSignInBtn id="googleSignInBtn"></div>
+      </div>
+
+      <button type="submit" class="continue-btn">Continuar</button>
+    </form>
+  </div>
+</div>
+

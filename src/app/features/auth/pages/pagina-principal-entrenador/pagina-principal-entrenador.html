@@ -1,0 +1,35 @@
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="user">
+      <div class="avatar">E</div>
+      <p>Entrenador</p>
+    </div>
+    <nav>
+      <a routerLink="/entrenador" routerLinkActive="active"><i class="fas fa-star"></i> Reseñas</a>
+      <a href="#"><i class="fas fa-dumbbell"></i> Rutinas</a>
+      <a href="#"><i class="fas fa-envelope"></i> Mensajes</a>
+      <a href="#"><i class="fas fa-users"></i> Clientes</a>
+      <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+    </nav>
+    <div class="logout">
+      <a routerLink="/" (click)="logout()"><i class="fas fa-sign-out-alt"></i> Salir</a>
+    </div>
+  </aside>
+
+  <!-- Contenido -->
+  <main class="content">
+    <header>
+      <input type="text" placeholder="Buscar..">
+      <i class="fas fa-search"></i>
+    </header>
+    <section class="hero">
+      <div class="overlay"></div>
+      <div class="hero-content">
+        <img src="assets/logo.png" alt="FitMan Logo" class="logo">
+        <h1>El primer paso es el que más significa</h1>
+      </div>
+    </section>
+  </main>
+</div>
+

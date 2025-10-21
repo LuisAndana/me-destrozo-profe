@@ -1,0 +1,589 @@
+/* =========================================================
+   FitCoach – Página principal (cliente) - CSS completo
+   - Sidebar 240px
+   - Contenido sin separación (usar .edge-left en containers)
+   - Menú compacto
+   - Off-canvas en móvil
+   ========================================================= */
+
+:root{
+  --bg: #0d0f12;
+  --panel: #12151a;
+  --panel-2: #171b21;
+  --primary: #22c55e;
+  --primary-700: #16a34a;
+  --text: #e7e9ee;
+  --muted: #9aa3af;
+
+  --border: #252a33;
+  --shadow: 0 8px 28px rgba(0,0,0,.45);
+  --radius: 16px;
+  --container-pad: 24px;
+  --container-max: 1180px;
+  --sidebar-w: 240px;      /* ancho del sidebar cuando está expandido */
+  --toggle-size: 38px;     /* tamaño del botón */
+  --toggle-offset: 10px;   /* separación desde el borde */
+  --rail-h: 32px;         /* alto aprox. del botón .rail-toggle */
+  --rail-gap: 10px;       /* espacio bajo el botón */
+  --user-h: 64px;            /* alto visual del bloque de usuario */
+  --user-gap: 12px;       /* espacio bajo el bloque de usuario */
+  --rail-top: 12px;   
+}
+
+:host{
+  display:block;
+  min-height:100dvh;
+  color:var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", sans-serif;
+  background: radial-gradient(1200px 600px at 70% -10%, rgba(34,197,94,.08), transparent 60%), var(--bg);
+}
+
+/* ====== COLAPSE / OFF-CANVAS EXTRAS ====== */
+
+/* Botón para colapsar/expandir el sidebar (desktop) */
+/* === Botón flecha: cuadrado, pegado a la izquierda === */
+.rail-toggle{
+  position: fixed;
+  left: calc(var(--sidebar-w) + var(--toggle-offset)); /* al borde del sidebar abierto */
+  top: 12px;
+  width: 32px;             /* cuadrado */
+  height: 32px;            /* cuadrado */
+  border-radius: 8px;      /* esquinas suaves (pon 0 si lo quieres totalmente cuadrado) */
+  border: 1px solid var(--border);
+  background: #0f1318;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 120;
+  box-shadow: var(--shadow);
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+
+/* Usuario sticky justo debajo del toggle */
+.brand.user-link{
+  position: sticky;
+  top: calc(var(--rail-top) + var(--rail-h) + var(--rail-gap));
+  z-index: 2;
+
+  /* si quieres mantener la tarjeta visual */
+  background: rgba(15,19,24,.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding-right: 10px; /* evita que el texto toque el borde */
+}
+
+/* Reserva fija para el nav: suma la altura del usuario */
+.sidebar .nav{
+  margin-top: calc(var(--user-h) + var(--user-gap));
+}
+
+/* Cuando el menú está colapsado, el botón se pega al borde de la ventana */
+.app.collapsed .rail-toggle{
+  left: var(--toggle-offset);
+}
+
+.rail-toggle:hover{
+  background:#141922;
+  border-color:#313846;
+}
+
+
+
+/* Flecha (chevrón) */
+.rail-toggle .chev{
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);      /* apunta a la IZQUIERDA (cerrar) */
+  transition: transform .2s ease;
+}
+
+/* Cuando el layout está colapsado, la flecha apunta a la DERECHA (abrir) */
+.app.collapsed .rail-toggle .chev{
+  transform: rotate(-135deg);
+}
+.rail-toggle .chev.right{
+  transform: rotate(-135deg);   /* apunta a la derecha (abrir) */
+}
+
+/* En móvil, que el bloque de usuario deje de ser sticky */
+@media (max-width: 768px){
+  .brand.user-link{
+    position: static;
+    top: auto;
+    background: transparent;
+    border: 0;
+    backdrop-filter: none;
+    margin-bottom: 12px; /* mantiene un poco de aire */
+  }
+}
+
+/* Botón de colapso dentro del sidebar (esquina superior derecha del aside) */
+.collapse-btn{
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0f1318;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.collapse-btn:hover{ background:#10151b }
+
+
+/* Bloque de usuario “estático” debajo del toggle */
+.sidebar{ padding-top: 12px; } /* respiro general */
+
+.brand.user-link{
+  position: sticky;
+  top: 64px;               /* ≈ alto del toggle + margen (ajusta si lo ves muy pegado) */
+  z-index: 1;              /* queda por debajo del toggle, pero sobre el resto del contenido */
+}
+
+/* Transiciones suaves para el ancho del sidebar y paddings */
+.sidebar,
+.content,
+.nav-item span,
+.user-block {
+  transition: all .2s ease;
+}
+
+/* Estado COLAPSADO (desktop) */
+.app.collapsed .sidebar{
+  width: 72px;                /* sidebar angosto */
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.app.collapsed .user-block{   /* oculta textos del bloque de usuario */
+  width: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.app.collapsed .nav-item span{ /* oculta etiquetas del menú */
+  width: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Asegura que los ítems se sigan viendo centrados en modo icon-only */
+.app.collapsed .nav-item{
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* El contenido puede “respirar” cuando el menú está compacto */
+.app.collapsed .container.edge-left{
+  padding-left: 0;            /* ya no necesitamos compensar separación */
+}
+
+/* Avatar un poco más compacto en colapsado (opcional) */
+.app.collapsed .avatar{
+  width: 36px;
+  height: 36px;
+}
+
+/* Ajustes para que el botón de colapso no tape la primera opción */
+.sidebar{ position: sticky; top:0; }
+.sidebar .brand{ margin-top: 36px; }
+
+/* Ocultar "Salir" solo cuando está colapsado en desktop */
+.app.collapsed:not(.menu-open) .logout{
+  display: none;
+}
+
+/* Logout como botón oscuro, igual que los demás */
+.logout{
+  display: inline-flex;            /* por si antes era block */
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #10151b;             /* = .btn-secondary */
+  border: 1px solid var(--border);
+  color: #ff6b6b;                  /* tu acento de “peligro” */
+  box-shadow: var(--shadow);
+  appearance: none;                /* quita el blanco nativo */
+  -webkit-appearance: none;
+}
+.logout:hover{
+  background:#0f1318;              /* = hover de .btn-secondary */
+  border-color: var(--border);
+}
+.logout:active{ transform: translateY(1px); }
+
+
+/* ====== MÓVIL (OFF-CANVAS) ====== */
+@media (max-width: 768px){
+  .brand.user-link{
+    position: static;
+    top: auto;
+    background: transparent;
+    border: 0;
+    backdrop-filter: none;
+  }
+  .sidebar .nav{
+    margin-top: 12px; /* un margen simple basta en móvil */
+  }
+}
+
+
+  /* En móvil, texto SIEMPRE visible cuando el panel esté abierto */
+  .app.menu-open .nav-item span,
+  .app.menu-open .user-block{
+    width: auto;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Oculta botón colapsar en móvil (no tiene sentido ahí) */
+  .collapse-btn{ display: none; }
+
+/* Tooltip mínimo (opcional) cuando está colapsado y pasas sobre ítems) */
+.app.collapsed .nav-item:hover{
+  background:#0f1217;
+  border-color: var(--border);
+}
+
+:root { --sidebar-w: 240px; --toggle-y: 76px; }
+
+.sidebar { width: var(--sidebar-w); }
+.app.collapsed .sidebar { width: 72px; }
+
+.app.collapsed .nav-item span,
+.app.collapsed .user-block { display: none; }
+.app.collapsed .nav-item { justify-content: center; }
+
+/* Botón flecha que reemplaza el cuadrado */
+.edge-toggle{
+  position: fixed;
+  top: var(--toggle-y);
+  left: var(--sidebar-w);
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #0f1318;
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+  cursor: pointer;
+  transition: left .25s ease, transform .25s ease, background .2s;
+}
+.edge-toggle::before{
+  content: "◂";                /* flecha hacia la izquierda (cerrar) */
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text);
+}
+.edge-toggle:hover{ background: #121821; }
+
+/* Cuando el menú está colapsado, mover el botón y cambiar flecha */
+.app.collapsed .edge-toggle{
+  left: 16px;                  /* pegado al borde */
+  transform: none;
+}
+.app.collapsed .edge-toggle::before{
+  content: "▸";                /* flecha hacia la derecha (abrir) */
+}
+
+/* Ajuste del contenido cuando el menú está colapsado */
+.app.collapsed .container.edge-left{
+  padding-left: var(--container-pad);
+}
+
+/* ---------- Contenedor central (por defecto centrado) ---------- */
+.container{
+  width: min(var(--container-max), 100% - var(--container-pad)*2);
+  margin-inline: auto;
+}
+
+/* Utilidad para pegar un container al borde izquierdo del sidebar */
+.container.edge-left{
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-left: 0;                                /* << clave para quitar la franja */
+  padding-right: var(--container-pad);
+}
+
+/* ---------- Layout ---------- */
+.app{ display:flex; min-height:100dvh; align-items:stretch; }
+.content{ flex:1; min-width:0; display:flex; flex-direction:column }
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width: 240px;                                   /* << más angosto */
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border-right: none;                              /* sin línea para cero separación visual */
+  padding: 20px 14px;
+  display:flex; flex-direction:column; gap: 14px;
+  position: sticky; top:0; align-self:flex-start; height:100dvh;
+}
+.brand{ display:flex; gap:10px; align-items:center; padding:4px 6px; }
+.avatar{ width:40px; height:40px; border-radius:999px; display:grid; place-items:center; background: linear-gradient(135deg, #ef4444, #7c0d0d); font-weight:700; }
+.user-block{ line-height:1.1 }
+.user-label{ display:block; font-size:.76rem; color:var(--muted) }
+.user-name{ font-weight:600 }
+
+/* Menú – compacto */
+.nav{ display:flex; flex-direction:column; gap:8px; margin-top:8px }
+.nav-item{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px;                               /* << más pequeño */
+  border-radius:10px;                              /* antes 12px */
+  color:inherit; text-decoration:none; border:1px solid transparent;
+  min-height: 40px;                                /* buen target táctil */
+  font-size:.95rem;
+}
+.nav-item i{ font-size:17px; opacity:.9 }
+.nav-item:hover{ background:#0f1217; border-color:var(--border) }
+.nav-item.active{ background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.35); color: #c6f6d5; }
+
+.logout{
+  margin-top:auto; display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-radius:10px; color:#ff6b6b; text-decoration:none; border:1px solid transparent;
+}
+.logout:hover{ background:#180e11; border-color:#3a1d23 }
+
+/* ---------- Topbar ---------- */
+.topbar{
+  position: sticky; top:0; z-index:10;
+  background:rgba(13,15,18,.7); backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.topbar-inner{ display:flex; align-items:center; gap:12px; padding-block: 12px; }
+.search{
+  flex:1; display:flex; align-items:center; gap:10px; background:#0f1318; border:1px solid var(--border);
+  padding:10px 14px; border-radius:999px; box-shadow: var(--shadow);
+}
+.search input{ background:transparent; border:0; outline:0; color:var(--text); width:100%; font-size:.98rem }
+.notif{ position:relative; border:1px solid var(--border); background:#0f1318; border-radius:12px; padding:10px 12px; color:var(--text); }
+.notif .dot{ position:absolute; right:8px; top:8px; width:8px; height:8px; border-radius:999px; background:#ef4444; }
+.profile{ display:flex; align-items:center; gap:10px; padding:4px 6px 4px 4px; border:1px solid var(--border); border-radius:999px; background:#0f1318; }
+.profile img{ width:36px; height:36px; border-radius:999px; object-fit:cover }
+
+/* ---------- HERO ---------- */
+.hero{
+  position: relative;
+  isolation: isolate;
+  min-height: 68vh;
+  padding: 84px 0 40px;
+  text-align: center;
+}
+.hero::before{
+  content: "";
+  position: absolute; inset: 0; z-index: -2;
+  background: var(--hero-bg) center / cover no-repeat;
+  transform: scale(1.04);
+  pointer-events:none;
+}
+.hero::after{
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(60% 40% at 50% 0%, rgba(0,0,0,.35), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.65));
+  pointer-events:none;
+}
+.hero-inner{ display:flex; flex-direction:column; align-items:center; gap: 14px; }
+.hero h1{ font-size: clamp(28px, 4vw, 56px); margin: 8px 0 0; line-height: 1.1; }
+.sub{ color: var(--muted); margin: 4px 0 10px }
+.hero-actions{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:6px }
+.hero{ margin-bottom: 28px; }
+
+/* ---------- Grid & Cards ---------- */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(12, minmax(0,1fr));
+  gap: 20px;
+  padding-bottom: 40px;
+}
+.card{
+  grid-column: span 4 / span 4;
+  background: linear-gradient(180deg, #0f1318, #0d1014);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding:16px;
+  overflow: hidden;
+}
+.card header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px }
+.card h3{ margin:0; font-size:1.05rem }
+.badge{ font-size:.75rem; padding:4px 8px; border-radius:999px; background: rgba(34,197,94,.12); color:#bef3d1; border:1px solid rgba(34,197,94,.3); }
+.badge-info{ background: rgba(59,130,246,.14); color:#c6ddff; border-color: rgba(59,130,246,.35) }
+.list{ list-style:none; margin:10px 0 16px; padding:0; color:#d3d8e3 }
+.list li{ padding:10px 0; border-bottom:1px dashed #1f2530 }
+.list li:last-child{ border-bottom:0 }
+
+/* ---------- Botones ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 14px; border-radius:12px; text-decoration:none;
+  border:1px solid var(--border); color:var(--text);
+  transition: transform .06s ease;
+}
+.btn:active{ transform: translateY(1px) }
+.btn-primary{ background: var(--primary); border-color: var(--primary); color:#0a0f0d; font-weight:700 }
+.btn-primary:hover{ background: var(--primary-700); border-color: var(--primary-700) }
+.btn-secondary{ background:#10151b }
+.btn-secondary:hover{ background:#0f1318 }
+.btn-ghost{ background:transparent }
+.btn-block{ display:block; width:100%; margin-top: 8px; }
+
+.btn-lg{ padding:14px 20px; font-size:1.02rem; border-radius:14px; font-weight:700; letter-spacing:.2px; }
+.btn-accent{
+  color:#0a0f0d; border:0;
+  background-image: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #10b981 100%);
+  box-shadow: 0 10px 24px rgba(34,197,94,.28), 0 2px 0 rgba(0,0,0,.25) inset;
+  transform: translateY(0);
+}
+.btn-accent:hover{ filter: brightness(1.06); box-shadow: 0 14px 30px rgba(34,197,94,.36), 0 2px 0 rgba(0,0,0,.25) inset; }
+.btn-accent:active{ transform: translateY(1px); }
+.btn-outline-light{
+  color:#e7e9ee; background: rgba(255,255,255,.04);
+  border:1px solid rgba(231,233,238,.28); backdrop-filter: blur(4px);
+}
+.btn-outline-light:hover{ background: rgba(255,255,255,.07); border-color: rgba(231,233,238,.45); }
+.btn-glow{ position:relative; }
+.btn-glow::after{
+  content:""; position:absolute; inset:-2px; border-radius:16px;
+  background: radial-gradient(40% 60% at 50% 10%, rgba(34,197,94,.35), transparent 60%);
+  filter: blur(12px); z-index:-1; opacity:.65; transition: opacity .2s ease;
+}
+.btn-glow:hover::after{ opacity:.9 }
+
+@media (prefers-reduced-motion: reduce){
+  .btn, .btn-accent, .btn-outline-light, .btn-glow::after{ transition:none }
+}
+
+/* ---------- Móvil: off-canvas + hamburguesa ---------- */
+.hamburger{
+  display: none;
+  border: 1px solid var(--border);
+  background:#0f1318;
+  border-radius:12px;
+  padding:10px 12px;
+  color:var(--text);
+}
+
+/* overlay para cuando el menú está abierto */
+.backdrop{ display: none; }
+
+@media (max-width: 768px){
+  .hamburger{ display:inline-flex; align-items:center; }
+
+  /* La sidebar se convierte en off-canvas que ocupa su ancho completo */
+  .sidebar{
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 280px;                                 /* ancho cómodo en móvil */
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    z-index: 40;
+    height: 100dvh;
+    padding: 20px 14px;
+  }
+  .app.menu-open .sidebar{ transform: translateX(0); }
+
+  /* Bloqueo de scroll y overlay */
+  .app.menu-open{ overflow: hidden; }
+  .backdrop{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(2px);
+    z-index: 30;
+  }
+  .app.menu-open .backdrop{ display:block; }
+
+  /* Menú con textos completos y listos para tocar */
+  .nav-item{ justify-content:flex-start; }
+
+  /* Grid responsive */
+  .grid{ grid-template-columns: repeat(6, minmax(0,1fr)); gap:16px }
+  .card{ grid-column: span 6 / span 6 }
+
+  /* Hero y topbar con un poco menos de altura */
+  .hero{ min-height: 56vh; padding: 68px 0 28px; margin-bottom: 22px; }
+}
+
+/* Pantallas muy pequeñas */
+@media (max-width: 460px){
+  .grid{ grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px }
+  .card{ grid-column: span 4 / span 4 }
+}
+
+/* Detalle: evita artefactos en el borde del hero pegado al sidebar */
+.hero::before, .hero::after{ left: 0; right: 0; }
+
+
+/* ===== FIX: botones del menú recortados ===== */
+
+/* 1) El sidebar debe estar por encima de cualquier overlay del hero */
+.app { position: relative; }
+.sidebar{
+  position: sticky;    /* desktop */
+  top: 0;
+  z-index: 100;        /* más alto que hero/topbar */
+  overflow: visible;   /* por si algún hijo tiene sombra o borde */
+}
+
+/* Asegura que hero y topbar no se monten sobre el sidebar */
+.topbar, .content, .hero { position: relative; z-index: 0; }
+.hero::before, .hero::after { z-index: -1; } /* sus capas quedan detrás de todo */
+
+/* 2) Los elementos del menú ocupan el ancho útil del sidebar */
+.nav { overflow: visible; }
+.nav-item{
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;   /* incluye padding/borde en el ancho */
+}
+
+/* 3) (opcional) si usas el modo móvil off-canvas, el z-index también debe ser alto */
+@media (max-width: 768px){
+  .sidebar{
+    position: fixed;        /* en móvil es off-canvas */
+    z-index: 100;           /* por encima del hero */
+  }
+}
+
+/* Hace clickeable el bloque de usuario con feedback visual */
+.user-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.user-link:hover {
+  background: #0f1217;
+  border-color: var(--border);
+}
+
+.user-link:active {
+  transform: translateY(1px);
+}
+
+.user-link:focus-visible {
+  box-shadow: 0 0 0 2px rgba(34,197,94,.55);
+  border-color: rgba(34,197,94,.5);
+}

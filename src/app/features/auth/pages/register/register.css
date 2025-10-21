@@ -1,0 +1,126 @@
+/* ===== Register (solo CSS, mismo HTML) ===== */
+
+.register-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  background: #181818;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Banner */
+.register-banner {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: hidden;
+}
+.banner-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.banner-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 1; }
+
+/* Columna derecha */
+.register-form-section {
+  flex: 1;
+  background: #232323;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2.5rem 2rem;
+}
+
+/* Título */
+.register-title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+/* Card del form */
+.register-form {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+  background: #1c1f24;
+  border: 1px solid #2a2f37;
+  border-radius: 14px;
+  padding: 18px 16px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.35);
+}
+
+/* Inputs */
+.register-form input,
+.register-form select {
+  background: #181a1f;
+  border: 1px solid #3b414b;
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+}
+.register-form input:focus,
+.register-form select:focus {
+  border-color: #4d90fe;
+  box-shadow: 0 0 0 3px rgba(77,144,254,.18);
+}
+
+/* Separadores y etiquetas */
+.divider-form { height: 1px; background: #303641; margin: .4rem 0 .9rem; }
+.login-google-label { color: #aaa; text-align: center; font-size: .95rem; display: block; margin-bottom: .45rem; }
+
+/* Contenedor del botón de Google (centrado y con límite de ancho) */
+.google-wrap{ display:flex; justify-content:center; width:100%; }
+#googleSignInBtn{ width:100%; max-width: 340px; }
+
+/* Botón submit */
+.continue-btn {
+  width: 100%;
+  background: #4d90fe;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: .9rem 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .2px;
+  cursor: pointer;
+  margin-top: .6rem;
+  transition: background .2s, transform .06s;
+  box-shadow: 0 10px 24px rgba(77,144,254,.25);
+}
+.continue-btn:hover { background: #357ae8; }
+.continue-btn:active { transform: translateY(1px); }
+
+/* Responsive */
+@media (min-width: 901px){
+  .register-title{ margin-bottom: 1.6rem; }
+  .register-form{
+    max-width: 360px;
+    padding: 14px 14px;
+    gap: .75rem;
+  }
+  .register-form input,
+  .register-form select{
+    padding: 0.68rem 0.9rem;
+    font-size: .95rem;
+    border-radius: 9px;
+  }
+  .divider-form{ margin: .35rem 0 .8rem; }
+  .login-google-label{ margin-bottom: .4rem; }
+  .continue-btn{
+    padding: .8rem .9rem;
+    margin-top: .55rem;
+  }
+}
+
+/* Si quedara algún botón viejo con imagen, lo ocultamos por seguridad */
+.register-form .google-btn,
+.register-form .google-btn img { display: none !important; }

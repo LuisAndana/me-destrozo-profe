@@ -1,0 +1,168 @@
+<section class="perfil">
+  <!-- Cover / Header -->
+  <div class="cover">
+    <div class="cover-gradient"></div>
+
+    <div class="cover-inner container">
+      <div class="avatar-wrap">
+        <img
+          *ngIf="(previewUrl() || perfil()?.fotoUrl) as img"
+          class="avatar"
+          [ngSrc]="img"
+          width="120" height="120" priority alt="Avatar" />
+        <div *ngIf="!(previewUrl() || perfil()?.fotoUrl)" class="avatar avatar-fallback">
+          {{ (perfil()?.nombre || 'U').slice(0,1) }}
+        </div>
+
+        <button class="btn btn-outline btn-sm" type="button" (click)="seleccionarAvatar(fileInput)">
+          Cambiar foto
+        </button>
+        <input #fileInput type="file" accept="image/*" class="hide" (change)="onFileSelected($event)" />
+      </div>
+
+      <div class="title-wrap">
+        <h1>{{ form.value.nombre || perfil()?.nombre || 'Tu perfil' }}</h1>
+        <p class="muted">{{ perfil()?.email }}</p>
+        <div class="chips">
+          <span class="chip" *ngIf="form.value.edad">Edad: {{ form.value.edad }}</span>
+          <span class="chip" *ngIf="form.value.pesoKg">Peso: {{ form.value.pesoKg }} kg</span>
+          <span class="chip" *ngIf="form.value.estaturaCm">Estatura: {{ form.value.estaturaCm }} cm</span>
+          <span class="chip attention" *ngIf="imc() !== null">IMC: {{ imc() }}</span>
+        </div>
+      </div>
+
+      <div class="actions-top">
+        <button class="btn btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
+          Guardar cambios
+        </button>
+        <button class="btn btn-ghost" type="button" (click)="cambiosOpen.set(true)">
+          Ver cambios
+        </button>
+        <a class="btn btn-secondary" routerLink="/progreso">Ver progreso</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="container layout">
+    <!-- Aside resumen pegajoso -->
+    <aside class="aside">
+      <div class="card sticky">
+        <h3>Resumen</h3>
+        <ul class="summary">
+          <li><span>Nombre</span><strong>{{ form.value.nombre || perfil()?.nombre || '—' }}</strong></li>
+          <li><span>Sexo</span><strong>{{ form.value.sexo || '—' }}</strong></li>
+          <li><span>Edad</span><strong>{{ form.value.edad || '—' }}</strong></li>
+          <li><span>Peso</span><strong>{{ form.value.pesoKg || '—' }} kg</strong></li>
+          <li><span>Estatura</span><strong>{{ form.value.estaturaCm || '—' }} cm</strong></li>
+          <li><span>IMC</span><strong>{{ imc() ?? '—' }}</strong></li>
+        </ul>
+        <div class="aside-actions">
+          <button class="btn btn-primary btn-block" type="button" [disabled]="guardando()" (click)="guardar()">Guardar</button>
+          <button class="btn btn-outline btn-block" type="button" (click)="cambiosOpen.set(true)">Cambios</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Tips</h3>
+        <p class="muted">Mantén tus datos actualizados para que tus rutinas y el seguimiento se adapten mejor a ti.</p>
+      </div>
+    </aside>
+
+    <!-- Formulario -->
+    <form class="grid" [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="card glass">
+        <h3>Datos personales</h3>
+        <label>Nombre
+          <input type="text" formControlName="nombre" placeholder="Tu nombre" />
+        </label>
+        <label>Sexo
+          <select formControlName="sexo">
+            <option [ngValue]="'Masculino'">Masculino</option>
+            <option [ngValue]="'Femenino'">Femenino</option>
+            <option [ngValue]="'Otro'">Otro</option>
+          </select>
+        </label>
+        <label>Edad
+          <input type="number" min="0" formControlName="edad" placeholder="Años" />
+        </label>
+      </div>
+
+      <div class="card glass">
+        <h3>Medidas</h3>
+        <label>Peso (kg)
+          <input type="number" formControlName="pesoKg" step="0.1" min="0" placeholder="e.g. 64.5" />
+        </label>
+        <label>Estatura (cm)
+          <input type="number" formControlName="estaturaCm" step="0.1" min="0" placeholder="e.g. 172" />
+        </label>
+        <div class="imc">
+          <span>IMC estimado</span>
+          <strong *ngIf="imc() !== null; else imcNulo">{{ imc() }}</strong>
+          <ng-template #imcNulo><span class="muted">—</span></ng-template>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <h3>Salud</h3>
+        <label>Problemas / Observaciones
+          <textarea rows="5" formControlName="problemas" placeholder="Describe lesiones, dificultades, etc."></textarea>
+        </label>
+        <label>Enfermedades (separadas por coma)
+          <input type="text" formControlName="enfermedades" placeholder="Diabetes, Hipertensión, ..." />
+        </label>
+      </div>
+
+      <div class="full actions-bottom">
+        <button class="btn btn-primary" type="submit" [disabled]="guardando()">Guardar cambios</button>
+        <button class="btn btn-ghost" type="button" (click)="cambiosOpen.set(true)">Ver cambios</button>
+        <a class="btn btn-secondary" routerLink="/progreso">Ver progreso</a>
+      </div>
+
+      <!-- Línea de tiempo / cambios recientes (vista rápida) -->
+      <div class="card full">
+        <h3>Últimos cambios</h3>
+        <ul class="timeline" *ngIf="cambios()?.length; else noCambios">
+          <li *ngFor="let c of cambios()">
+            <div class="dot"></div>
+            <div class="row">
+              <div class="when">{{ c.fecha | date:'medium' }}</div>
+              <div class="what">{{ c.campo }}</div>
+              <div class="fromto">
+                <span class="from">{{ c.antes ?? '—' }}</span>
+                <span class="arrow">→</span>
+                <span class="to">{{ c.despues ?? '—' }}</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <ng-template #noCambios>
+          <p class="muted">No hay cambios registrados.</p>
+        </ng-template>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal cambios -->
+  <div class="modal" *ngIf="cambiosOpen()">
+    <div class="modal-card">
+      <header>
+        <h3>Historial de cambios</h3>
+        <button class="icon" (click)="cambiosOpen.set(false)">✕</button>
+      </header>
+      <ul class="changes">
+        <li *ngFor="let c of cambios()">
+          <div class="when">{{ c.fecha | date:'medium' }}</div>
+          <div class="field">{{ c.campo }}</div>
+          <div class="fromto">
+            <span class="from">{{ c.antes ?? '—' }}</span>
+            <span class="arrow">→</span>
+            <span class="to">{{ c.despues ?? '—' }}</span>
+          </div>
+        </li>
+        <li *ngIf="!cambios().length" class="muted">Sin cambios aún.</li>
+      </ul>
+    </div>
+    <div class="backdrop" (click)="cambiosOpen.set(false)"></div>
+  </div>
+</section>

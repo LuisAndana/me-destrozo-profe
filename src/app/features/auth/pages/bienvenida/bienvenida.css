@@ -1,0 +1,131 @@
+.welcome-container {
+  display: flex;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw; /* Asegura que ocupe todo el ancho */
+  background: #111;
+  color: white;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.banner {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+  min-width: 0;
+  background: url('/assets/gym-banner_page.jpg') no-repeat center center/cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1;
+}
+
+.banner-content {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 2rem;
+}
+
+.banner-content h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.icon-svg {
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+  vertical-align: middle;
+}
+
+.banner-content h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.banner-content p {
+  font-size: 1.05rem;
+  margin-bottom: 0;
+  color: #eee;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: #181818;
+}
+
+.logo {
+  font-size: 2.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #ff4d4d;
+  margin-bottom: 2rem;
+}
+
+.slogan {
+  font-size: 1.35rem;
+  text-align: center;
+  margin: 1.5rem 0 2.5rem 0;
+  color: white;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 220px;
+}
+
+.btn {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  padding: 0.7rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: 0.3s;
+  width: 100%;
+}
+
+.btn:hover {
+  background: white;
+  color: #181818;
+}
+
+@media (max-width: 900px) {
+  .welcome-container {
+    flex-direction: column;
+  }
+  .banner, .content {
+    min-height: 50vh;
+    padding: 1.5rem;
+  }
+  .banner-content {
+    margin-bottom: 1rem;
+  }
+  .logo {
+    margin-bottom: 1rem;
+  }
+}
+

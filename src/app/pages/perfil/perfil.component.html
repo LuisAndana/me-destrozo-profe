@@ -1,0 +1,92 @@
+<form class="perfil ui-pro" [formGroup]="form" (ngSubmit)="guardar()">
+  <!-- HERO / encabezado -->
+  <section class="card profile-hero">
+    <div class="avatar-wrap">
+      <div class="avatar-lg ring">
+        <span>{{ inicial || '👤' }}</span>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <h2 class="name">{{ form.get('nombre_completo')?.value || 'Tu nombre' }}</h2>
+      <p class="email muted">{{ form.get('email')?.value || '' }}</p>
+    </div>
+  </section>
+
+  <!-- GRID principal -->
+  <div class="grid-2">
+    <!-- Problemas -->
+    <section class="card block">
+      <h3 class="card-title">Problemas / antecedentes</h3>
+      <label class="field full">
+        <span class="sr-only">Problemas / antecedentes</span>
+        <textarea
+          class="textarea large"
+          formControlName="problemas"
+          placeholder="Describe lesiones, limitaciones o antecedentes médicos"></textarea>
+        <span class="help muted">Mientras más contexto nos des, mejor se ajustarán tus rutinas.</span>
+      </label>
+    </section>
+
+    <!-- Datos físicos (compacto) -->
+    <section class="card block">
+      <h3 class="card-title">Datos físicos</h3>
+
+      <div class="fields compact micro">
+        <label class="field">
+          <span class="label">Peso (kg)</span>
+          <input type="number" inputmode="decimal" formControlName="peso_kg" />
+        </label>
+
+        <label class="field">
+          <span class="label">Estatura (cm)</span>
+          <input type="number" formControlName="estatura_cm" />
+        </label>
+
+        <label class="field">
+          <span class="label">Edad</span>
+          <input type="number" formControlName="edad" />
+        </label>
+
+        <label class="field">
+          <span class="label">Sexo</span>
+          <select formControlName="sexo">
+            <option value="">Seleccionar…</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro / Prefiero no decir</option>
+          </select>
+        </label>
+
+        <label class="field full">
+          <span class="label">IMC</span>
+          <input type="text" formControlName="imc" readonly />
+          <span class="help muted">Se calcula automáticamente a partir de tu peso y estatura.</span>
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <!-- Enfermedades (rejilla organizada) -->
+  <section class="card">
+    <div class="card-title-row">
+      <h3 class="card-title">Enfermedades</h3>
+      <p class="muted small">Selecciona las que apliquen</p>
+    </div>
+
+    <div class="diseases-grid" formArrayName="enfermedades">
+      <label class="disease" *ngFor="let c of enfArray.controls; let i = index">
+        <input type="checkbox" [formControlName]="i" />
+        <span class="box" aria-hidden="true"></span>
+        <span class="name">{{ enfermedadesCatalogo[i] }}</span>
+      </label>
+    </div>
+  </section>
+
+  <!-- Acciones -->
+  <div class="actions sticky">
+    <span class="status muted">{{ estado }}</span>
+    <div class="spacer"></div>
+    <button type="button" class="btn ghost" (click)="cancelar()" [disabled]="saving || loading">Cancelar</button>
+    <button type="submit" class="btn primary" [disabled]="saving || loading">Guardar cambios</button>
+  </div>
+</form>
