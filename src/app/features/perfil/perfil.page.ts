@@ -1,82 +1,118 @@
-// src/app/core/services/cliente.service.ts
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { Observable } from 'rxjs';
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule, DatePipe, NgOptimizedImage } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { ClienteService, UserProfile } from '../../core/services/cliente.service';
+import { AuthService } from '../../core/services/auth.service';
+
+interface Cambio {
+  campo: string;
+  antes: string | number | null;
+  despues: string | number | null;
+  fecha: Date;
+}
 
 @Component({
   standalone: true,
   selector: 'app-perfil-page',
-  template: `
-    <section style="padding:24px">
-      <h2>Perfil</h2>
-      <p>(Aquí va tu editor de perfil)</p>
-    </section>
-  `,
+  templateUrl: './perfil.page.html',
+  styleUrls: ['./perfil.page.css'],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    NgOptimizedImage,
+    DatePipe
+  ],
 })
-export class PerfilPage {}
+export class PerfilPage {
+  private readonly cliente = inject(ClienteService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
 
+  perfil = signal<UserProfile | null>(null);
+  cambiosOpen = signal(false);
+  cambios = signal<Cambio[]>([]);
+  guardando = signal(false);
+  previewUrl = signal<string | null>(null);
 
-import {
-  UserProfile,
-  UpdatePerfilBody,
-  RutinaHoy,
-  ProgresoSemanal,
-  BandejaMensajes,
-  CambioPerfil,
-} from '../../core/models/cliente.models'; 
+  form: FormGroup = this.fb.group({
+    nombre: [''],
+    email: [{ value: '', disabled: true }],
+    sexo: [''],
+    edad: [null],
+    pesoKg: [null],
+    estaturaCm: [null],
+    problemas: [''],
+    enfermedades: ['']
+  });
 
-@Injectable({ providedIn: 'root' })
-export class ClienteService {
-  private api = environment.apiBase; // ej: http://localhost:4000/api
-
-  constructor(private http: HttpClient) {}
-
-  /* =================== PERFIL =================== */
-
-  /** Perfil del usuario autenticado */
-  getPerfil(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.api}/me`);
+  constructor() {
+    this.loadPerfil();
   }
 
-  /** Actualiza datos del perfil (nombre, sexo, peso, estatura, etc.) */
-  updatePerfil(body: UpdatePerfilBody): Observable<UserProfile> {
-    return this.http.patch<UserProfile>(`${this.api}/perfil`, body);
-  }
-
-  /** Sube avatar (FormData con key 'avatar') */
-  uploadAvatar(file: File): Observable<{ url: string }> {
-    const fd = new FormData();
-    fd.append('avatar', file);
-    // No seteamos Content-Type — el navegador agrega el boundary automáticamente
-    return this.http.post<{ url: string }>(`${this.api}/perfil/avatar`, fd);
-  }
-
-  /** Historial de cambios (el backend toma el userId del token) */
-  getCambios(limit = 30): Observable<CambioPerfil[]> {
-    return this.http.get<CambioPerfil[]>(`${this.api}/perfil/cambios`, {
-      params: { limit: String(limit) },
+  private loadPerfil(): void {
+    this.cliente.getPerfil().subscribe({
+      next: (p: UserProfile) => {
+        this.perfil.set(p);
+        this.form.patchValue(p);
+      },
+      error: (err) => console.error('Error al obtener perfil:', err),
     });
   }
 
-  /* =================== DASHBOARD (si los usas) =================== */
+  imc(): number | null {
+    const peso = this.form.get('pesoKg')?.value;
+    const estatura = this.form.get('estaturaCm')?.value;
+    if (!peso || !estatura) return null;
+    const metros = estatura / 100;
+    return +(peso / (metros * metros)).toFixed(2);
+  }
 
-  getRutinaHoy(userId: number): Observable<RutinaHoy> {
-    return this.http.get<RutinaHoy>(`${this.api}/rutinas/hoy`, {
-      params: { userId: String(userId) },
+  guardar(): void {
+    if (this.form.invalid) return;
+    this.guardando.set(true);
+
+    const actual = this.perfil();
+    const nuevo = this.form.getRawValue();
+    const cambiosHechos: Cambio[] = [];
+
+    if (actual) {
+      Object.keys(nuevo).forEach((campo) => {
+        const antes = (actual as any)[campo];
+        const despues = (nuevo as any)[campo];
+        if (antes !== despues) cambiosHechos.push({ campo, antes, despues, fecha: new Date() });
+      });
+    }
+
+    this.cambios.set([...this.cambios(), ...cambiosHechos]);
+
+    this.cliente.updatePerfil(nuevo).subscribe({
+      next: (p) => {
+        this.perfil.set(p);
+        this.guardando.set(false);
+      },
+      error: (err) => {
+        console.error('Error al actualizar perfil:', err);
+        this.guardando.set(false);
+      },
     });
   }
 
-  getProgresoSemanal(userId: number): Observable<ProgresoSemanal> {
-    return this.http.get<ProgresoSemanal>(`${this.api}/progreso/semana`, {
-      params: { userId: String(userId) },
-    });
+  seleccionarAvatar(input: HTMLInputElement): void {
+    input.click();
   }
 
-  getMensajes(userId: number, limit = 5): Observable<BandejaMensajes> {
-    return this.http.get<BandejaMensajes>(`${this.api}/mensajes`, {
-      params: { userId: String(userId), limit: String(limit) },
+  onFileSelected(ev: Event): void {
+    const file = (ev.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => this.previewUrl.set(reader.result as string);
+    reader.readAsDataURL(file);
+
+    this.cliente.uploadAvatar(file).subscribe({
+      next: () => this.loadPerfil(),
+      error: (err) => console.error('Error al subir avatar:', err),
     });
   }
 }

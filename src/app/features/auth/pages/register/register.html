@@ -1,49 +1,202 @@
-<head>
-  <!-- ... -->
-  <meta
-    name="144363202163-juhhgsrj47dp46co5bevehtmrpo54h9n.apps.googleusercontent.com"
-    content="TU_CLIENT_ID.apps.googleusercontent.com"
-  />
-  <script
-    src="https://accounts.google.com/gsi/client"
-    async
-    defer
-    onload="window.onGoogleLibraryLoad && window.onGoogleLibraryLoad()"
-  ></script>
-</head>
-
 <div class="register-container">
+  <!-- Columna izquierda: imagen tipo login -->
   <div class="register-banner">
     <div class="banner-overlay"></div>
     <img src="assets/gym-banner_page.jpg" alt="Banner" class="banner-img" />
   </div>
 
+  <!-- Columna derecha: formulario (scrollea) -->
   <div class="register-form-section">
     <h2 class="register-title">Registro de usuario</h2>
 
-    <form class="register-form" (ngSubmit)="register()">
-      <input type="text" name="nombre" [(ngModel)]="nombre" placeholder="Nombres" required />
-      <input type="text" name="apellido" [(ngModel)]="apellido" placeholder="Apellidos" required />
-      <input type="email" name="email" [(ngModel)]="email" placeholder="E-Mail" required />
-      <input type="password" name="password" [(ngModel)]="password" placeholder="Contraseña" required />
-      <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" placeholder="Confirmar contraseña" required />
+    <form class="register-form" (ngSubmit)="register()" novalidate>
+      <!-- Error general del servidor -->
+      <div class="error-msg" *ngIf="formErrors?.general">
+        {{ formErrors.general }}
+      </div>
 
-      <select name="rol" [(ngModel)]="rol" required>
-        <option value="" disabled selected>Tipo de usuario</option>
-        <option value="alumno">Alumno</option>
-        <option value="entrenador">Entrenador</option>
-      </select>
+      <!-- NOMBRE -->
+      <div class="field"
+           [ngClass]="{
+             'invalid': ((nombreCtrl.invalid && (nombreCtrl.touched || submitted)) || formErrors?.nombre),
+             'valid':   (nombreCtrl.valid   && (nombreCtrl.touched || submitted))
+           }">
+        <input class="control"
+               type="text"
+               name="nombre"
+               [(ngModel)]="nombre"
+               placeholder="Nombres"
+               required
+               minlength="2"
+               autocomplete="given-name"
+               #nombreCtrl="ngModel" />
+        <div class="error-msg"
+             *ngIf="(nombreCtrl.invalid && (nombreCtrl.touched || submitted)) || formErrors?.nombre">
+          <span *ngIf="formErrors?.nombre; else nombreAuto">{{ formErrors.nombre }}</span>
+          <ng-template #nombreAuto>
+            <span *ngIf="nombreCtrl.errors?.['required']">Ingresa tu nombre.</span>
+            <span *ngIf="nombreCtrl.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- APELLIDOS -->
+      <div class="field"
+           [ngClass]="{
+             'invalid': ((apellidoCtrl.invalid && (apellidoCtrl.touched || submitted)) || formErrors?.apellido),
+             'valid':   (apellidoCtrl.valid   && (apellidoCtrl.touched || submitted))
+           }">
+        <input class="control"
+               type="text"
+               name="apellido"
+               [(ngModel)]="apellido"
+               placeholder="Apellidos"
+               required
+               minlength="2"
+               autocomplete="family-name"
+               #apellidoCtrl="ngModel" />
+        <div class="error-msg"
+             *ngIf="(apellidoCtrl.invalid && (apellidoCtrl.touched || submitted)) || formErrors?.apellido">
+          <span *ngIf="formErrors?.apellido; else apellidoAuto">{{ formErrors.apellido }}</span>
+          <ng-template #apellidoAuto>
+            <span *ngIf="apellidoCtrl.errors?.['required']">Ingresa tus apellidos.</span>
+            <span *ngIf="apellidoCtrl.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="field"
+           [ngClass]="{
+             'invalid': ((emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors?.email),
+             'valid':   (emailCtrl.valid   && (emailCtrl.touched || submitted))
+           }">
+        <input class="control"
+               type="email"
+               name="email"
+               [(ngModel)]="email"
+               placeholder="E-Mail"
+               required
+               email
+               autocomplete="email"
+               #emailCtrl="ngModel" />
+        <div class="error-msg"
+             *ngIf="(emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors?.email">
+          <span *ngIf="formErrors?.email; else emailAuto">{{ formErrors.email }}</span>
+          <ng-template #emailAuto>
+            <span *ngIf="emailCtrl.errors?.['required']">Ingresa tu email.</span>
+            <span *ngIf="emailCtrl.errors?.['email']">Formato de email inválido.</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="field"
+           [ngClass]="{
+             'invalid': (((passwordTouched || submitted) && !isPasswordValid()) || formErrors?.password),
+             'valid':   (isPasswordValid() && (passwordTouched || submitted))
+           }">
+
+        <input class="control"
+               type="password"
+               name="password"
+               [(ngModel)]="password"
+               placeholder="Contraseña"
+               autocomplete="new-password"
+               required
+               aria-describedby="password-help"
+               (input)="passwordTouched = true"
+               (blur)="passwordTouched = true" />
+
+        <!-- Mensaje rojo SOLO si hay error e interacción -->
+        <div class="error-msg"
+             *ngIf="(((passwordTouched || submitted) && !isPasswordValid()) || formErrors?.password)">
+          {{ formErrors?.password || firstPasswordError() }}
+        </div>
+
+        <!-- Barra + requisitos: solo cuando hay interacción y es inválida -->
+        <ng-container *ngIf="(passwordTouched || submitted) && password && !isPasswordValid()">
+          <div class="strength" [ngClass]="strengthClass()">
+            <div class="strength-top">
+              <span id="password-help" class="strength-label">Fuerza: {{ strengthLabel() }}</span>
+              <span class="strength-min">Mínimo {{ MIN_PASSWORD_LEN }} carac.</span>
+            </div>
+            <div class="meter">
+              <div class="meter-bar" [style.width.%]="passwordScorePercent()"></div>
+            </div>
+          </div>
+
+          <ul class="policy-list">
+            <li class="policy-item" [class.ok]="hasUpper()">Mayúscula (A-Z)</li>
+            <li class="policy-item" [class.ok]="hasLower()">Minúscula (a-z)</li>
+            <li class="policy-item" [class.ok]="hasDigit()">Número (0-9)</li>
+            <li class="policy-item" [class.ok]="hasSpecial()">Símbolo (p. ej. !@#$%)</li>
+            <li class="policy-item" [class.ok]="hasMinLen()">Mínimo {{ MIN_PASSWORD_LEN }} caracteres</li>
+            <li class="policy-item" [class.ok]="hasNoSpaces()">Sin espacios</li>
+            <li class="policy-item" [class.ok]="noPersonalData()">No contiene tu nombre/apellido/usuario email</li>
+          </ul>
+        </ng-container>
+      </div>
+
+      <!-- CONFIRM PASSWORD -->
+      <div class="field"
+           [ngClass]="{
+             'invalid': (((confirmTouched || submitted) && password !== confirmPassword) || formErrors?.confirmPassword),
+             'valid':   (confirmPassword && password === confirmPassword && (confirmTouched || submitted))
+           }">
+        <input class="control"
+               type="password"
+               name="confirmPassword"
+               [(ngModel)]="confirmPassword"
+               placeholder="Confirmar contraseña"
+               required
+               autocomplete="new-password"
+               (input)="confirmTouched = true"
+               (blur)="confirmTouched = true" />
+        <div class="error-msg"
+             *ngIf="(((confirmTouched || submitted) && password !== confirmPassword) || formErrors?.confirmPassword)">
+          {{ formErrors?.confirmPassword || 'Las contraseñas no coinciden.' }}
+        </div>
+      </div>
+
+      <!-- ROL -->
+      <div class="field"
+           [ngClass]="{
+             'invalid': (((roleTouched || submitted) && !rol) || formErrors?.rol),
+             'valid':   (!!rol && (roleTouched || submitted))
+           }">
+        <select class="control"
+                name="rol"
+                [(ngModel)]="rol"
+                required
+                (blur)="roleTouched = true"
+                (change)="roleTouched = true">
+          <option value="" disabled>Tipo de usuario</option>
+          <option value="alumno">Alumno</option>
+          <option value="entrenador">Entrenador</option>
+        </select>
+        <div class="error-msg" *ngIf="((roleTouched || submitted) && !rol) || formErrors?.rol">
+          {{ formErrors?.rol || 'Selecciona un tipo de usuario.' }}
+        </div>
+      </div>
 
       <div class="divider-form"></div>
       <span class="login-google-label">Inicia sesión con</span>
 
-      <!-- Contenedor centrado del botón oficial de Google -->
+      <!-- Botón de Google -->
       <div class="google-wrap">
         <div #googleSignInBtn id="googleSignInBtn"></div>
       </div>
 
-      <button type="submit" class="continue-btn">Continuar</button>
+      <!-- Botón sticky -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="continue-btn"
+          [disabled]="!nombre || !apellido || !email || !rol || !isPasswordValid() || password !== confirmPassword">
+          Continuar
+        </button>
+      </div>
     </form>
   </div>
 </div>
-

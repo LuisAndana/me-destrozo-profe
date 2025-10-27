@@ -1,12 +1,9 @@
-// src/app/core/services/cliente.service.ts
-import { Injectable } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
-
-
-/* ====== MODELOS QUE YA TENÍAS ====== */
 export interface UserProfile {
   id: number;
   nombre?: string;
@@ -36,90 +33,86 @@ export interface UpdatePerfilBody {
   imc?: number;
 }
 
-
 export interface RutinaItem { nombre: string; duracionMin: number; }
 export interface RutinaHoy { totalMin: number; bloques: RutinaItem[]; }
 export interface ProgresoSemanal { porcentaje: number; sesionesCompletadas: number; objetivoSemanal: number; }
 export interface Mensaje { id: number; asunto: string; resumen: string; fecha: string; leido: boolean; }
 export interface BandejaMensajes { nuevos: number; mensajes: Mensaje[]; }
-
-/* ====== MODELOS NUEVOS ====== */
 export interface CambioPerfil {
   id: number;
   fecha: string;   // ISO
   cambios: Record<string, unknown>;
-  campo: string;   // p.ej. "pesoKg", "estaturaCm", "nombre"
+  campo: string;   // "pesoKg", "estaturaCm", "nombre", etc.
   antes: string | number | null;
   despues: string | number | null;
 }
 
-/** Patch permitido para actualizar perfil (ajústalo a tu backend si es necesario) */
-export interface PerfilPatch {
-  nombre?: string;
-  sexo?: 'Masculino' | 'Femenino' | 'Otro';
-  pesoKg?: number | null;
-  estaturaCm?: number | null;
-  edad?: number | null;
-  problemas?: string | null;
-  enfermedades?: string[];  // si decides enviarlas como lista
-  imc?: number | null;
-}
-
-
+@Injectable({ providedIn: 'root' })
 export class ClienteService {
-  // 👇 añade el prefijo del router
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
   private api = `${environment.apiBase}/usuarios`;
 
-  constructor(private http: HttpClient) {}
+  private jsonHeaders(): HttpHeaders {
+    const token = this.auth.getToken();
+    let h = new HttpHeaders({ 'Content-Type': 'application/json' });
+    if (token) h = h.set('Authorization', `Bearer ${token}`);
+    return h;
+  }
 
-  private headers(): HttpHeaders {
-    const token = localStorage.getItem('token') || '';
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    });
+  private formHeaders(): HttpHeaders {
+    const token = this.auth.getToken();
+    let h = new HttpHeaders();
+    if (token) h = h.set('Authorization', `Bearer ${token}`);
+    return h;
   }
 
   getPerfil(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.api}/me`, { headers: this.headers() });
-  }
-      /* =================== DASHBOARD =================== */
-  getRutinaHoy(userId: number): Observable<RutinaHoy> {
-    return this.http.get<RutinaHoy>(`${this.api}/rutinas/hoy`, {
-      headers: this.headers(), params: { userId: String(userId) },
-    });
+    return this.http.get<UserProfile>(`${this.api}/me`, { headers: this.jsonHeaders() });
   }
 
-  getProgresoSemanal(userId: number): Observable<ProgresoSemanal> {
-    return this.http.get<ProgresoSemanal>(`${this.api}/progreso/semana`, {
-      headers: this.headers(), params: { userId: String(userId) },
-    });
-  }
-
-  getMensajes(userId: number, limit = 5): Observable<BandejaMensajes> {
-    return this.http.get<BandejaMensajes>(`${this.api}/mensajes`, {
-      headers: this.headers(), params: { userId: String(userId), limit: String(limit) },
-    });
+  /** Actualiza datos del perfil y devuelve el perfil resultante. */
+  updatePerfil(body: UpdatePerfilBody): Observable<UserProfile> {
+    const url = this.api + '/perfil'; // <- sin backslashes
+    return this.http.patch<UserProfile>(url, body, { headers: this.jsonHeaders() });
   }
 
   uploadAvatar(file: File): Observable<{ url: string }> {
-    const fd = new FormData(); fd.append('avatar', file);
-    // sin Content-Type manual:
-    const token = localStorage.getItem('token') || '';
-    return this.http.post<{ url: string }>(`${this.api}/perfil/avatar`, fd, {
-      headers: token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined,
+    const fd = new FormData();
+    fd.append('avatar', file);
+    return this.http.post<{ url: string }>(`${this.api}/perfil/avatar`, fd, { headers: this.formHeaders() });
+  }
+
+  getCambios(limit = 30): Observable<CambioPerfil[]> {
+    return this.http.get<CambioPerfil[]>(`${this.api}/perfil/cambios`, {
+      headers: this.jsonHeaders(), params: { limit: String(limit) },
     });
   }
 
-
-  /**
-   * Historial de cambios del usuario.
-   * Endpoint sugerido: GET /users/:id/changes?limit=30
-   * Si tu backend lo expone como /perfil/cambios, cámbialo en la URL.
-   */
-  getCambios(limit = 30): Observable<CambioPerfil[]> {
-    return this.http.get<CambioPerfil[]>(`${this.api}/perfil/cambios`, {
-      params: { limit: String(limit) },
+  getRutinaHoy(userId?: number): Observable<RutinaHoy> {
+    const id = this.requireUserId(userId);
+    return this.http.get<RutinaHoy>(`${this.api}/rutinas/hoy`, {
+      headers: this.jsonHeaders(), params: { userId: String(id) },
     });
+  }
+
+  getProgresoSemanal(userId?: number): Observable<ProgresoSemanal> {
+    const id = this.requireUserId(userId);
+    return this.http.get<ProgresoSemanal>(`${this.api}/progreso/semana`, {
+      headers: this.jsonHeaders(), params: { userId: String(id) },
+    });
+  }
+
+  getMensajes(userId?: number, limit = 5): Observable<BandejaMensajes> {
+    const id = this.requireUserId(userId);
+    return this.http.get<BandejaMensajes>(`${this.api}/mensajes`, {
+      headers: this.jsonHeaders(), params: { userId: String(id), limit: String(limit) },
+    });
+  }
+
+  private requireUserId(userId?: number): number {
+    const id = userId ?? this.auth.user?.id_usuario;
+    if (id == null) throw new Error('No hay usuario autenticado.');
+    return id;
   }
 }

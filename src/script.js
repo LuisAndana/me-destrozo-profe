@@ -11,3 +11,5 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(withInterceptors([authInterceptor])),
   ],
 });
+
+window.alert = window.__originalAlert;

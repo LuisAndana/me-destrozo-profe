@@ -1,16 +1,57 @@
 <form class="perfil ui-pro" [formGroup]="form" (ngSubmit)="guardar()">
   <!-- HERO / encabezado -->
-  <section class="card profile-hero">
-    <div class="avatar-wrap">
-      <div class="avatar-lg ring">
-        <span>{{ inicial || '👤' }}</span>
-      </div>
+<section class="card profile-hero">
+  <!-- Columna del avatar -->
+  <div class="avatar-col">
+    <div class="avatar-lg ring">
+      <ng-container *ngIf="avatarUrl; else inicialTpl">
+        <img
+          [src]="avatarUrl"
+          alt="Foto de perfil"
+          class="avatar-img"
+          (error)="avatarUrl = null" />
+      </ng-container>
+      <ng-template #inicialTpl>
+        <span class="avatar-inicial">{{ inicial || '👤' }}</span>
+      </ng-template>
     </div>
-    <div class="hero-meta">
-      <h2 class="name">{{ form.get('nombre_completo')?.value || 'Tu nombre' }}</h2>
-      <p class="email muted">{{ form.get('email')?.value || '' }}</p>
+  </div>
+
+  <!-- Columna de datos + acciones -->
+  <div class="hero-meta">
+    <h2 class="name">{{ form.get('nombre_completo')?.value || 'Tu nombre' }}</h2>
+    <p class="email muted">{{ form.get('email')?.value || '' }}</p>
+
+    <div class="avatar-actions">
+      <!-- input oculto accesible -->
+      <input
+        #avatarInput
+        id="avatarInput"
+        type="file"
+        accept="image/*"
+        (change)="onAvatarChange($event)"
+        class="visually-hidden" />
+
+      <button
+        type="button"
+        class="btn primary tiny"
+        (click)="avatarInput.click()"
+        [disabled]="uploading">
+        {{ uploading ? 'Subiendo…' : 'Cambiar foto' }}
+      </button>
+
+      <button
+        *ngIf="avatarUrl"
+        type="button"
+        class="btn ghost tiny"
+        (click)="removeAvatar()"
+        [disabled]="uploading">
+        Quitar foto
+      </button>
     </div>
-  </section>
+  </div>
+</section>
+
 
   <!-- GRID principal -->
   <div class="grid-2">

@@ -20,8 +20,11 @@ export class PerfilComponent implements OnInit {
   saving = false;
   estado = '';
 
-  // <<<<<< NUEVO: inicial para el avatar >>>>>>
+  // === Avatar ===
   inicial = '';
+  avatarUrl: string | null = null;   // url/preview que se muestra en el círculo
+  uploading = false;
+  private readonly maxAvatarMB = 4;  // límite de tamaño (ajústalo)
 
   enfermedadesCatalogo = [
     'Insuficiencia renal', 'Cáncer', 'Diabetes', 'Tiroides',
@@ -71,9 +74,7 @@ export class PerfilComponent implements OnInit {
     let letters = '';
     if (nombre) {
       const parts = nombre.split(/\s+/).filter(Boolean);
-      letters = parts.length === 1
-        ? parts[0][0]
-        : parts[0][0] + parts[parts.length - 1][0];
+      letters = parts.length === 1 ? parts[0][0] : parts[0][0] + parts[parts.length - 1][0];
     } else if (email) {
       letters = email[0];
     }
@@ -102,11 +103,72 @@ export class PerfilComponent implements OnInit {
             ctrl.setValue(set.has(this.enfermedadesCatalogo[i]));
           });
 
+          // Avatar desde el backend
+          this.avatarUrl = p.avatar_url || null;
+
           this.calcIMC();
-          this.refreshInicial(); // <<<<<< calcula la inicial >>>>>>
+          this.refreshInicial();
           this.estado = '';
         },
         error: () => (this.estado = 'No se pudo cargar el perfil')
+      });
+  }
+
+  // === Selección / subida de foto ===
+  onAvatarChange(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.estado = 'El archivo debe ser una imagen.';
+      input.value = '';
+      return;
+    }
+    const maxBytes = this.maxAvatarMB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      this.estado = `La imagen supera ${this.maxAvatarMB} MB.`;
+      input.value = '';
+      return;
+    }
+
+    // Previsualización inmediata
+    const reader = new FileReader();
+    reader.onload = () => (this.avatarUrl = String(reader.result || ''));
+    reader.readAsDataURL(file);
+
+    // Subir al servidor
+    this.uploading = true;
+    this.estado = 'Subiendo foto…';
+    this.api.uploadAvatar(file)
+      .pipe(finalize(() => (this.uploading = false)))
+      .subscribe({
+        next: (r) => {
+          this.avatarUrl = r.avatar_url; // URL final del backend
+          this.estado = 'Foto actualizada';
+        },
+        error: () => {
+          this.estado = 'No se pudo subir la foto';
+        }
+      });
+
+    // Limpia el input para poder elegir la misma imagen si se desea
+    input.value = '';
+  }
+
+  // === Quitar foto ===
+  removeAvatar() {
+    if (!this.avatarUrl) return;
+    this.uploading = true;
+    this.estado = 'Quitando foto…';
+    this.api.deleteAvatar()
+      .pipe(finalize(() => (this.uploading = false)))
+      .subscribe({
+        next: () => {
+          this.avatarUrl = null;
+          this.estado = 'Foto eliminada';
+        },
+        error: () => (this.estado = 'No se pudo eliminar la foto')
       });
   }
 

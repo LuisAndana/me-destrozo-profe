@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
+// src/app/core/services/perfil.service.ts
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface PerfilVM {
   nombre_completo: string;
@@ -12,15 +14,31 @@ export interface PerfilVM {
   edad: number | null;
   imc: number | null;
   problemas: string | null;
-  enfermedades: string[]; // en UI lo manejamos como array
+  enfermedades: string[];
+  avatar_url?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
 export class PerfilService {
-  // Ajusta si tu API corre en otro host/puerto o usa environment.api
-  private base = 'http://localhost:8000/usuarios';
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
 
-  constructor(private http: HttpClient) {}
+  // Ajustado a environment
+  private base = `${environment.apiBase}/usuarios`;
+
+  private jsonHeaders(): HttpHeaders {
+    const token = this.auth.getToken();
+    let h = new HttpHeaders({ 'Content-Type': 'application/json' });
+    if (token) h = h.set('Authorization', `Bearer ${token}`);
+    return h;
+  }
+
+  private formHeaders(): HttpHeaders {
+    const token = this.auth.getToken();
+    let h = new HttpHeaders();
+    if (token) h = h.set('Authorization', `Bearer ${token}`);
+    return h;
+  }
 
   private parseEnfermedades(raw: unknown): string[] {
     if (Array.isArray(raw)) {
@@ -29,7 +47,6 @@ export class PerfilService {
     if (typeof raw === 'string') {
       const s = raw.trim();
       if (!s) return [];
-      // Si viene como JSON en string
       if (s.startsWith('[')) {
         try {
           const arr = JSON.parse(s);
@@ -38,51 +55,65 @@ export class PerfilService {
           }
         } catch {}
       }
-      // Si viene CSV
       return s.split(',').map(t => t.trim()).filter(Boolean);
     }
     return [];
-    }
+  }
 
   getPerfil(): Observable<PerfilVM> {
-    return this.http.get<any>(`${this.base}/me`).pipe(
+    return this.http.get<any>(`${this.base}/me`, { headers: this.jsonHeaders() }).pipe(
       map(r => {
         const enfermedades = this.parseEnfermedades(r?.enfermedades);
+        const avatar_url: string | null =
+          r?.avatar_url ?? r?.avatar ?? r?.foto_url ?? null;
+
         return {
           nombre_completo: `${r?.nombre ?? ''} ${r?.apellido ?? ''}`.trim(),
           email: r?.email ?? '',
-          sexo: r?.sexo ?? '',
-          // backend ahora expone snake_case
+          sexo: (r?.sexo ?? '') as PerfilVM['sexo'],
           peso_kg: r?.peso_kg ?? null,
           estatura_cm: r?.estatura_cm ?? null,
           edad: r?.edad ?? null,
           imc: r?.imc ?? null,
           problemas: r?.problemas ?? '',
-          enfermedades
+          enfermedades,
+          avatar_url
         } as PerfilVM;
       })
     );
   }
 
   savePerfil(vm: Partial<PerfilVM>): Observable<PerfilVM> {
-    const enfermedadesList =
-      (vm.enfermedades ?? []).filter(s => typeof s === 'string' && !!s.trim());
+    const enfermedadesList = (vm.enfermedades ?? [])
+      .filter(s => typeof s === 'string' && !!s.trim());
 
     const body = {
       sexo: vm.sexo || null,
       edad: vm.edad ?? null,
-      // enviamos snake_case; el backend también acepta camel, pero mejor consistente
       peso_kg: vm.peso_kg ?? null,
       estatura_cm: vm.estatura_cm ?? null,
       problemas: (vm.problemas ?? '').trim() || null,
-      // enviar como array -> el backend lo guarda como JSON
       enfermedades: enfermedadesList
     };
 
     return this.http.patch<PerfilVM>(
       `${this.base}/perfil`,
       body,
-      { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
+      { headers: this.jsonHeaders() }
     );
+  }
+
+  /** Sube el avatar del usuario.
+   *  Espera que el backend responda: { url: string } y devolvemos { avatar_url } */
+  uploadAvatar(file: File): Observable<{ avatar_url: string }> {
+    const fd = new FormData();
+    fd.append('avatar', file);
+    return this.http.post<{ url: string }>(`${this.base}/perfil/avatar`, fd, { headers: this.formHeaders() })
+      .pipe(map(r => ({ avatar_url: r.url })));
+  }
+
+  /** Elimina el avatar del usuario. */
+  deleteAvatar(): Observable<void> {
+    return this.http.delete<void>(`${this.base}/perfil/avatar`, { headers: this.jsonHeaders() });
   }
 }

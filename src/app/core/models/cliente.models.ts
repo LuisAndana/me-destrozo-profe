@@ -7,6 +7,7 @@ export interface UserProfile {
   nombre?: string | null;
   apellido?: string | null;
   email: string;
+  provider?: 'local' | 'google';
   rol: string;
   sexo?: Sexo | null;
   edad?: number | null;

@@ -1,13 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
-   <meta name="google-signin-client_id" content="TU_CLIENT_ID.apps.googleusercontent.com" />
+  <meta charset="utf-8" />
+  <title>MyApp</title>
+  <base href="/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Google Identity Services (GSI) -->
+  <meta name="google-signin-client_id" content="TU_CLIENT_ID.apps.googleusercontent.com" />
   <script src="https://accounts.google.com/gsi/client" async defer
           onload="window.onGoogleLibraryLoad && window.onGoogleLibraryLoad()"></script>
-  <title>MyApp</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Google Fonts: Outfit (se carga vía <link>, no @import) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 </head>
 <body>
   <app-root></app-root>
