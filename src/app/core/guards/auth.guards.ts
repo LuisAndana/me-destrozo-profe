@@ -65,9 +65,34 @@ export const roleGuard = (expectedRole: string): CanActivateFn => {
 
     if (rol && expected && rol === expected) return true;
 
-    // Redirige a home por rol si se conoce; si no, a /login
-    if (rol === 'entrenador') return router.createUrlTree(['/entrenador']);
+    // ⬇⬇ Ajuste de redirección por rol
+    if (rol === 'entrenador') return router.createUrlTree(['/pagina-principal-entrenador']);
     if (rol === 'cliente')    return router.createUrlTree(['/cliente']);
+
     return router.createUrlTree(['/login'], { queryParams: { r: state.url } });
   };
+};
+
+/**
+ * Guard específico para la ruta '/perfil' (perfil de CLIENTE).
+ * Si el usuario es ENTRENADOR, lo redirige a '/entrenador/perfil'.
+ * Si es cliente, permite el acceso a '/perfil'.
+ */
+export const perfilRoleGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+
+  // Requiere token
+  if (!readToken()) {
+    return router.createUrlTree(['/login'], { queryParams: { r: state.url } });
+  }
+
+  const usuario = readUser();
+  const rol = normalizeRole(usuario?.rol);
+
+  if (rol === 'entrenador') {
+    return router.createUrlTree(['/entrenador/perfil']);
+  }
+
+  // Cliente: permite seguir en /perfil
+  return true;
 };

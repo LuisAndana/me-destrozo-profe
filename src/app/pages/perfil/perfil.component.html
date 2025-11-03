@@ -1,57 +1,56 @@
 <form class="perfil ui-pro" [formGroup]="form" (ngSubmit)="guardar()">
   <!-- HERO / encabezado -->
-<section class="card profile-hero">
-  <!-- Columna del avatar -->
-  <div class="avatar-col">
-    <div class="avatar-lg ring">
-      <ng-container *ngIf="avatarUrl; else inicialTpl">
-        <img
-          [src]="avatarUrl"
-          alt="Foto de perfil"
-          class="avatar-img"
-          (error)="avatarUrl = null" />
-      </ng-container>
-      <ng-template #inicialTpl>
-        <span class="avatar-inicial">{{ inicial || '👤' }}</span>
-      </ng-template>
+  <section class="card profile-hero">
+    <!-- Columna del avatar -->
+    <div class="avatar-col">
+      <div class="avatar-lg ring">
+        <ng-container *ngIf="avatarUrl; else inicialTpl">
+          <img
+            [src]="avatarUrl"
+            alt="Foto de perfil"
+            class="avatar-img"
+            (error)="avatarUrl = null" />
+        </ng-container>
+        <ng-template #inicialTpl>
+          <span class="avatar-inicial">{{ inicial || '👤' }}</span>
+        </ng-template>
+      </div>
     </div>
-  </div>
 
-  <!-- Columna de datos + acciones -->
-  <div class="hero-meta">
-    <h2 class="name">{{ form.get('nombre_completo')?.value || 'Tu nombre' }}</h2>
-    <p class="email muted">{{ form.get('email')?.value || '' }}</p>
+    <!-- Columna de datos + acciones -->
+    <div class="hero-meta">
+      <h2 class="name">{{ form.get('nombre_completo')?.value || 'Tu nombre' }}</h2>
+      <p class="email muted">{{ form.get('email')?.value || '' }}</p>
 
-    <div class="avatar-actions">
-      <!-- input oculto accesible -->
-      <input
-        #avatarInput
-        id="avatarInput"
-        type="file"
-        accept="image/*"
-        (change)="onAvatarChange($event)"
-        class="visually-hidden" />
+      <div class="avatar-actions">
+        <!-- input oculto accesible -->
+        <input
+          #avatarInput
+          id="avatarInput"
+          type="file"
+          accept="image/*"
+          (change)="onAvatarChange($event)"
+          class="visually-hidden" />
 
-      <button
-        type="button"
-        class="btn primary tiny"
-        (click)="avatarInput.click()"
-        [disabled]="uploading">
-        {{ uploading ? 'Subiendo…' : 'Cambiar foto' }}
-      </button>
+        <button
+          type="button"
+          class="btn primary tiny"
+          (click)="avatarInput.click()"
+          [disabled]="uploading">
+          {{ uploading ? 'Subiendo…' : 'Cambiar foto' }}
+        </button>
 
-      <button
-        *ngIf="avatarUrl"
-        type="button"
-        class="btn ghost tiny"
-        (click)="removeAvatar()"
-        [disabled]="uploading">
-        Quitar foto
-      </button>
+        <button
+          *ngIf="avatarUrl"
+          type="button"
+          class="btn ghost tiny"
+          (click)="removeAvatar()"
+          [disabled]="uploading">
+          Quitar foto
+        </button>
+      </div>
     </div>
-  </div>
-</section>
-
+  </section>
 
   <!-- GRID principal -->
   <div class="grid-2">
@@ -64,11 +63,13 @@
           class="textarea large"
           formControlName="problemas"
           placeholder="Describe lesiones, limitaciones o antecedentes médicos"></textarea>
-        <span class="help muted">Mientras más contexto nos des, mejor se ajustarán tus rutinas.</span>
+        <span class="help muted">
+          Mientras más contexto nos des, mejor se ajustarán tus rutinas.
+        </span>
       </label>
     </section>
 
-    <!-- Datos físicos (compacto) -->
+    <!-- Datos físicos -->
     <section class="card block">
       <h3 class="card-title">Datos físicos</h3>
 
@@ -101,13 +102,15 @@
         <label class="field full">
           <span class="label">IMC</span>
           <input type="text" formControlName="imc" readonly />
-          <span class="help muted">Se calcula automáticamente a partir de tu peso y estatura.</span>
+          <span class="help muted">
+            Se calcula automáticamente a partir de tu peso y estatura.
+          </span>
         </label>
       </div>
     </section>
   </div>
 
-  <!-- Enfermedades (rejilla organizada) -->
+  <!-- Enfermedades -->
   <section class="card">
     <div class="card-title-row">
       <h3 class="card-title">Enfermedades</h3>
@@ -127,7 +130,18 @@
   <div class="actions sticky">
     <span class="status muted">{{ estado }}</span>
     <div class="spacer"></div>
-    <button type="button" class="btn ghost" (click)="cancelar()" [disabled]="saving || loading">Cancelar</button>
-    <button type="submit" class="btn primary" [disabled]="saving || loading">Guardar cambios</button>
+    <button
+      type="button"
+      class="btn ghost"
+      (click)="cancelar()"
+      [disabled]="saving || loading">
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      class="btn primary"
+      [disabled]="saving || loading">
+      Guardar cambios
+    </button>
   </div>
 </form>

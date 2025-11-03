@@ -1,35 +1,132 @@
-<div class="layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="user">
-      <div class="avatar">E</div>
-      <p>Entrenador</p>
-    </div>
-    <nav>
-      <a routerLink="/entrenador" routerLinkActive="active"><i class="fas fa-star"></i> Reseñas</a>
-      <a href="#"><i class="fas fa-dumbbell"></i> Rutinas</a>
-      <a href="#"><i class="fas fa-envelope"></i> Mensajes</a>
-      <a href="#"><i class="fas fa-users"></i> Clientes</a>
-      <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+<div class="app" [class.menu-open]="menuOpen" [class.collapsed]="collapsed">
+  <!-- BOTÓN FLECHA (colapso) -->
+  <button type="button" class="rail-toggle" (click)="toggleCollapse()" [attr.aria-label]="collapsed ? 'Expandir menú' : 'Colapsar menú'">
+    <span class="chev" [class.right]="collapsed"></span>
+  </button>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" role="navigation" aria-label="Menú" [attr.aria-hidden]="collapsed && !menuOpen ? 'true' : null">
+    <!-- Usuario -->
+    <a class="brand user-link user-entry" routerLink="/perfil" routerLinkActive="active" aria-label="Abrir perfil de usuario">
+      <div class="avatar">
+        <img *ngIf="fotoUrl && fotoUrl.trim() !== ''" [src]="fotoUrl" alt="Foto de perfil" width="48" height="48" class="avatar-img" />
+        <div *ngIf="!fotoUrl || fotoUrl.trim() === ''" class="avatar-iniciales">{{ inicial }}</div>
+      </div>
+      <div class="user-block">
+        <span class="user-label">Entrenador</span>
+        <span class="user-name">{{ nombre }}</span>
+      </div>
+    </a>
+
+    <!-- Navegación específica del entrenador -->
+    <nav class="nav">
+      <a class="nav-item" routerLink="/entrenador" routerLinkActive="active">
+        <i class="lucide-home"></i><span>Inicio</span>
+      </a>
+
+      <a class="nav-item" routerLink="/entrenador/resenas" routerLinkActive="active">
+        <i class="lucide-star"></i><span>Reseñas</span>
+      </a>
+
+      <a class="nav-item" routerLink="/entrenador/rutinas" routerLinkActive="active">
+        <i class="lucide-dumbbell"></i><span>Rutinas</span>
+      </a>
+
+      <a class="nav-item" routerLink="/entrenador/mensajes" routerLinkActive="active">
+        <i class="lucide-message-square"></i><span>Mensajes</span>
+      </a>
+
+      <a class="nav-item" routerLink="/entrenador/clientes" routerLinkActive="active">
+        <i class="lucide-users"></i><span>Clientes</span>
+      </a>
+
+      <a class="nav-item" routerLink="/entrenador/configuracion" routerLinkActive="active">
+        <i class="lucide-settings"></i><span>Configuración</span>
+      </a>
     </nav>
-    <div class="logout">
-      <a routerLink="/" (click)="logout()"><i class="fas fa-sign-out-alt"></i> Salir</a>
-    </div>
+
+    <button class="logout" type="button" (click)="logout()">
+      <i class="lucide-log-out"></i><span>Salir</span>
+    </button>
   </aside>
 
-  <!-- Contenido -->
+  <!-- ===== CONTENT ===== -->
   <main class="content">
-    <header>
-      <input type="text" placeholder="Buscar..">
-      <i class="fas fa-search"></i>
-    </header>
-    <section class="hero">
-      <div class="overlay"></div>
-      <div class="hero-content">
-        <img src="assets/logo.png" alt="FitMan Logo" class="logo">
-        <h1>El primer paso es el que más significa</h1>
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="container topbar-inner edge-left">
+        <button class="hamburger" type="button" aria-label="Abrir menú" (click)="menuOpen = !menuOpen">
+          <i class="lucide-menu"></i>
+        </button>
+
+        <form class="search" role="search">
+          <i class="lucide-search" aria-hidden="true"></i>
+          <input type="search" placeholder="Buscar clientes, rutinas, mensajes..." aria-label="Buscar" />
+        </form>
+
+        <button class="notif" type="button" aria-label="Notificaciones">
+          <i class="lucide-bell" aria-hidden="true"></i>
+          <span class="dot" aria-hidden="true"></span>
+        </button>
+
+        <a class="profile" aria-label="Abrir perfil" routerLink="/perfil" routerLinkActive="active">
+          <img [src]="fotoUrl && fotoUrl.trim() !== '' ? fotoUrl : 'assets/img/default-user.png'"
+               width="36" height="36" alt="Foto de perfil" decoding="async" fetchpriority="high" />
+          <span>{{ nombre }}</span>
+        </a>
       </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" style="--hero-bg: url('https://images.unsplash.com/photo-1517963628607-8e2e9a9da4d6?auto=format&fit=crop&w=1600&q=80')">
+      <div class="container hero-inner edge-left">
+        <h1>Guía y motiva a tus clientes</h1>
+        <p class="sub">Organiza rutinas, da seguimiento y mantén la comunicación.</p>
+        <div class="hero-actions">
+          <a routerLink="/entrenador/rutinas" class="btn btn-accent btn-lg btn-glow">
+            <i class="lucide-dumbbell"></i> Crear rutina
+          </a>
+          <a routerLink="/entrenador/clientes" class="btn btn-outline-light btn-lg">
+            <i class="lucide-users"></i> Gestionar clientes
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards -->
+    <section class="container grid edge-left">
+      <!-- Agenda / Sesiones de hoy -->
+      <article class="card">
+        <header>
+          <h3>Agenda de hoy</h3>
+          <span class="badge">{{ sesionesHoy }} ses.</span>
+        </header>
+        <ul class="list">
+          <li *ngIf="sesionesHoy === 0">No tienes sesiones programadas.</li>
+          <!-- Si quieres listar sesiones, itera aquí -->
+        </ul>
+        <a routerLink="/entrenador/rutinas" class="btn btn-secondary btn-block">Abrir agenda</a>
+      </article>
+
+      <!-- Clientes activos (resumen) -->
+      <article class="card">
+        <header>
+          <h3>Clientes activos</h3>
+          <span class="badge">{{ clientesActivos }}</span>
+        </header>
+        <p class="muted" *ngIf="clientesActivos === 0">Aún no tienes clientes asignados.</p>
+        <a routerLink="/entrenador/clientes" class="btn btn-secondary btn-block">Gestionar clientes</a>
+      </article>
+
+      <!-- Mensajes -->
+      <article class="card">
+        <header>
+          <h3>Mensajes</h3>
+          <span class="badge badge-info">{{ mensajesNuevos }} nuevos</span>
+        </header>
+        <p class="muted" *ngIf="mensajesNuevos === 0">No hay mensajes nuevos.</p>
+        <a routerLink="/entrenador/mensajes" class="btn btn-secondary btn-block">Ver mensajes</a>
+      </article>
     </section>
   </main>
 </div>
-

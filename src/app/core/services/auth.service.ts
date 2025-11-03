@@ -1,4 +1,5 @@
-﻿import { Injectable, inject } from '@angular/core';
+﻿// src/app/core/services/auth.service.ts
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, map, switchMap, tap, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -23,6 +24,7 @@ export type Usuario = {
 const TOKEN_KEY = 'gym_token';
 const LEGACY_TOKEN_KEY = 'token';
 const USER_KEY = 'gym_user';
+
 const EXTERNAL_AUTH_KEYS = ['firebaseUser','googleUser','g_token','authUser','oauth_user'];
 
 @Injectable({ providedIn: 'root' })
@@ -33,12 +35,19 @@ export class AuthService {
   user$ = this._user$.asObservable();
   get user() { return this._user$.value; }
 
-  constructor() {
-    const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
-    const current = localStorage.getItem(TOKEN_KEY);
-    if (legacy && !current) localStorage.setItem(TOKEN_KEY, legacy);
-    if (!this.getToken() && this._user$.value) this.setUser(null);
-  }
+ constructor() {
+  // Limpia tokens de sesiones antiguas o de Google
+  const keysToRemove = [
+    'token', 'g_token', 'authUser', 'firebaseUser', 'googleUser', 'oauth_user'
+  ];
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+
+  // Asegura que no se reinyecten tokens viejos
+  localStorage.removeItem('token'); // legacy
+  const current = localStorage.getItem(TOKEN_KEY);
+  if (!current) this.setUser(null);
+}
+
 
   get isAuthenticated() { return !!this.getToken(); }
 
@@ -72,10 +81,12 @@ export class AuthService {
   }
 
   public setUser(u: Usuario | null) {
-    if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
-    else localStorage.removeItem(USER_KEY);
-    this._user$.next(u);
-  }
+  if (u) localStorage.setItem('gym_user', JSON.stringify(u));
+  else localStorage.removeItem('gym_user');
+  this._user$.next(u);
+}
+
+
 
   private saveToken(token: string) {
     const t = (token || '').trim();
@@ -87,6 +98,7 @@ export class AuthService {
     return t.trim() ? t.trim() : null;
   }
 
+  // ---------- API ----------
   login(body: LoginBody): Observable<Usuario> {
     const url = environment.apiBase + environment.endpoints.login;
     return this.http.post<LoginApiResp>(url, body).pipe(
@@ -104,24 +116,48 @@ export class AuthService {
   }
 
   fetchMe(): Observable<Usuario> {
-    const url = environment.apiBase + environment.endpoints.me;
-    const token = this.getToken();
-    if (!token) { this.logout(); return of(null as unknown as Usuario); }
-    return this.http.get<any>(url).pipe(
-      map((r) => this.normalizeUser({ id: r.id, nombre: r.nombre, apellido: r.apellido, email: r.email, rol: r.rol }) as Usuario),
-      tap((u) => this.setUser(u))
+  const url = environment.apiBase + environment.endpoints.me;
+  const token = this.getToken();
+
+  if (!token) {
+    console.warn('[AuthService] No hay token, cerrando sesión.');
+    this.logout();
+    return of(null as unknown as Usuario);
+  }
+
+  const headers = { Authorization: `Bearer ${token}` };
+
+    return this.http.get<any>(url, { headers }).pipe(
+      map((resp) => {
+        const r = resp?.usuario ?? resp;
+        return this.normalizeUser({
+          id: r.id ?? r.id_usuario,
+          nombre: r.nombre,
+          apellido: r.apellido,
+          email: r.email,
+          rol: r.rol,
+        }) as Usuario;
+      }),
+      tap((u) => {
+        if (u) this.setUser(u);
+      })
     );
   }
 
-  /** NO llamar setUser aquí */
-  public patchLocalUser(patch: Partial<Usuario>): void {
-    const current = this.user;
-    if (!current) return;
 
-    const merged: Usuario = { ...current, ...patch } as Usuario;
-    localStorage.setItem(USER_KEY, JSON.stringify(merged));
-    this._user$.next(merged);
-  }
+
+/** Actualiza parcialmente nombre/email visibles sin disparar lógica de setUser. */
+public patchLocalUser(patch: Partial<Usuario>): void {
+  const current = this.user;
+  if (!current) return;
+
+  const merged: Usuario = { ...current, ...patch } as Usuario;
+
+  // Persistimos y emitimos SIN llamar a setUser
+  localStorage.setItem('gym_user', JSON.stringify(merged));
+  this._user$.next(merged); // <- NO setUser aquí
+}
+
 
   logout() {
     localStorage.removeItem(TOKEN_KEY);

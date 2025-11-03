@@ -1,4 +1,3 @@
-// src/app/pages/perfil/perfil.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -22,9 +21,9 @@ export class PerfilComponent implements OnInit {
 
   // === Avatar ===
   inicial = '';
-  avatarUrl: string | null = null;   // url/preview que se muestra en el círculo
+  avatarUrl: string | null = null;   // ahora reflejará foto_url del backend
   uploading = false;
-  private readonly maxAvatarMB = 4;  // límite de tamaño (ajústalo)
+  private readonly maxAvatarMB = 4;  // límite de tamaño
 
   enfermedadesCatalogo = [
     'Insuficiencia renal', 'Cáncer', 'Diabetes', 'Tiroides',
@@ -103,8 +102,8 @@ export class PerfilComponent implements OnInit {
             ctrl.setValue(set.has(this.enfermedadesCatalogo[i]));
           });
 
-          // Avatar desde el backend
-          this.avatarUrl = p.avatar_url || null;
+          // Mostrar imagen desde el backend (foto_url)
+          this.avatarUrl = p.foto_url || null;
 
           this.calcIMC();
           this.refreshInicial();
@@ -144,7 +143,9 @@ export class PerfilComponent implements OnInit {
       .pipe(finalize(() => (this.uploading = false)))
       .subscribe({
         next: (r) => {
-          this.avatarUrl = r.avatar_url; // URL final del backend
+          // Asegurar compatibilidad con backend que usa foto_url
+          const url = r.foto_url || r.avatar_url || null;
+          this.avatarUrl = url ? `${url}?t=${Date.now()}` : null;
           this.estado = 'Foto actualizada';
         },
         error: () => {
@@ -152,7 +153,6 @@ export class PerfilComponent implements OnInit {
         }
       });
 
-    // Limpia el input para poder elegir la misma imagen si se desea
     input.value = '';
   }
 
@@ -195,7 +195,7 @@ export class PerfilComponent implements OnInit {
       .subscribe({
         next: () => {
           this.estado = 'Cambios guardados';
-          this.refreshInicial(); // por si cambia el nombre desde otra parte
+          this.refreshInicial();
         },
         error: () => (this.estado = 'Error al guardar')
       });

@@ -1,0 +1,44 @@
+<article class="card" (click)="verPerfil()">
+  <!-- ===== HEADER CON AVATAR Y INFO ===== -->
+  <div class="media">
+    <div class="avatar">
+      <img *ngIf="trainer.foto_url" [src]="trainer.foto_url" [alt]="trainer.nombre" />
+      <div *ngIf="!trainer.foto_url" class="placeholder">
+        {{ (trainer.nombre || 'E') | slice:0:1 }}
+      </div>
+    </div>
+
+    <div class="head">
+      <h3 class="name">{{ trainer.nombre }}</h3>
+
+      <p class="meta">
+        <span *ngIf="trainer.especialidad">{{ trainer.especialidad }}</span>
+        <span *ngIf="trainer.ciudad" class="dot">•</span>
+        <span *ngIf="trainer.ciudad">{{ trainer.ciudad }}</span>
+        <span *ngIf="trainer.pais">, {{ trainer.pais }}</span>
+      </p>
+
+      <!-- Stats en pills -->
+      <div class="stats">
+        <span class="pill" title="Calificación">⭐ {{ trainer.rating | number:'1.1-1' }}</span>
+        <span class="pill" *ngIf="trainer.experiencia">⏳ {{ trainer.experiencia }} años</span>
+        <span class="pill accent" *ngIf="trainer.precio_mensual">MXN {{ trainer.precio_mensual | number }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BIOGRAFÍA ===== -->
+  <p class="bio" *ngIf="trainer.bio">{{ trainer.bio }}</p>
+
+  <!-- ===== MODALIDADES Y ETIQUETAS ===== -->
+  <div class="tags" *ngIf="trainer.modalidades?.length || trainer.etiquetas?.length">
+    <span class="badge" *ngFor="let m of trainer.modalidades">{{ m }}</span>
+    <span class="badge ghost" *ngFor="let tag of trainer.etiquetas">#{{ tag }}</span>
+  </div>
+
+  <!-- ===== ACCIONES ===== -->
+  <div class="actions" (click)="$event.stopPropagation()">
+    <button type="button" class="btn primary" (click)="verPerfil()">Ver perfil</button>
+    <button *ngIf="isMine" type="button" class="btn" (click)="editarMiPerfil()">Editar</button>
+  </div>
+</article>

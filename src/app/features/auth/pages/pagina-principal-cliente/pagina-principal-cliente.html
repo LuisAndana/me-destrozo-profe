@@ -1,5 +1,5 @@
 <div class="app" [class.menu-open]="menuOpen" [class.collapsed]="collapsed">
-  <!-- BOTÓN FLECHA (colapsa/expande sidebar en desktop) -->
+  <!-- BOTÓN FLECHA -->
   <button
     type="button"
     class="rail-toggle"
@@ -15,35 +15,55 @@
     aria-label="Menú"
     [attr.aria-hidden]="collapsed && !menuOpen ? 'true' : null">
 
-    <!-- Bloque de usuario: abre el perfil -->
+    <!-- 🔹 Bloque de usuario -->
     <a
       class="brand user-link user-entry"
       routerLink="/perfil"
       routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
       role="link"
       aria-label="Abrir perfil de usuario">
-      <div class="avatar">{{ inicial }}</div>
+      
+      <div class="avatar">
+        <!-- Si el usuario tiene foto -->
+        <img
+          *ngIf="fotoUrl && fotoUrl.trim() !== ''"
+          [src]="fotoUrl"
+          alt="Foto de perfil"
+          width="48"
+          height="48"
+          class="avatar-img"
+        />
+
+        <!-- Si no hay foto: mostrar iniciales -->
+        <div *ngIf="!fotoUrl || fotoUrl.trim() === ''" class="avatar-iniciales">
+          {{ inicial }}
+        </div>
+      </div>
+
       <div class="user-block">
         <span class="user-label">Usuario</span>
         <span class="user-name">{{ nombre }}</span>
       </div>
     </a>
 
-    <!-- Navegación -->
+    <!-- 🔹 Navegación -->
     <nav class="nav">
-      <a class="nav-item" routerLink="/inicio" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <a class="nav-item" routerLink="/cliente" routerLinkActive="active">
         <i class="lucide-home"></i><span>Inicio</span>
       </a>
+
       <a class="nav-item" routerLink="/rutina" routerLinkActive="active">
         <i class="lucide-dumbbell"></i><span>Rutina</span>
       </a>
+
       <a class="nav-item" routerLink="/mensajes" routerLinkActive="active">
         <i class="lucide-message-square"></i><span>Mensajes</span>
       </a>
+
       <a class="nav-item" routerLink="/entrenadores" routerLinkActive="active">
         <i class="lucide-users"></i><span>Entrenadores</span>
       </a>
+
       <a class="nav-item" routerLink="/configuracion" routerLinkActive="active">
         <i class="lucide-settings"></i><span>Configuración</span>
       </a>
@@ -58,7 +78,11 @@
   <main class="content">
     <header class="topbar">
       <div class="container topbar-inner edge-left">
-        <button class="hamburger" type="button" aria-label="Abrir menú" (click)="menuOpen = !menuOpen">
+        <button
+          class="hamburger"
+          type="button"
+          aria-label="Abrir menú"
+          (click)="menuOpen = !menuOpen">
           <i class="lucide-menu"></i>
         </button>
 
@@ -72,13 +96,24 @@
           <span class="dot" aria-hidden="true"></span>
         </button>
 
-        <!-- También abre el perfil desde el header -->
-        <a class="profile" aria-label="Abrir perfil" routerLink="/perfil" routerLinkActive="active">
-          <img src="assets/img/alumno.jpg" width="36" height="36" alt="Foto de perfil" decoding="async" fetchpriority="high" />
+        <!-- Perfil superior -->
+        <a
+          class="profile"
+          aria-label="Abrir perfil"
+          routerLink="/perfil"
+          routerLinkActive="active">
+          <img
+            [src]="fotoUrl && fotoUrl.trim() !== '' ? fotoUrl : 'assets/img/default-user.png'"
+            width="36"
+            height="36"
+            alt="Foto de perfil"
+            decoding="async"
+            fetchpriority="high" />
           <span>{{ nombre }}</span>
         </a>
       </div>
     </header>
+
     <!-- Hero -->
     <section class="hero" style="--hero-bg: url('/assets/img/fitman-logo.png')">
       <div class="container hero-inner edge-left">
@@ -98,15 +133,23 @@
     <!-- Cards -->
     <section class="container grid edge-left">
       <article class="card">
-        <header><h3>Rutina de hoy</h3><span class="badge">0 min</span></header>
-        <ul class="list"><li>No hay bloques disponibles.</li></ul>
+        <header>
+          <h3>Rutina de hoy</h3><span class="badge">0 min</span>
+        </header>
+        <ul class="list">
+          <li>No hay bloques disponibles.</li>
+        </ul>
         <a routerLink="/rutina" class="btn btn-secondary btn-block">Ver detalles</a>
       </article>
 
       <article class="card">
         <header><h3>Progreso semanal</h3></header>
         <div class="stat">
-          <div class="ring" role="img" aria-label="Progreso 0%" style="background: conic-gradient(var(--primary) 0%, #1f2530 0)">
+          <div
+            class="ring"
+            role="img"
+            aria-label="Progreso 0%"
+            style="background: conic-gradient(var(--primary) 0%, #1f2530 0)">
             <span>0%</span>
           </div>
           <div>

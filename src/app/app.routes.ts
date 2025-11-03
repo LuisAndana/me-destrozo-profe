@@ -1,9 +1,7 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
-import { authGuard, roleGuard } from './core/guards/auth.guards';
+import { authGuard, roleGuard, perfilRoleGuard } from './core/guards/auth.guards';
 
 export const routes: Routes = [
-  // Home por defecto
   { path: '', pathMatch: 'full', redirectTo: 'bienvenida' },
 
   // Público
@@ -23,35 +21,69 @@ export const routes: Routes = [
       import('./features/auth/pages/register/register').then(m => m.RegisterComponent),
   },
 
-  // Perfil (requiere estar logueado)
+  // Perfil genérico
   {
     path: 'perfil',
-    canActivate: [authGuard],
+    canActivate: [authGuard, perfilRoleGuard],
     loadComponent: () =>
       import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
   },
 
-  // Cliente (logueado)
+  // Cliente
   {
     path: 'cliente',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard('cliente')],
     loadComponent: () =>
       import('./features/auth/pages/pagina-principal-cliente/pagina-principal-cliente')
         .then(m => m.PaginaPrincipalCliente),
   },
 
-  // Entrenador (logueado + rol)
+  // Rutina
+  {
+    path: 'rutina',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/pages/rutina/rutina.component').then(m => m.RutinaComponent),
+  },
+
+  // ================== ENTRENADOR ==================
   {
     path: 'entrenador',
     canActivate: [authGuard, roleGuard('entrenador')],
-    loadComponent: () =>
-      import('./features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador')
-        .then(m => m.PaginaPrincipalEntrenador),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador')
+            .then(m => m.PaginaPrincipalEntrenador),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/auth/pages/perfil-entrenador/perfil-entrenador')
+            .then(m => m.PerfilEntrenadorPage),
+      },
+    ],
   },
 
-  // (Opcional) si tu sidebar apunta a /inicio y no tienes componente, redirige a cliente:
-  // { path: 'inicio', redirectTo: 'cliente', pathMatch: 'full' },
+  // Alias legacy
+  { path: 'pagina-principal-entrenador', pathMatch: 'full', redirectTo: 'entrenador/home' },
 
-  // Comodín SIEMPRE al final
+  // ================== ENTRENADORES (listado + detalle) ==================
+  {
+  path: 'entrenadores',
+  loadComponent: () =>
+    import('./features/auth/pages/entrenadores/entrenadores.page')
+      .then(m => m.EntrenadoresPage),
+},
+{
+  path: 'entrenadores/:id',
+  loadComponent: () =>
+    import('./features/auth/pages/entrenadores/detalle-entrenador.page')
+      .then(m => m.DetalleEntrenadorPage),
+},
+
+  // Comodín
   { path: '**', redirectTo: 'login' },
 ];

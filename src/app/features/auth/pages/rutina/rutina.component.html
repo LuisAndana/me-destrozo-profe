@@ -1,0 +1,56 @@
+<div class="rutina-wrapper">
+  <div class="rutina-header">
+    <div>
+      <h1>Mi Rutina</h1>
+      <p>Consulta tus entrenamientos personalizados de la semana</p>
+    </div>
+
+    <div class="filtros">
+      <label for="semana">Semana:</label>
+      <input
+        id="semana"
+        type="week"
+        [(ngModel)]="semanaSeleccionada"
+        (change)="filtrarPorSemana()"
+      />
+      <button (click)="cargarRutina()">Actualizar</button>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="estado loading">
+    <div class="spinner"></div>
+    <p>Cargando rutina semanal...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="estado error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Rutinas -->
+  <div *ngIf="!cargando && rutinaFiltrada.length > 0" class="rutina-lista">
+    <div *ngFor="let dia of rutinaFiltrada" class="rutina-card">
+      <div class="card-header">
+        <div class="glow-line"></div>
+        <div class="titulo-dia">
+          <h2>{{ dia.nombre_dia | titlecase }}</h2>
+          <span>{{ dia.fecha | date: 'EEEE, dd/MM' }}</span>
+        </div>
+      </div>
+
+      <ul>
+        <li *ngFor="let ejercicio of dia.ejercicios">
+          <span class="nombre">{{ ejercicio.nombre }}</span>
+          <span class="detalles">{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Sin datos -->
+  <div *ngIf="!cargando && rutinaFiltrada.length === 0" class="estado sin-datos">
+    <h3>No tienes rutinas registradas para esta semana</h3>
+    <p>Tu entrenador asignará tus ejercicios próximamente.</p>
+  </div>
+</div>

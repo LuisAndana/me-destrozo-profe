@@ -1,0 +1,145 @@
+<section class="entrenadores-page">
+  <div class="page-wrap">
+    
+    <!-- ===== HEADER / TOOLBAR ===== -->
+    <header class="toolbar">
+      <h1>Entrenadores</h1>
+
+      <!-- Búsqueda y ordenamiento -->
+      <div class="search-row">
+        <input
+          type="text"
+          placeholder="Buscar por nombre, especialidad, ciudad, etiqueta…"
+          [formControl]="filters.controls.q"
+          aria-label="Buscar entrenadores"
+        />
+        <select 
+          [formControl]="filters.controls.sort" 
+          title="Ordenar"
+          aria-label="Ordenar resultados"
+        >
+          <option value="relevance">Relevancia</option>
+          <option value="rating">Mejor calificados</option>
+          <option value="experience">Más experiencia</option>
+          <option value="price_asc">Precio: menor a mayor</option>
+          <option value="price_desc">Precio: mayor a menor</option>
+        </select>
+      </div>
+
+      <!-- Filtros avanzados -->
+      <div class="filters">
+        <select 
+          [formControl]="filters.controls.especialidad"
+          aria-label="Filtrar por especialidad"
+        >
+          <option value="">Todas las especialidades</option>
+          <ng-container *ngIf="(data$ | async) as res">
+            <option *ngFor="let e of res.facets?.especialidades" [value]="e">
+              {{ e }}
+            </option>
+          </ng-container>
+        </select>
+
+        <select 
+          [formControl]="filters.controls.modalidad"
+          aria-label="Filtrar por modalidad"
+        >
+          <option value="">Todas las modalidades</option>
+          <option value="Online">Online</option>
+          <option value="Presencial">Presencial</option>
+        </select>
+
+        <select 
+          [formControl]="filters.controls.ciudad"
+          aria-label="Filtrar por ciudad"
+        >
+          <option value="">Todas las ciudades</option>
+          <ng-container *ngIf="(data$ | async) as res">
+            <option *ngFor="let c of res.facets?.ciudades" [value]="c">
+              {{ c }}
+            </option>
+          </ng-container>
+        </select>
+
+        <label class="inline">
+          <span>Rating mín.</span>
+          <input 
+            type="number" 
+            min="0" 
+            max="5" 
+            step="0.5"
+            [formControl]="filters.controls.ratingMin"
+            placeholder="0"
+            aria-label="Rating mínimo"
+          />
+        </label>
+
+        <label class="inline">
+          <span>Precio máx.</span>
+          <input 
+            type="number" 
+            min="0"
+            step="100"
+            [formControl]="filters.controls.precioMax"
+            placeholder="Sin límite"
+            aria-label="Precio máximo"
+          />
+        </label>
+      </div>
+    </header>
+
+    <!-- ===== ESTADOS ===== -->
+    
+    <!-- Loading -->
+    <div *ngIf="loading()" class="state">
+      <p>Cargando entrenadores…</p>
+    </div>
+    
+    <!-- Error -->
+    <div *ngIf="error()" class="state error">
+      <p>{{ error() }}</p>
+    </div>
+
+    <!-- ===== CONTENIDO PRINCIPAL ===== -->
+    <ng-container *ngIf="(data$ | async) as res">
+      
+      <!-- Sin resultados -->
+      <div *ngIf="res.items.length === 0 && !loading()" class="state empty">
+        <p>No hay resultados con esos filtros.</p>
+      </div>
+
+      <!-- Grid de entrenadores -->
+      <div class="grid" *ngIf="res.items.length > 0">
+        <app-entrenador-card 
+          *ngFor="let t of res.items; trackBy: trackByTrainerId" 
+          [trainer]="t"
+        ></app-entrenador-card>
+      </div>
+
+      <!-- ===== PAGINACIÓN ===== -->
+      <footer class="pagination" *ngIf="res.total > 0">
+        <button 
+          class="btn ghost" 
+          (click)="goTo(page()-1)" 
+          [disabled]="page() <= 1"
+          aria-label="Página anterior"
+        >
+          ‹ Anterior
+        </button>
+        
+        <span class="page-info" role="status">
+          Página {{ page() }} de {{ lastPage() }}
+        </span>
+        
+        <button 
+          class="btn ghost" 
+          (click)="goTo(page()+1)" 
+          [disabled]="page() >= lastPage()"
+          aria-label="Página siguiente"
+        >
+          Siguiente ›
+        </button>
+      </footer>
+    </ng-container>
+  </div>
+</section>

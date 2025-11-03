@@ -1,9 +1,11 @@
-﻿import { Injectable, inject } from '@angular/core';
+﻿// src/app/core/services/cliente.service.ts
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
+/* ====== MODELOS ====== */
 export interface UserProfile {
   id: number;
   nombre?: string;
@@ -67,15 +69,20 @@ export class ClienteService {
     return h;
   }
 
+  /* ===== PERFIL ===== */
   getPerfil(): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${this.api}/me`, { headers: this.jsonHeaders() });
   }
 
-  /** Actualiza datos del perfil y devuelve el perfil resultante. */
-  updatePerfil(body: UpdatePerfilBody): Observable<UserProfile> {
-    const url = this.api + '/perfil'; // <- sin backslashes
-    return this.http.patch<UserProfile>(url, body, { headers: this.jsonHeaders() });
-  }
+ /** Actualiza datos del perfil del usuario autenticado y devuelve el perfil resultante. */
+updatePerfil(body: UpdatePerfilBody): import('rxjs').Observable<UserProfile> {
+  const url = this.api + '/perfil'; // ← sin backslashes
+  return this.http.patch<UserProfile>(url, body, {
+    headers: this.jsonHeaders(),
+  });
+}
+
+
 
   uploadAvatar(file: File): Observable<{ url: string }> {
     const fd = new FormData();
@@ -89,6 +96,7 @@ export class ClienteService {
     });
   }
 
+  /* ===== DASHBOARD ===== */
   getRutinaHoy(userId?: number): Observable<RutinaHoy> {
     const id = this.requireUserId(userId);
     return this.http.get<RutinaHoy>(`${this.api}/rutinas/hoy`, {

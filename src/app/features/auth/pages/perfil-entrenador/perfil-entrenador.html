@@ -1,0 +1,164 @@
+<section class="wrap">
+  <!-- Topbar -->
+  <header class="topbar container">
+    <div class="title">
+      <h1 class="upper">{{ nombre }}</h1>
+      <span class="chip">Entrenador de gimnasio</span>
+    </div>
+
+    <div class="avatar-stack">
+      <div class="avatar">
+        <img *ngIf="fotoUrl; else inic" [src]="fotoUrl" alt="Foto" />
+        <ng-template #inic>
+          <div class="letters">{{ inicial }}</div>
+        </ng-template>
+      </div>
+
+      <div class="avatar-actions">
+        <input id="avatarFile" type="file" class="hidden-file" accept="image/*" (change)="changeAvatar($event)">
+        <label for="avatarFile" class="btn btn-ghost">Cambiar foto</label>
+        <button class="btn btn-danger-ghost" (click)="removeAvatar()">Quitar foto</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Resumen -->
+    <article class="card">
+      <header class="card-head">
+        <h3>Resumen profesional</h3>
+      </header>
+      <textarea
+        class="input textarea"
+        rows="3"
+        [(ngModel)]="data.resumen"
+        placeholder="Breve presentación, especialidades, certificaciones..."></textarea>
+    </article>
+
+    <!-- Grid 2x2 -->
+    <div class="grid">
+      <!-- Educación -->
+      <article class="card">
+        <header class="card-head">
+          <h3>Educación</h3>
+          <button class="btn btn-ghost" (click)="addEdu()">Añadir</button>
+        </header>
+
+        <ng-container *ngIf="data.educacion?.length; else emptyEdu">
+          <ul class="list">
+            <li *ngFor="let e of data.educacion; let i=index" class="item">
+              <div class="item-body">
+                <input class="input" placeholder="Título" [(ngModel)]="e.titulo">
+                <input class="input" placeholder="Institución" [(ngModel)]="e.institucion">
+                <div class="row">
+                  <input class="input" placeholder="Inicio (aaaa)" [(ngModel)]="e.inicio">
+                  <input class="input" placeholder="Fin (aaaa)" [(ngModel)]="e.fin">
+                </div>
+                <textarea class="input" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="e.descripcion"></textarea>
+              </div>
+
+              <div class="item-actions">
+                <input class="hidden-file" [id]="'eduFile'+i" type="file" (change)="onPickFileFor('educacion', i, $event)">
+                <label class="btn btn-ghost" [for]="'eduFile'+i">Subir evidencia</label>
+                <a *ngIf="e.evidenciaUrl" class="link" [href]="e.evidenciaUrl" target="_blank" rel="noopener">Ver evidencia</a>
+                <button class="btn btn-danger-ghost" (click)="delEdu(i)">Quitar</button>
+              </div>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #emptyEdu><p class="empty">Sin registros.</p></ng-template>
+      </article>
+
+      <!-- Diplomas -->
+      <article class="card">
+        <header class="card-head">
+          <h3>Diplomas</h3>
+          <button class="btn btn-ghost" (click)="addDiploma()">Añadir</button>
+        </header>
+
+        <ng-container *ngIf="data.diplomas?.length; else emptyDip">
+          <ul class="list">
+            <li *ngFor="let d of data.diplomas; let i=index" class="item">
+              <div class="item-body">
+                <input class="input" placeholder="Título" [(ngModel)]="d.titulo">
+                <input class="input" placeholder="Institución" [(ngModel)]="d.institucion">
+                <input class="input" placeholder="Fecha (aaaa-mm)" [(ngModel)]="d.fecha">
+              </div>
+
+              <div class="item-actions">
+                <input class="hidden-file" [id]="'dipFile'+i" type="file" (change)="onPickFileFor('diplomas', i, $event)">
+                <label class="btn btn-ghost" [for]="'dipFile'+i">Subir evidencia</label>
+                <a *ngIf="d.evidenciaUrl" class="link" [href]="d.evidenciaUrl" target="_blank" rel="noopener">Ver evidencia</a>
+                <button class="btn btn-danger-ghost" (click)="delDiploma(i)">Quitar</button>
+              </div>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #emptyDip><p class="empty">Sin registros.</p></ng-template>
+      </article>
+
+      <!-- Cursos -->
+      <article class="card">
+        <header class="card-head">
+          <h3>Cursos</h3>
+          <button class="btn btn-ghost" (click)="addCurso()">Añadir</button>
+        </header>
+
+        <ng-container *ngIf="data.cursos?.length; else emptyCur">
+          <ul class="list">
+            <li *ngFor="let c of data.cursos; let i=index" class="item">
+              <div class="item-body">
+                <input class="input" placeholder="Título" [(ngModel)]="c.titulo">
+                <input class="input" placeholder="Institución" [(ngModel)]="c.institucion">
+                <input class="input" placeholder="Fecha (aaaa-mm)" [(ngModel)]="c.fecha">
+              </div>
+
+              <div class="item-actions">
+                <input class="hidden-file" [id]="'curFile'+i" type="file" (change)="onPickFileFor('cursos', i, $event)">
+                <label class="btn btn-ghost" [for]="'curFile'+i">Subir evidencia</label>
+                <a *ngIf="c.evidenciaUrl" class="link" [href]="c.evidenciaUrl" target="_blank" rel="noopener">Ver evidencia</a>
+                <button class="btn btn-danger-ghost" (click)="delCurso(i)">Quitar</button>
+              </div>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #emptyCur><p class="empty">Sin registros.</p></ng-template>
+      </article>
+
+      <!-- Logros -->
+      <article class="card">
+        <header class="card-head">
+          <h3>Logros</h3>
+          <button class="btn btn-ghost" (click)="addLogro()">Añadir</button>
+        </header>
+
+        <ng-container *ngIf="data.logros?.length; else emptyLog">
+          <ul class="list">
+            <li *ngFor="let l of data.logros; let i=index" class="item">
+              <div class="item-body">
+                <input class="input" placeholder="Título" [(ngModel)]="l.titulo">
+                <input class="input" placeholder="Año (aaaa)" [(ngModel)]="l.anio">
+                <textarea class="input" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="l.descripcion"></textarea>
+              </div>
+
+              <div class="item-actions">
+                <input class="hidden-file" [id]="'logFile'+i" type="file" (change)="onPickFileFor('logros', i, $event)">
+                <label class="btn btn-ghost" [for]="'logFile'+i">Subir evidencia</label>
+                <a *ngIf="l.evidenciaUrl" class="link" [href]="l.evidenciaUrl" target="_blank" rel="noopener">Ver evidencia</a>
+                <button class="btn btn-danger-ghost" (click)="delLogro(i)">Quitar</button>
+              </div>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #emptyLog><p class="empty">Sin registros.</p></ng-template>
+      </article>
+    </div>
+  </main>
+
+  <!-- Barra de acciones pegajosa -->
+  <footer class="actions container">
+    <button class="btn btn-ghost" (click)="load()">Cancelar</button>
+    <button class="btn btn-accent" [disabled]="saving" (click)="save()">Guardar cambios</button>
+  </footer>
+</section>
+

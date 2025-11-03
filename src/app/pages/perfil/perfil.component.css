@@ -2,6 +2,7 @@
    TIPOGRAFÍA
    (Si prefieres global, mueve el @import a styles.css)
 ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root{
   --bg:#0a0e14;
@@ -33,43 +34,50 @@
 .card-title{ margin:0 0 10px; letter-spacing:.2px; font-weight:800; }
 .card-title-row{ display:flex; align-items:end; gap:12px; justify-content:space-between; }
 
-/* ===================== HERO ====================== */
+/* ===================== HERO (NUEVO) ============== */
 .profile-hero{
-  display:flex; align-items:center; gap:18px; padding:22px;
+  display:grid;
+  grid-template-columns:96px 1fr;
+  align-items:center;
+  gap:18px;
+  padding:24px;
   background:
     radial-gradient(90% 120% at -10% -10%, rgba(56,189,248,.10), transparent 60%),
     radial-gradient(70% 110% at 120% -10%, rgba(30,215,96,.10), transparent 60%),
     linear-gradient(180deg,var(--surface),var(--surface-2));
 }
 
+/* Columna avatar */
+.avatar-col{ display:flex; align-items:center; justify-content:center; }
+
 /* Avatar base y con imagen */
-.avatar-wrap{ position:relative; }
+.avatar-wrap{ position:relative; } /* (por compat) */
 .avatar-lg{
-  width:86px; height:86px; display:grid; place-items:center; border-radius:50%;
+  width:96px; height:96px; display:grid; place-items:center; border-radius:50%;
   background:
     radial-gradient(140px 140px at 30% 30%, rgba(255,255,255,.08), rgba(255,255,255,0)),
     linear-gradient(135deg, #5753a5, #22274b);
-  border:1px solid var(--border); color:#eef1f7; font-size:32px; font-weight:800;
-  position:relative; overflow:hidden;           /* necesario para la imagen */
+  border:1px solid var(--border); color:#eef1f7; font-size:34px; font-weight:800;
+  overflow:hidden;
 }
 .ring{ box-shadow: var(--ring); }
-.avatar-img{
-  width:100%; height:100%; object-fit:cover; display:block; border-radius:50%;
-}
+.avatar-img{ width:100%; height:100%; object-fit:cover; display:block; }
+.avatar-inicial{ line-height:1; }
 
-/* --- NUEVO: layout del bloque de la derecha (nombre/email/botones) --- */
+/* Meta (nombre/email/botones) */
 .hero-meta{
-  display:flex;               /* asegura stacking vertical */
+  display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:8px;
+  min-width:0;
 }
 
 /* Acciones debajo del avatar (Cambiar/Quitar) */
 .avatar-actions{
-  margin-top:10px;
+  margin-top:6px;
   display:flex;
-  gap:8px;
-  flex-wrap:wrap;             /* que no se corten en pantallas pequeñas */
+  gap:10px;
+  flex-wrap:wrap;
 }
 
 /* ===================== GRID ====================== */
@@ -147,7 +155,7 @@ input[readonly]{ background:#0e121a; color:#d6dbe5; cursor:default; }
 
 /* Botones */
 .btn{
-  display:inline-flex;                 /* --- NUEVO: visible también en <label> --- */
+  display:inline-flex;
   align-items:center;
   justify-content:center;
   appearance:none;
@@ -165,12 +173,22 @@ input[readonly]{ background:#0e121a; color:#d6dbe5; cursor:default; }
   background:#111827; border:1px solid var(--border); color:var(--text);
 }
 .btn.ghost:hover{ background:#172233; }
-.btn.tiny{ padding:6px 8px; font-size:.8rem; }
+.btn.tiny{ padding:7px 12px; font-size:.85rem; }
 
 /* ===================== A11Y & RESPONSIVE ========= */
 .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+/* Input oculto accesible para el file */
+.visually-hidden{
+  position:absolute !important;
+  width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
 
+/* Breakpoints */
 @media (max-width: 980px){
   .grid-2{ grid-template-columns:1fr; }
-  .profile-hero{ padding:18px; }
+}
+@media (max-width: 700px){
+  .profile-hero{ grid-template-columns:72px 1fr; padding:18px; }
+  .avatar-lg{ width:72px; height:72px; font-size:28px; }
 }

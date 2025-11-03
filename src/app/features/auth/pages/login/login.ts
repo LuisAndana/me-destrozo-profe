@@ -39,7 +39,6 @@ export class Login implements AfterViewInit {
 
   @ViewChild('googleSignInBtn', { static: false }) googleSignInBtn!: ElementRef;
 
-  // Guardamos la última credencial para reintentar con rol si el backend lo pide (422)
   private lastGoogleCredential: string | null = null;
 
   constructor(private http: HttpClient, private router: Router) {}
@@ -49,9 +48,9 @@ export class Login implements AfterViewInit {
     const r = (raw ?? '').toLowerCase().trim();
     const map: Record<string, 'alumno' | 'entrenador'> = {
       alumno: 'alumno',
-      cliente: 'alumno',     // compat vieja
-      user: 'alumno',        // compat
-      empleado: 'alumno',    // compat
+      cliente: 'alumno',    // compat
+      user: 'alumno',       // compat
+      empleado: 'alumno',   // compat
       entrenador: 'entrenador',
       coach: 'entrenador',
       trainer: 'entrenador',
@@ -61,7 +60,10 @@ export class Login implements AfterViewInit {
 
   private goToHomeByRole(rol?: string) {
     const norm = this.normalizeRole(rol);
-    const target = norm === 'entrenador' ? '/entrenador' : '/cliente';
+    // Entrenador -> página principal del entrenador
+    const target = norm === 'entrenador'
+      ? '/pagina-principal-entrenador'
+      : '/cliente';
     this.router.navigateByUrl(target, { replaceUrl: true });
   }
 
@@ -99,27 +101,29 @@ export class Login implements AfterViewInit {
 
     this.http.post<LoginResponse>(
       `${environment.apiBase}/auth/google_signin`,
-      { credential } // primer intento sin rol
+      { credential }
     ).subscribe({
       next: (res) => {
         if (!res?.ok) {
           alert(res?.mensaje || 'No se pudo iniciar sesión con Google.');
           return;
         }
+
+        // Normaliza SIEMPRE antes de guardar/navegar
+        const rawRol = res.usuario?.rol ?? res.rol ?? 'alumno';
+        const roleForStore = this.normalizeRole(rawRol);
+
         const usuario = res.usuario ?? {
           id: res.user_id!,
           nombre: res.nombres || '',
           apellido: '',
           email: res.email || '',
-          rol: this.normalizeRole(res.rol || 'alumno'),
+          rol: roleForStore,
         };
 
         if (res.token) localStorage.setItem('token', res.token);
-        localStorage.setItem('usuario', JSON.stringify({
-          ...usuario,
-          rol: this.normalizeRole(usuario.rol),
-        }));
-        this.goToHomeByRole(usuario.rol);
+        localStorage.setItem('usuario', JSON.stringify({ ...usuario, rol: roleForStore }));
+        this.goToHomeByRole(roleForStore);
       },
       error: (err) => {
         console.error('[google_signin][login] error:', err);
@@ -153,20 +157,21 @@ export class Login implements AfterViewInit {
           alert(res?.mensaje || 'No se pudo completar el registro con Google.');
           return;
         }
+
+        const rawRol = res.usuario?.rol ?? res.rol ?? rol;
+        const roleForStore = this.normalizeRole(rawRol);
+
         const usuario = res.usuario ?? {
           id: res.user_id!,
           nombre: res.nombres || '',
           apellido: '',
           email: res.email || '',
-          rol: this.normalizeRole(res.rol || 'alumno'),
+          rol: roleForStore,
         };
 
         if (res.token) localStorage.setItem('token', res.token);
-        localStorage.setItem('usuario', JSON.stringify({
-          ...usuario,
-          rol: this.normalizeRole(usuario.rol),
-        }));
-        this.goToHomeByRole(usuario.rol);
+        localStorage.setItem('usuario', JSON.stringify({ ...usuario, rol: roleForStore }));
+        this.goToHomeByRole(roleForStore);
       },
       error: (err) => {
         console.error('[google_signin][retry] error:', err);
@@ -187,7 +192,6 @@ export class Login implements AfterViewInit {
       return;
     }
 
-    // usar el endpoint con la lógica unificada del backend
     const url = `${environment.apiBase}/auth/login`;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
@@ -197,9 +201,12 @@ export class Login implements AfterViewInit {
         next: (res) => {
           if (res?.ok && res.token && res.usuario) {
             localStorage.setItem('token', res.token);
-            const usuario = { ...res.usuario, rol: this.normalizeRole(res.usuario.rol) };
+
+            const roleForStore = this.normalizeRole(res.usuario.rol);
+            const usuario = { ...res.usuario, rol: roleForStore };
+
             localStorage.setItem('usuario', JSON.stringify(usuario));
-            this.goToHomeByRole(usuario.rol);
+            this.goToHomeByRole(roleForStore);
           } else {
             alert(res?.mensaje || 'Error en login');
           }
@@ -209,7 +216,6 @@ export class Login implements AfterViewInit {
           const detail = err?.error?.detail || err?.message || '';
 
           if (err?.status === 0)   return alert('No se pudo conectar al servidor (puerto/CORS).');
-          // si la cuenta es Google-only, el backend responde 400
           if (err?.status === 400 && /google/i.test(detail)) {
             return alert('Tu cuenta está vinculada a Google. Usa el botón "Continuar con Google".');
           }
@@ -230,7 +236,8 @@ export class Login implements AfterViewInit {
       return;
     }
 
-    this.goToHomeByRole(usuario.rol);
+    const roleForNav = this.normalizeRole(usuario.rol);
+    this.goToHomeByRole(roleForNav);
   }
 
   goToRegister() {
