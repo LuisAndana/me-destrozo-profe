@@ -47,42 +47,74 @@ export const routes: Routes = [
   },
 
   // ================== ENTRENADOR ==================
-  {
-    path: 'entrenador',
-    canActivate: [authGuard, roleGuard('entrenador')],
-    children: [
-      { path: '', pathMatch: 'full', redirectTo: 'home' },
-      {
-        path: 'home',
-        loadComponent: () =>
-          import('./features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador')
-            .then(m => m.PaginaPrincipalEntrenador),
-      },
-      {
-        path: 'perfil',
-        loadComponent: () =>
-          import('./features/auth/pages/perfil-entrenador/perfil-entrenador')
-            .then(m => m.PerfilEntrenadorPage),
-      },
-    ],
-  },
+{
+  path: 'entrenador',
+  canActivate: [authGuard, roleGuard('entrenador')],
+  children: [
+    { path: '', pathMatch: 'full', redirectTo: 'home' },
+    
+    // Home/Principal
+    {
+      path: 'home',
+      loadComponent: () =>
+        import('./features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador')
+          .then(m => m.PaginaPrincipalEntrenador),
+    },
+    
+    // Perfil
+    {
+      path: 'perfil',
+      loadComponent: () =>
+        import('./features/auth/pages/perfil-entrenador/perfil-entrenador')
+          .then(m => m.PerfilEntrenadorPage),
+    },
+
+    // ✅ MIS CLIENTES - NUEVO
+    {
+      path: 'mis-clientes',
+      loadComponent: () =>
+        import('./components/mis-clientes/mis-clientes.component')
+          .then(m => m.MisClientesComponent),
+    },
+
+    // ✅ GENERAR RUTINA - NUEVO
+    {
+      path: 'generar-rutina/:id',
+      loadComponent: () =>
+        import('./components/mis-clientes/generar-rutina/generar-rutina.component')
+          .then(m => m.GenerarRutinaComponent),
+    },
+  ],
+},
 
   // Alias legacy
   { path: 'pagina-principal-entrenador', pathMatch: 'full', redirectTo: 'entrenador/home' },
 
   // ================== ENTRENADORES (listado + detalle) ==================
   {
-  path: 'entrenadores',
-  loadComponent: () =>
-    import('./features/auth/pages/entrenadores/entrenadores.page')
-      .then(m => m.EntrenadoresPage),
-},
+    path: 'entrenadores',
+    loadComponent: () =>
+      import('./features/auth/pages/entrenadores/entrenadores.page')
+        .then(m => m.EntrenadoresPage),
+  },
+  {
+    path: 'entrenadores/:id',
+    loadComponent: () =>
+      import('./features/auth/pages/entrenadores/detalle-entrenador.page')
+        .then(m => m.DetalleEntrenadorPage),
+  },
+
+  // ================== PROCESO DE PAGO ==================
+ // ================== PROCESO DE PAGO ==================
 {
-  path: 'entrenadores/:id',
+  path: 'pago/:id',
+  canActivate: [authGuard],
   loadComponent: () =>
-    import('./features/auth/pages/entrenadores/detalle-entrenador.page')
-      .then(m => m.DetalleEntrenadorPage),
+    import('./pages/perfil/proceso-pago/proceso-pago.page')
+      .then(m => m.ProcesoPagoPage),
 },
+
+
 
   // Comodín
   { path: '**', redirectTo: 'login' },

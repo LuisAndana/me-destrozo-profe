@@ -47,10 +47,53 @@ export class AuthInterceptor implements HttpInterceptor {
     return isLogin || isRegister || isRefresh;
   }
 
+  /** Obtiene id_entrenador desde storage/usuario para reescrituras */
+  private resolveEntrenadorId(): number {
+    const raw = localStorage.getItem('id_entrenador') || '';
+    const id = parseInt(raw, 10);
+    if (id > 0) return id;
+
+    try {
+      const user = JSON.parse(localStorage.getItem('usuario') || 'null');
+      if (user?.id && (user.rol === 'entrenador' || user.rol === 'trainer')) {
+        return Number(user.id) || 0;
+      }
+    } catch { /* no-op */ }
+
+    return 0;
+  }
+
+  /** Reescribe URLs legacy -> forma correcta con /{id_entrenador} */
+  private rewriteClienteEntrenadorUrls(req: HttpRequest<any>): HttpRequest<any> {
+    // quitamos query y trailing slash para evaluar patrón
+    const [baseWithoutQuery, ...qsParts] = req.url.split('?');
+    const cleanBase = baseWithoutQuery.replace(/\/+$/, '');
+    const qs = qsParts.length ? '?' + qsParts.join('?') : '';
+
+    // Coincide con .../cliente-entrenador/mis-clientes (con o sin /api)
+    const misClientesRegex = /\/(api\/)?cliente-entrenador\/mis-clientes$/i;
+
+    if (misClientesRegex.test(cleanBase)) {
+      const id = this.resolveEntrenadorId();
+      if (id > 0) {
+        const newUrl = `${cleanBase}/${id}${qs}`;
+        console.warn('[AuthInterceptor:rewrite] 🔧 Reescrito:', req.url, '→', newUrl);
+        return req.clone({ url: newUrl });
+      } else {
+        console.error('[AuthInterceptor:rewrite] ❌ No se pudo resolver id_entrenador. URL no reescrita:', req.url);
+      }
+    }
+
+    return req; // sin cambios
+  }
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // 1) Permite forzar el salto del auth en una petición concreta
     const skipAuth = req.headers.has('X-Skip-Auth');
     let request = skipAuth ? req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
+
+    // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
+    request = this.rewriteClienteEntrenadorUrls(request);
 
     // 2) Obtén el token (fallback a localStorage por si carga inicial)
     const token =

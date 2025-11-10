@@ -7,7 +7,7 @@
   display: block;
   width: 100%;
   min-height: 100vh;
-  background: #0f172a;
+  background: #0f192d;
   color: #f1f5f9;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
@@ -26,7 +26,7 @@
   position: relative;
   width: 100%;
   min-height: 420px;
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(135deg, #0f172a 0%, #1a2537 100%);
 }
 
@@ -110,6 +110,7 @@
   border: 1px solid #334155;
   border-radius: 1rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1.5rem;
 }
 
 /* Avatar */
@@ -294,6 +295,139 @@
 .tag svg {
   width: 14px;
   height: 14px;
+}
+
+/* ===========================
+   BOTÓN CONTRATAR - ESTILOS NUEVOS
+   =========================== */
+.btn-contratar-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0 0 0;
+}
+
+.estado-contrato {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.estado-contrato.contratado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-radius: 0.75rem;
+  color: #34d399;
+  font-weight: 500;
+  animation: slideDown 0.4s ease-out;
+}
+
+.estado-contrato.contratado svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.estado-contrato.no-contratado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  animation: slideDown 0.4s ease-out;
+}
+
+.btn-contratar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 250ms ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  width: 100%;
+  max-width: 500px;
+}
+
+.btn-contratar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.btn-contratar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-contratar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-contratar svg {
+  width: 20px;
+  height: 20px;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.btn-contratar:not(:disabled) svg {
+  animation: none;
+}
+
+.error-message {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 0.5rem;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+  animation: shake 0.4s ease-out;
+}
+
+.success-message {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-radius: 0.5rem;
+  color: #34d399;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+  animation: slideDown 0.4s ease-out;
+}
+
+.skeleton-button {
+  height: 48px;
+  width: 100%;
+  max-width: 500px;
+  background: linear-gradient(
+    90deg,
+    #1e293b 0%,
+    #334155 50%,
+    #1e293b 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.75rem;
 }
 
 /* ===========================
@@ -648,6 +782,9 @@
   border-radius: 1rem;
 }
 
+/* ===========================
+   ANIMACIONES
+   =========================== */
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -656,6 +793,64 @@
     background-position: -200% 0;
   }
 }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-section,
+.main-content > * {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.card {
+  animation: fadeIn 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
 
 /* ===========================
    RESPONSIVE
@@ -708,6 +903,16 @@
     top: 1rem;
     left: 1rem;
   }
+
+  .btn-contratar {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .estado-contrato.contratado {
+    font-size: 0.95rem;
+    padding: 0.875rem 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -726,33 +931,24 @@
   .card {
     padding: 1.5rem;
   }
-}
 
-/* ===========================
-   ANIMACIONES EXTRAS
-   =========================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  .btn-contratar {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .btn-contratar-wrapper {
+    padding: 0 1rem;
+  }
+
+  .estado-contrato {
+    padding: 0 1rem;
   }
 }
 
-.hero-section,
-.main-content > * {
-  animation: fadeIn 0.6s ease-out;
+.center-frame.hero-content,
+.center-frame.main-content{
+  max-width: min(1200px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto !important;
+  width: 100%;
 }
-
-.card {
-  animation: fadeIn 0.6s ease-out;
-  animation-fill-mode: both;
-}
-
-.card:nth-child(1) { animation-delay: 0.1s; }
-.card:nth-child(2) { animation-delay: 0.2s; }
-.card:nth-child(3) { animation-delay: 0.3s; }
-.card:nth-child(4) { animation-delay: 0.4s; }

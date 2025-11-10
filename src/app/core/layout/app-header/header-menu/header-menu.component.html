@@ -1,0 +1,173 @@
+<header class="topbar-glass">
+  <div class="topbar-inner">
+    <!-- Botón Hamburger -->
+    <button
+      type="button"
+      class="hamburger"
+      (click)="toggleSidebar()"
+      aria-label="Alternar menú de navegación"
+      aria-expanded="!collapsed()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <!-- Logo FITMAN -->
+    <div class="topbar-logo" (click)="goHome()">
+      <div class="topbar-logo-text">
+        <div class="topbar-brand">FITMAN</div>
+        <div class="topbar-tagline">Pro Fitness</div>
+      </div>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <!-- Perfil (Topbar) -->
+    <button
+      type="button"
+      class="topbar-profile"
+      (click)="goToProfile()"
+      aria-label="Ir a mi perfil">
+      <img
+        [src]="currentFotoUrl"
+        width="38"
+        height="38"
+        alt="Foto de perfil"
+        loading="lazy"
+        (error)="onImgError($event)" />
+      <div class="topbar-user-info">
+        <span class="topbar-user-name">{{ userNombre }}</span>
+        <span class="topbar-user-role">{{ userRol | slice:0:8 }}</span>
+      </div>
+    </button>
+  </div>
+</header>
+
+<aside class="sidebar-glass" [class.compact]="collapsed()">
+  <!-- Tarjeta de usuario (Sidebar) -->
+  <button
+    type="button"
+    class="user-card"
+    (click)="goToProfile()"
+    aria-label="Ir a mi perfil">
+    <div class="avatar">
+      <img
+        [src]="currentFotoUrl"
+        alt="Foto de perfil"
+        loading="lazy"
+        (error)="onImgError($event)" />
+    </div>
+    <div class="user-meta">
+      <div class="name ellipsis">{{ userNombre }}</div>
+      <div class="role">{{ userRol }}</div>
+    </div>
+  </button>
+
+  <!-- Navegación ENTRENADOR -->
+  <nav *ngIf="userRol.toLowerCase().includes('entrenador')" class="nav" role="navigation" aria-label="Menú principal">
+    <a routerLink="/entrenador/home" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Inicio</span>
+    </a>
+    <a routerLink="/entrenador/mis-clientes" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span>Mis clientes</span>
+    </a>
+    <a routerLink="/entrenador/rutinas" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="12" cy="5" r="1"></circle>
+        <circle cx="12" cy="19" r="1"></circle>
+        <path d="M6.3 9a9 9 0 0 1 11.4 0"></path>
+        <path d="M6 13.5a4.5 4.5 0 0 1 12 0"></path>
+        <path d="M5.64 18.64a9 9 0 0 1 12.72 0"></path>
+      </svg>
+      <span>Rutinas</span>
+    </a>
+    <a routerLink="/entrenador/mensajes" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span>Mensajes</span>
+    </a>
+    <a routerLink="/entrenador/resenas" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <span>Reseñas</span>
+    </a>
+    <a routerLink="/entrenador/configuracion" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6m-17.78 7.78l4.24-4.24m3.08-3.08l4.24-4.24"></path>
+      </svg>
+      <span>Configuración</span>
+    </a>
+  </nav>
+
+  <!-- Navegación CLIENTE/ALUMNO -->
+  <nav *ngIf="!userRol.toLowerCase().includes('entrenador')" class="nav" role="navigation" aria-label="Menú principal">
+    <a routerLink="/cliente" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Inicio</span>
+    </a>
+    <a routerLink="/rutina" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="12" cy="5" r="1"></circle>
+        <circle cx="12" cy="19" r="1"></circle>
+        <path d="M6.3 9a9 9 0 0 1 11.4 0"></path>
+        <path d="M6 13.5a4.5 4.5 0 0 1 12 0"></path>
+        <path d="M5.64 18.64a9 9 0 0 1 12.72 0"></path>
+      </svg>
+      <span>Rutina</span>
+    </a>
+    <a routerLink="/mensajes" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span>Mensajes</span>
+    </a>
+    <a routerLink="/entrenadores" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span>Entrenadores</span>
+    </a>
+    <a routerLink="/configuracion" routerLinkActive="active" role="menuitem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6m-17.78 7.78l4.24-4.24m3.08-3.08l4.24-4.24"></path>
+      </svg>
+      <span>Configuración</span>
+    </a>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <a routerLink="/logout" class="btn-logout" role="menuitem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      <span>Salir</span>
+    </a>
+  </div>
+</aside>

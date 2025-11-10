@@ -5,6 +5,7 @@ import {
 } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { PerfilService, PerfilVM } from '../../core/services/perfil.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-perfil',
@@ -19,24 +20,39 @@ export class PerfilComponent implements OnInit {
   saving = false;
   estado = '';
 
-  // === Avatar ===
   inicial = '';
-  avatarUrl: string | null = null;   // ahora reflejará foto_url del backend
+  avatarUrl: string | null = null;
   uploading = false;
-  private readonly maxAvatarMB = 4;  // límite de tamaño
+  private readonly maxAvatarMB = 4;
+
+  idUsuario: number | null = null;
 
   enfermedadesCatalogo = [
     'Insuficiencia renal', 'Cáncer', 'Diabetes', 'Tiroides',
     'Hipertensión', 'Asma', 'Cardiopatía', 'Colesterol alto'
   ];
 
-  constructor(private fb: FormBuilder, private api: PerfilService) {}
+  constructor(
+    private fb: FormBuilder,
+    private api: PerfilService,
+    private router: Router
+  ) {}
 
   get enfArray(): FormArray<FormControl<boolean>> {
     return this.form.get('enfermedades') as FormArray<FormControl<boolean>>;
   }
 
   ngOnInit(): void {
+    const raw = localStorage.getItem('usuario');
+    if (!raw) {
+      console.warn('No hay usuario logeado, redirigiendo...');
+      this.router.navigate(['/']);
+      return;
+    }
+
+    const u = JSON.parse(raw);
+    this.idUsuario = u.id || null;
+
     this.form = this.fb.group({
       nombre_completo: [{ value: '', disabled: true }],
       email: [{ value: '', disabled: true }],
@@ -81,9 +97,12 @@ export class PerfilComponent implements OnInit {
   }
 
   cargar() {
+    if (!this.idUsuario) return;
+
     this.loading = true;
-    this.estado = 'Cargando…';
-    this.api.getPerfil()
+    this.estado = 'Cargando perfil…';
+
+    this.api.getPerfil(this.idUsuario)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (p: PerfilVM) => {
@@ -102,8 +121,7 @@ export class PerfilComponent implements OnInit {
             ctrl.setValue(set.has(this.enfermedadesCatalogo[i]));
           });
 
-          // Mostrar imagen desde el backend (foto_url)
-          this.avatarUrl = p.foto_url || null;
+          this.avatarUrl = p.foto_url || this.api.defaultAvatar;
 
           this.calcIMC();
           this.refreshInicial();
@@ -113,11 +131,10 @@ export class PerfilComponent implements OnInit {
       });
   }
 
-  // === Selección / subida de foto ===
   onAvatarChange(ev: Event) {
     const input = ev.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (!file || !this.idUsuario) return;
 
     if (!file.type.startsWith('image/')) {
       this.estado = 'El archivo debe ser una imagen.';
@@ -131,41 +148,30 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
-    // Previsualización inmediata
-    const reader = new FileReader();
-    reader.onload = () => (this.avatarUrl = String(reader.result || ''));
-    reader.readAsDataURL(file);
-
-    // Subir al servidor
     this.uploading = true;
     this.estado = 'Subiendo foto…';
-    this.api.uploadAvatar(file)
+    this.api.uploadAvatar(file, this.idUsuario)
       .pipe(finalize(() => (this.uploading = false)))
       .subscribe({
-        next: (r) => {
-          // Asegurar compatibilidad con backend que usa foto_url
-          const url = r.foto_url || r.avatar_url || null;
-          this.avatarUrl = url ? `${url}?t=${Date.now()}` : null;
+        next: (r: any) => {
+          this.avatarUrl = r.foto_url;
           this.estado = 'Foto actualizada';
         },
-        error: () => {
-          this.estado = 'No se pudo subir la foto';
-        }
+        error: () => (this.estado = 'No se pudo subir la foto')
       });
 
     input.value = '';
   }
 
-  // === Quitar foto ===
   removeAvatar() {
-    if (!this.avatarUrl) return;
+    if (!this.avatarUrl || !this.idUsuario) return;
     this.uploading = true;
     this.estado = 'Quitando foto…';
-    this.api.deleteAvatar()
+    this.api.deleteAvatar(this.idUsuario)
       .pipe(finalize(() => (this.uploading = false)))
       .subscribe({
-        next: () => {
-          this.avatarUrl = null;
+        next: (r: any) => {
+          this.avatarUrl = r.foto_url;
           this.estado = 'Foto eliminada';
         },
         error: () => (this.estado = 'No se pudo eliminar la foto')
@@ -173,7 +179,7 @@ export class PerfilComponent implements OnInit {
   }
 
   guardar() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || !this.idUsuario) return;
 
     const enfermedades: string[] = this.enfArray.controls
       .map((c, i) => (c.value ? this.enfermedadesCatalogo[i] : null))
@@ -189,12 +195,12 @@ export class PerfilComponent implements OnInit {
     };
 
     this.saving = true;
-    this.estado = 'Guardando…';
-    this.api.savePerfil(payload)
+    this.estado = 'Guardando cambios…';
+    this.api.savePerfil(payload, this.idUsuario)
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {
-          this.estado = 'Cambios guardados';
+          this.estado = 'Cambios guardados correctamente';
           this.refreshInicial();
         },
         error: () => (this.estado = 'Error al guardar')

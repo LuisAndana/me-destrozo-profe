@@ -1,15 +1,9 @@
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * * The content below * * * * * * * * * * * -->
-<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * -->
-<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * Delete the template below * * * * * * * * * -->
-<!-- * * * * * * * to get started with your project! * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- Header solo en layout principal -->
+<app-header-menu *ngIf="headerMenuVisible()"></app-header-menu>
 
-
-
-  
-
-
-<router-outlet></router-outlet>
+<!-- Contenido de la app centrado (solo afectará cuando body tenga layout-default) -->
+<div class="app-shell">
+  <div class="center-frame">
+    <router-outlet></router-outlet>
+  </div>
+</div>

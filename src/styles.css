@@ -1,17 +1,76 @@
+/* ==== 1) Reset & base ==== */
 html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  background: #111;
+  height: 100%;
+  background: #04060b;
+  color-scheme: dark;
+  overflow-x: hidden;
 }
 
-/* src/styles.css */
 :root{
-  --bg:#0B0B0C; --panel:#050507; --panel-2:#0F0F11;
-  --text:#F4F5F7; --muted:#9DA3AE; --brand:#FF4D4F;
-  --accent:#0B84FE; --item-hover:#14161A; --item-active:#0D1117;
-  --ring:rgba(11,132,254,.35); --sidebar-w:256px;
-  --radius:10px; --gap:12px; --item-h:40px; --icon:18px; --fs:14px;
+  --topbar-h: 65px;
+  --topbar-gap: 8px;
+  --sidebar-w: 300px;
 }
 
+
+
+@media (max-width: 768px){ :root{ --topbar-h: 72px; --sidebar-w: 260px; } }
+@media (max-width: 480px){ :root{ --topbar-h: 64px; --sidebar-w: 240px; } }
+
+/* ==== 2) Offset del header (contenido nunca se pega) ==== */
+body.has-topbar{
+  padding-top: calc(var(--topbar-h) + var(--topbar-gap));
+}
+
+/* Evita dobles espacios si una vista mete padding/margen arriba */
+main, .content, .page { padding-top: 0 !important; }
+main > :first-child,
+.content > :first-child,
+.page > :first-child { margin-top: 0 !important; padding-top: 0 !important; }
+
+/* ==== 3) Sidebar como OVERLAY (no empuja el contenido) ==== */
+.sidebar-glass{
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  transform: translateX(-100%);         /* oculto por defecto */
+  transition: transform .3s ease;
+  will-change: transform;
+  z-index: 40;
+}
+
+/* Cuando abres el menú, solo cambias a translateX(0) */
+.sidebar-glass:not(.compact){
+  transform: translateX(0);             /* visible como overlay */
+}
+
+/* ⛔️ IMPORTANTE: elimina cualquier empuje del layout */
+body.has-sidebar .app,
+body.has-sidebar main,
+body.has-sidebar .page-wrap{
+  margin-left: 0 !important;            /* <- sin desplazamiento */
+}
+
+/* ==== 4) Contenido centrado siempre ==== */
+.page-container,
+.app,
+.page,
+.content {
+  max-width: 1200px;                     /* ajusta a tu preferencia */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(16px, 4vw, 32px);
+  padding-right: clamp(16px, 4vw, 32px);
+}
+
+/* Opcional: en pantallas muy anchas puedes ampliar el ancho */
+@media (min-width: 1600px){
+  .page-container,
+  .app,
+  .page,
+  .content { max-width: 1320px; }
+}

@@ -97,9 +97,12 @@ export class PerfilComponent implements OnInit {
   }
 
   cargar() {
+    if (!this.idUsuario) return;
+
     this.loading = true;
     this.estado = 'Cargando perfil…';
-    this.api.getPerfil() // ✅ sin argumentos
+
+    this.api.getPerfil(this.idUsuario)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (p: PerfilVM) => {
@@ -118,7 +121,7 @@ export class PerfilComponent implements OnInit {
             ctrl.setValue(set.has(this.enfermedadesCatalogo[i]));
           });
 
-          this.avatarUrl = p.avatar_url || null;
+          this.avatarUrl = p.foto_url || this.api.defaultAvatar;
 
           this.calcIMC();
           this.refreshInicial();
@@ -131,7 +134,7 @@ export class PerfilComponent implements OnInit {
   onAvatarChange(ev: Event) {
     const input = ev.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (!file || !this.idUsuario) return;
 
     if (!file.type.startsWith('image/')) {
       this.estado = 'El archivo debe ser una imagen.';
@@ -145,17 +148,13 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => (this.avatarUrl = String(reader.result || ''));
-    reader.readAsDataURL(file);
-
     this.uploading = true;
     this.estado = 'Subiendo foto…';
-    this.api.uploadAvatar(file) // ✅ sin idUsuario
+    this.api.uploadAvatar(file, this.idUsuario)
       .pipe(finalize(() => (this.uploading = false)))
       .subscribe({
         next: (r: any) => {
-          this.avatarUrl = r.avatar_url;
+          this.avatarUrl = r.foto_url;
           this.estado = 'Foto actualizada';
         },
         error: () => (this.estado = 'No se pudo subir la foto')
@@ -165,14 +164,14 @@ export class PerfilComponent implements OnInit {
   }
 
   removeAvatar() {
-    if (!this.avatarUrl) return;
+    if (!this.avatarUrl || !this.idUsuario) return;
     this.uploading = true;
     this.estado = 'Quitando foto…';
-    this.api.deleteAvatar() // ✅ sin idUsuario
+    this.api.deleteAvatar(this.idUsuario)
       .pipe(finalize(() => (this.uploading = false)))
       .subscribe({
-        next: () => {
-          this.avatarUrl = null;
+        next: (r: any) => {
+          this.avatarUrl = r.foto_url;
           this.estado = 'Foto eliminada';
         },
         error: () => (this.estado = 'No se pudo eliminar la foto')
@@ -180,7 +179,7 @@ export class PerfilComponent implements OnInit {
   }
 
   guardar() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || !this.idUsuario) return;
 
     const enfermedades: string[] = this.enfArray.controls
       .map((c, i) => (c.value ? this.enfermedadesCatalogo[i] : null))
@@ -197,7 +196,7 @@ export class PerfilComponent implements OnInit {
 
     this.saving = true;
     this.estado = 'Guardando cambios…';
-    this.api.savePerfil(payload) // ✅ sin idUsuario
+    this.api.savePerfil(payload, this.idUsuario)
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {

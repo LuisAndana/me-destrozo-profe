@@ -1,0 +1,276 @@
+<!-- components/mis-clientes/mis-clientes.component.html -->
+<div class="container-clientes">
+  
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-content">
+      <h1>Mis Clientes</h1>
+      <p class="subtitulo">Gestiona y genera rutinas personalizadas con IA</p>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="buscador-section">
+    <div class="buscador">
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre, apellido o email..."
+        [(ngModel)]="busqueda"
+        class="input-buscar"
+        aria-label="Buscar clientes"
+      >
+      <button *ngIf="busqueda" (click)="limpiarBusqueda()" class="btn-clear" title="Limpiar">✕</button>
+    </div>
+    <span class="total-badge">{{ totalClientes }} cliente(s)</span>
+  </div>
+
+  <!-- CARGANDO -->
+  <div *ngIf="cargando" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando clientes...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !cargando" class="error-alert" role="alert">
+    <span>{{ error }}</span>
+    <button (click)="cargarClientes()" class="btn-retry">Reintentar</button>
+  </div>
+
+  <!-- SIN CLIENTES -->
+  <div *ngIf="!cargando && clientesFiltrados.length === 0 && !error" class="empty-state">
+    <div class="icon">👥</div>
+    <h2>Sin clientes</h2>
+    <p *ngIf="!busqueda">Aún no tienes clientes contratados</p>
+    <p *ngIf="busqueda">No se encontraron clientes con "{{ busqueda }}"</p>
+  </div>
+
+  <!-- LISTA DE CLIENTES -->
+  <div *ngIf="!cargando && clientesFiltrados.length > 0" class="grid-clientes">
+    <article *ngFor="let item of clientesFiltrados; trackBy: trackByClienteId" class="card-cliente">
+      
+      <!-- FOTO Y DATOS PRINCIPALES -->
+      <div class="card-header">
+        <div class="foto-container">
+          <!-- ✅ SOLUCIÓN: (error) dispara SOLO UNA VEZ, no en bucle -->
+          <img 
+            [src]="getFotoCliente(item)" 
+            class="foto-cliente" 
+            loading="lazy"
+            alt="Foto del cliente"
+            (error)="onImageError($event, item.cliente?.id_usuario || item.id_usuario)"
+          >
+          <div class="status-indicator"></div>
+        </div>
+        <div class="info-principal">
+          <h3 class="nombre-cliente">{{ getNombreCompleto(item) }}</h3>
+          <p class="email">📧 {{ item.cliente?.email || item.email }}</p>
+          <p class="fecha-contratacion">📅 {{ item.fecha_contratacion | date: 'dd/MM/yyyy' }}</p>
+          <!-- ✅ NUEVO: Mostrar sexo en el header -->
+          <p class="sexo" *ngIf="getSexo(item) !== '—'">⚧️ {{ getSexo(item) }}</p>
+        </div>
+      </div>
+
+      <!-- DATOS FÍSICOS - GRID 2X2 CON TODOS LOS DATOS -->
+      <div class="datos-fisicos-grid">
+        
+        <!-- Edad -->
+        <div class="stat-box">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <span class="stat-label">Edad</span>
+            <span class="stat-value">{{ item.cliente?.edad || item.edad || '—' }}<small>años</small></span>
+          </div>
+        </div>
+
+        <!-- Peso -->
+        <div class="stat-box">
+          <div class="stat-icon">⚖️</div>
+          <div class="stat-content">
+            <span class="stat-label">Peso</span>
+            <span class="stat-value">{{ getPeso(item) }}<small>kg</small></span>
+          </div>
+        </div>
+
+        <!-- Estatura - ✅ FIXED: Ahora muestra el valor correctamente -->
+        <div class="stat-box">
+          <div class="stat-icon">📏</div>
+          <div class="stat-content">
+            <span class="stat-label">Estatura</span>
+            <span class="stat-value">{{ getEstatura(item) }}<small>cm</small></span>
+          </div>
+        </div>
+
+        <!-- IMC con color dinámico -->
+        <div class="stat-box" [ngClass]="'badge-' + getColorImc(item)">
+          <div class="stat-icon">💪</div>
+          <div class="stat-content">
+            <span class="stat-label">IMC</span>
+            <span class="stat-value">{{ getImc(item) }}</span>
+            <span class="imc-status">{{ getClasificacionImc(item) }}</span>
+          </div>
+        </div>
+        
+      </div>
+
+      <!-- DATOS MÉDICOS - NUEVO APARTADO -->
+      <div class="datos-medicos-section" *ngIf="getEnfermedades(item).length > 0 || getAntecedentes(item) !== 'Sin información'">
+        <div class="medicos-title">🏥 Información Médica</div>
+        <div class="medicos-grid">
+          
+          <!-- Antecedentes -->
+          <div class="medico-item" *ngIf="getAntecedentes(item) !== 'Sin información'">
+            <span class="medico-label">Antecedentes:</span>
+            <span class="medico-value">{{ getAntecedentes(item) }}</span>
+          </div>
+
+          <!-- Enfermedades -->
+          <div class="medico-item" *ngIf="getEnfermedades(item).length > 0">
+            <span class="medico-label">Enfermedades:</span>
+            <div class="enfermedades-list">
+              <span class="enfermedad-badge" *ngFor="let enfermedad of getEnfermedades(item)">
+                🏥 {{ enfermedad }}
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ACCIONES -->
+      <div class="acciones">
+        <button (click)="abrirPerfil(item)" class="btn btn-primary">👁️ Ver Perfil</button>
+        <button (click)="generarRutina(item.cliente?.id_usuario || item.id_usuario)" class="btn btn-success">⚡ Generar Rutina IA</button>
+      </div>
+    </article>
+  </div>
+</div>
+
+<!-- MODAL DE PERFIL -->
+<div *ngIf="mostrarPerfil && clienteSeleccionado" class="modal-overlay">
+  <div class="modal-content">
+    <button (click)="cerrarPerfil()" class="btn-close">✕</button>
+
+    <div class="perfil-header">
+      <!-- ✅ SOLUCIÓN: Sin bucle de imágenes - Se usa getFotoCliente() -->
+      <img 
+        [src]="getFotoCliente({cliente: clienteSeleccionado})" 
+        class="perfil-avatar"
+        alt="Avatar del cliente"
+        (error)="onImageError($event, clienteSeleccionado.id_usuario)"
+      >
+      <div class="perfil-title">
+        <h2>{{ clienteSeleccionado.nombre }} {{ clienteSeleccionado.apellido }}</h2>
+        <p class="perfil-id">ID: {{ clienteSeleccionado.id_usuario }}</p>
+      </div>
+    </div>
+
+    <div class="perfil-body">
+      <!-- Información de contacto -->
+      <div class="section">
+        <h3 class="section-title">📧 Información de Contacto</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Email:</label>
+            <p>{{ clienteSeleccionado.email }}</p>
+          </div>
+          <div class="info-item">
+            <label>Estado:</label>
+            <p>Activo</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos demográficos -->
+      <div class="section">
+        <h3 class="section-title">👤 Datos Demográficos</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Sexo:</label>
+            <p>{{ getSexo({cliente: clienteSeleccionado}) }}</p>
+          </div>
+          <div class="info-item">
+            <label>Fecha Contratación:</label>
+            <p *ngIf="clienteSeleccionado.fecha_contratacion">{{ clienteSeleccionado.fecha_contratacion | date: 'dd/MM/yyyy HH:mm' }}</p>
+            <p *ngIf="!clienteSeleccionado.fecha_contratacion">—</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos físicos -->
+      <div class="section">
+        <h3 class="section-title">📏 Datos Físicos</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Edad:</label>
+            <p>{{ clienteSeleccionado.edad || '—' }} años</p>
+          </div>
+          <div class="info-item">
+            <label>Peso:</label>
+            <p>{{ getPeso({cliente: clienteSeleccionado}) }} kg</p>
+          </div>
+          <div class="info-item">
+            <label>Estatura:</label>
+            <p>{{ getEstatura({cliente: clienteSeleccionado}) }} cm</p>
+          </div>
+          <div class="info-item">
+            <label>IMC:</label>
+            <p>{{ getImc({cliente: clienteSeleccionado}) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMC Clasificación -->
+      <div class="section">
+        <h3 class="section-title">💪 Índice de Masa Corporal</h3>
+        <div class="imc-card" [ngClass]="'imc-' + getColorImc({cliente: clienteSeleccionado})">
+          <div class="imc-value">{{ getImc({cliente: clienteSeleccionado}) }}</div>
+          <div class="imc-classification">{{ getClasificacionImc({cliente: clienteSeleccionado}) }}</div>
+          <div class="imc-info">
+            <small>
+              <strong>Referencia de categorías:</strong><br>
+              🔵 Bajo peso: IMC &lt; 18.5<br>
+              🟢 Normal: 18.5 ≤ IMC &lt; 25<br>
+              🟠 Sobrepeso: 25 ≤ IMC &lt; 30<br>
+              🔴 Obesidad: IMC ≥ 30
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos Médicos -->
+      <div class="section">
+        <h3 class="section-title">🏥 Información Médica</h3>
+        
+        <!-- Solo Problemas Médicos -->
+        <div class="medical-info" *ngIf="getProblemasMedicos({cliente: clienteSeleccionado}) !== 'Ninguno reportado'">
+          <p><strong>Problemas Médicos:</strong></p>
+          <p class="medical-text">{{ getProblemasMedicos({cliente: clienteSeleccionado}) }}</p>
+        </div>
+
+        <!-- Enfermedades -->
+        <div class="medical-info" *ngIf="getEnfermedades({cliente: clienteSeleccionado}).length > 0">
+          <p><strong>Enfermedades Diagnosticadas:</strong></p>
+          <div class="enfermedades-list">
+            <span class="enfermedad-badge" *ngFor="let enfermedad of getEnfermedades({cliente: clienteSeleccionado})">
+              🏥 {{ enfermedad }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Condiciones Médicas -->
+        <div class="medical-info" *ngIf="getCondicionesMedicas({cliente: clienteSeleccionado}).length > 0">
+          <p><strong>Condiciones Médicas:</strong></p>
+          <div class="condiciones-list">
+            <span class="condicion-badge" *ngFor="let condicion of getCondicionesMedicas({cliente: clienteSeleccionado})">
+              ⚕️ {{ condicion }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="perfil-footer">
+      <button (click)="cerrarPerfil()" class="btn-secondary">Cerrar</button>
+    </div>
+  </div>
+</div>

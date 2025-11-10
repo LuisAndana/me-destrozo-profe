@@ -1,0 +1,295 @@
+<div class="generar-rutina-container">
+  <!-- Header -->
+  <div class="header-section">
+    <h1>🤖 Generar Rutina con IA</h1>
+    <p class="subtitle">Distribución inteligente - Cada día enfoque muscular diferente</p>
+  </div>
+
+  <!-- Mensajes de estado -->
+  <div *ngIf="mensajeError" class="alert alert-error">
+    <span>⚠️ {{ mensajeError }}</span>
+  </div>
+  <div *ngIf="mensajeExito" class="alert alert-success">
+    <span>✓ {{ mensajeExito }}</span>
+  </div>
+
+  <div class="content-grid">
+    <!-- Panel izquierdo: Selección de alumno y formulario -->
+    <div class="left-panel">
+      <!-- Selección de alumno -->
+      <div class="section alumno-section">
+        <h2>1. Selecciona un Alumno</h2>
+        
+        <div *ngIf="cargandoAlumnos" class="loading">
+          <p>Cargando alumnos...</p>
+        </div>
+
+        <div *ngIf="!cargandoAlumnos && alumnos.length > 0" class="alumnos-list">
+          <button
+            *ngFor="let alumno of alumnos"
+            (click)="seleccionarAlumno(alumno)"
+            [class.selected]="alumnoSeleccionado?.id_usuario === alumno.id_usuario"
+            class="alumno-btn"
+          >
+            <div class="alumno-info">
+              <strong>{{ getNombreAlumno(alumno) }}</strong>
+              <small>{{ alumno.email }}</small>
+              <div class="alumno-stats" *ngIf="alumno.edad || alumno.peso">
+                <span *ngIf="alumno.edad">Edad: {{ alumno.edad }}</span>
+                <span *ngIf="alumno.peso">Peso: {{ alumno.peso }}kg</span>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <div *ngIf="!cargandoAlumnos && alumnos.length === 0" class="no-data">
+          <p>No hay alumnos disponibles</p>
+        </div>
+      </div>
+
+      <!-- Datos del alumno seleccionado -->
+      <div *ngIf="alumnoSeleccionado" class="section alumno-datos-section">
+        <h3>Datos del Alumno</h3>
+        <div class="datos-grid">
+          <div class="dato" *ngIf="getDatosAlumnoFormateados()">
+            <strong>IMC:</strong> {{ getDatosAlumnoFormateados().imc }}
+          </div>
+          <div class="dato" *ngIf="getDatosAlumnoFormateados()">
+            <strong>Altura:</strong> {{ getDatosAlumnoFormateados().altura }}cm
+          </div>
+          <div class="dato" *ngIf="getDatosAlumnoFormateados()">
+            <strong>Peso:</strong> {{ getDatosAlumnoFormateados().peso }}kg
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de generación -->
+      <div class="section formulario-section">
+        <h2>2. Parámetros de la Rutina</h2>
+
+        <div class="form-group">
+          <label for="objetivos">Objetivos del Alumno *</label>
+          <textarea
+            id="objetivos"
+            [(ngModel)]="objetivos"
+            placeholder="Ej: Ganar masa muscular en brazos y espalda, mejorar resistencia..."
+            class="textarea"
+          ></textarea>
+          <small>Describe los objetivos y preferencias del alumno</small>
+        </div>
+
+        <div class="form-group">
+          <label for="dias">Días por Semana *</label>
+          <select id="dias" [(ngModel)]="diasPorSemana" class="select">
+            <option *ngFor="let dia of [2, 3, 4, 5, 6]" [value]="dia">
+              {{ dia }} días
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="nivel">Nivel de Dificultad *</label>
+          <select id="nivel" [(ngModel)]="nivel" class="select">
+            <option value="principiante">Principiante</option>
+            <option value="intermedio">Intermedio</option>
+            <option value="avanzado">Avanzado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="grupo">Grupo Muscular (Opcional)</label>
+          <select id="grupo" [(ngModel)]="grupoMuscularFoco" class="select">
+            <option value="general">General</option>
+            <option *ngFor="let grupo of obtenerGruposMuscularesUnicos()" [value]="grupo">
+              {{ grupo }}
+            </option>
+          </select>
+        </div>
+
+        <div class="info-box">
+          <strong>ℹ️ Ejercicios Disponibles:</strong>
+          <p>{{ ejerciciosDisponibles.length }} ejercicios cargados de la base de datos</p>
+          <p *ngIf="obtenerEjerciciosRecomendados().length > 0">
+            {{ obtenerEjerciciosRecomendados().length }} ejercicios para nivel {{ nivel }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="button-group">
+        <button
+          (click)="generarRutina()"
+          [disabled]="!formularioValido() || cargandoRutina"
+          class="btn btn-primary"
+        >
+          <span *ngIf="!cargandoRutina">⚡ Generar Rutina IA</span>
+          <span *ngIf="cargandoRutina">Generando...</span>
+        </button>
+        <button
+          (click)="limpiarFormulario()"
+          [disabled]="cargandoRutina"
+          class="btn btn-secondary"
+        >
+          Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel derecho: Rutina generada -->
+    <div class="right-panel">
+      <div *ngIf="!rutinaGenerada && !cargandoRutina" class="placeholder">
+        <div class="placeholder-content">
+          <p>📋 Selecciona un alumno y configura los parámetros</p>
+          <p>Luego haz clic en "Generar Rutina IA" para crear una rutina personalizada</p>
+        </div>
+      </div>
+
+      <div *ngIf="cargandoRutina" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Generando rutina personalizada...</p>
+      </div>
+
+      <div *ngIf="rutinaGenerada && !cargandoRutina" class="rutina-generada">
+        <div class="rutina-header">
+          <h2>{{ rutinaGenerada.nombre }}</h2>
+          <p class="rutina-descripcion">{{ rutinaGenerada.descripcion }}</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <strong class="stat-number">{{ rutinaGenerada.total_ejercicios }}</strong>
+            <span class="stat-label">Ejercicios</span>
+          </div>
+          <div class="stat-card">
+            <strong class="stat-number">{{ rutinaGenerada.minutos_aproximados }}</strong>
+            <span class="stat-label">Minutos</span>
+          </div>
+          <div class="stat-card">
+            <strong class="stat-number">{{ diasPorSemana }}</strong>
+            <span class="stat-label">Días/Semana</span>
+          </div>
+        </div>
+
+        <!-- TABS DE DÍAS - V3 -->
+        <div class="tabs-dias-section" *ngIf="rutinaGenerada.dias && rutinaGenerada.dias.length > 0">
+          <h3>Selecciona un Día</h3>
+          <div class="tabs-container">
+            <button
+              *ngFor="let dia of rutinaGenerada.dias; let i = index"
+              (click)="cambiarDia(i)"
+              [class.tab-activo]="diaSeleccionado === i"
+              class="tab-dia"
+            >
+              {{ dia.nombre_dia }}
+            </button>
+          </div>
+        </div>
+
+        <!-- CONTENIDO DEL DÍA SELECCIONADO - V3 -->
+        <div *ngIf="obtenerDiaActual()" class="dia-contenido">
+          
+          <!-- Información del día -->
+          <div class="dia-info">
+            <h4 class="dia-nombre">
+              📅 Día {{ obtenerDiaActual()!.numero_dia }}: {{ obtenerDiaActual()!.nombre_dia }}
+            </h4>
+            <p class="dia-descripcion">{{ obtenerDiaActual()!.descripcion }}</p>
+            <p class="dia-enfoque" *ngIf="obtenerDiaActual() && obtenerDiaActual()!.grupos_enfoque && obtenerDiaActual()!.grupos_enfoque.length > 0">
+              <strong>🎯 Enfoque Muscular:</strong> {{ obtenerDiaActual()!.grupos_enfoque.join(' + ') }}
+            </p>
+          </div>
+
+          <!-- Lista de ejercicios del día -->
+          <div class="ejercicios-section">
+            <h3>💪 Ejercicios del Día</h3>
+            <div class="ejercicios-list">
+              <div
+                *ngFor="let ejercicio of obtenerDiaActual()!.ejercicios; let i = index"
+                class="ejercicio-card"
+              >
+                <div class="ejercicio-index">{{ i + 1 }}</div>
+                <div class="ejercicio-content">
+                  <h4>{{ ejercicio.nombre }}</h4>
+                  <p class="ejercicio-descripcion">{{ ejercicio.descripcion }}</p>
+                  
+                  <!-- Detalles del ejercicio -->
+                  <div class="ejercicio-detalles" *ngIf="ejercicio.series || ejercicio.repeticiones || ejercicio.descanso_segundos">
+                    <span class="detalle" *ngIf="ejercicio.series">
+                      <strong>Series:</strong> {{ ejercicio.series }}
+                    </span>
+                    <span class="detalle" *ngIf="ejercicio.repeticiones">
+                      <strong>Reps:</strong> {{ ejercicio.repeticiones }}
+                    </span>
+                    <span class="detalle" *ngIf="ejercicio.descanso_segundos">
+                      <strong>Descanso:</strong> {{ ejercicio.descanso_segundos }}s
+                    </span>
+                  </div>
+
+                  <div class="ejercicio-tags">
+                    <span class="tag tag-grupo">{{ ejercicio.grupo_muscular }}</span>
+                    <span class="tag tag-dificultad">{{ ejercicio.dificultad }}</span>
+                    <span class="tag tag-tipo">{{ ejercicio.tipo }}</span>
+                  </div>
+                  
+                  <!-- Notas del ejercicio -->
+                  <p class="ejercicio-notas" *ngIf="ejercicio.notas">
+                    📝 {{ ejercicio.notas }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Si no hay ejercicios -->
+              <div *ngIf="obtenerDiaActual() && (!obtenerDiaActual()!.ejercicios || obtenerDiaActual()!.ejercicios.length === 0)" class="sin-ejercicios">
+                <p>No hay ejercicios para este día</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen del día -->
+          <div class="resumen-dia" *ngIf="obtenerDiaActual() && obtenerDiaActual()!.ejercicios && obtenerDiaActual()!.ejercicios.length > 0">
+            <p>
+              <strong>✓ Total ejercicios:</strong> {{ obtenerDiaActual()!.ejercicios.length }}
+            </p>
+            <p>
+              <strong>⏱️ Tiempo estimado:</strong> {{ calcularTiempoEstimado(obtenerDiaActual()!.ejercicios) }} minutos
+            </p>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="button-group rutina-actions">
+          <button (click)="abrirModalGuardar()" class="btn btn-success">
+            <span *ngIf="!cargandoRutina">💾 Guardar Rutina</span>
+            <span *ngIf="cargandoRutina">Guardando...</span>
+          </button>
+          <button (click)="descargarRutina('json')" class="btn btn-info">
+            📥 Descargar JSON
+          </button>
+          <button (click)="abrirModalEditar()" class="btn btn-warning">
+            ✏️ Editar
+          </button>
+          <button (click)="generarRutina()" class="btn btn-secondary">
+            🔄 Regenerar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Guardar -->
+  <app-guardar-rutina-modal
+    [mostrar]="mostrarModalGuardar"
+    [rutina]="rutinaGenerada"
+    (guardarEvent)="guardarRutinaDesdeModal($event)"
+    (cerrarEvent)="mostrarModalGuardar = false"
+  ></app-guardar-rutina-modal>
+
+  <!-- Modal de Editar -->
+  <app-editar-rutina-modal
+    [mostrar]="mostrarModalEditar"
+    [rutina]="rutinaEditando || rutinaGenerada"
+    (guardarEvent)="guardarCambiosEditar($event)"
+    (cerrarEvent)="mostrarModalEditar = false"
+  ></app-editar-rutina-modal>
+</div>

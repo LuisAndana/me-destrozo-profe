@@ -468,3 +468,10 @@ app-entrenador-card:nth-child(8) { animation-delay: 0.4s; }
 .grid.updating {
   opacity: 0.6;
 }
+
+/* Hereda el centrado global y no deja que nada lo pise */
+.center-frame.page-wrap{
+  max-width: min(1280px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto !important;
+  width: 100%;
+}

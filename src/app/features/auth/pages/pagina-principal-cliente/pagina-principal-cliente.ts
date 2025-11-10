@@ -28,6 +28,10 @@ export class PaginaPrincipalCliente implements OnInit {
   inicial = 'U';
   fotoUrl = '';
 
+  // ✅ Propiedades usadas por el template
+  clientesActivos = 0;   // puede quedarse en 0 para el rol cliente
+  mensajesNuevos = 0;
+
   private router = inject(Router);
   private cd = inject(ChangeDetectorRef);
 
@@ -63,11 +67,10 @@ export class PaginaPrincipalCliente implements OnInit {
       }
 
       // ✅ Asignar foto si existe
-      if (u?.fotoUrl && u.fotoUrl.trim() !== '') {
-        this.fotoUrl = u.fotoUrl;
-      } else {
-        this.fotoUrl = ''; // Sin foto → mostrará iniciales
-      }
+      this.fotoUrl = (u?.fotoUrl && u.fotoUrl.trim() !== '') ? u.fotoUrl : '';
+
+      // (Opcional) Cargar contadores reales
+      // this.cargarResumen();
     } catch (e) {
       console.warn('[Cliente] No se pudo leer usuario de localStorage:', e);
       this.router.navigate(['/']);
@@ -75,6 +78,13 @@ export class PaginaPrincipalCliente implements OnInit {
 
     setTimeout(() => this.cd.detectChanges(), 0);
   }
+
+  // (Opcional) Hook para traer datos reales en el futuro
+  // private cargarResumen(): void {
+  //   // TODO: Llamar servicio para mensajes no leídos, etc.
+  //   // this.mensajesNuevos = resp.noLeidos ?? 0;
+  //   // this.clientesActivos = resp.clientesActivos ?? 0; // si aplica para cliente
+  // }
 
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
@@ -88,5 +98,10 @@ export class PaginaPrincipalCliente implements OnInit {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     this.router.navigate(['/']);
+  }
+
+  // ✅ Navegar al perfil de cliente
+  goToProfile(): void {
+    this.router.navigate(['/cliente/perfil']);
   }
 }

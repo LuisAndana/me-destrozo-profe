@@ -14,11 +14,7 @@ export interface PerfilVM {
   imc: number | null;
   problemas: string | null;
   enfermedades: string[];
-
-  /** ✅ Campo principal desde el backend */
   foto_url?: string | null;
-
-  /** Compatibilidad opcional */
   avatar_url?: string | null;
 }
 
@@ -27,26 +23,13 @@ export class PerfilService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
 
-  // Base del endpoint del backend
+  /** Base del endpoint del backend */
   private base = `${environment.apiBase}/usuarios`;
 
-  /** Headers JSON con JWT */
-  private jsonHeaders(): HttpHeaders {
-    const token = this.auth.getToken() || localStorage.getItem('token');
-    let h = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (token) h = h.set('Authorization', `Bearer ${token}`);
-    return h;
-  }
+  /** Imagen por defecto si el backend no tiene foto */
+  readonly defaultAvatar = 'assets/default-avatar.png';
 
-  /** Headers para envío de FormData (sin Content-Type) */
-  private formHeaders(): HttpHeaders {
-    const token = this.auth.getToken() || localStorage.getItem('token');
-    let h = new HttpHeaders();
-    if (token) h = h.set('Authorization', `Bearer ${token}`);
-    return h;
-  }
-
-  /** Convierte el campo enfermedades del backend a un array */
+  /** Convierte el campo enfermedades del backend a un array seguro */
   private parseEnfermedades(raw: unknown): string[] {
     if (Array.isArray(raw)) {
       return raw.filter((x): x is string => typeof x === 'string' && !!x.trim());
@@ -67,37 +50,40 @@ export class PerfilService {
     return [];
   }
 
-  /** Obtiene el perfil del usuario autenticado */
-  getPerfil(): Observable<PerfilVM> {
-    const headers = this.jsonHeaders();
+  /**
+   * ✅ Obtiene el perfil sin requerir token.
+   *    Se pasa el user_id como parámetro query (?user_id=)
+   */
+  getPerfil(userId: number): Observable<PerfilVM> {
+    return this.http
+      .get<any>(`${this.base}/me?user_id=${userId}`)
+      .pipe(
+        map(resp => {
+          const r = resp?.usuario ?? resp;
+          const enfermedades = this.parseEnfermedades(r?.enfermedades);
+          const foto_url: string | null =
+            r?.foto_url ?? r?.avatar_url ?? r?.avatar ?? this.defaultAvatar;
 
-    return this.http.get<any>(`${this.base}/me`, { headers }).pipe(
-      map(resp => {
-        const r = resp?.usuario ?? resp;
-        const enfermedades = this.parseEnfermedades(r?.enfermedades);
-
-        // ✅ Se da prioridad a foto_url (backend real)
-        const foto_url: string | null =
-          r?.foto_url ?? r?.avatar_url ?? r?.avatar ?? null;
-
-        return {
-          nombre_completo: `${r?.nombre ?? ''} ${r?.apellido ?? ''}`.trim(),
-          email: r?.email ?? '',
-          sexo: (r?.sexo ?? '') as PerfilVM['sexo'],
-          peso_kg: r?.peso_kg ?? null,
-          estatura_cm: r?.estatura_cm ?? null,
-          edad: r?.edad ?? null,
-          imc: r?.imc ?? null,
-          problemas: r?.problemas ?? '',
-          enfermedades,
-          foto_url
-        } as PerfilVM;
-      })
-    );
+          return {
+            nombre_completo: `${r?.nombre ?? ''} ${r?.apellido ?? ''}`.trim(),
+            email: r?.email ?? '',
+            sexo: (r?.sexo ?? '') as PerfilVM['sexo'],
+            peso_kg: r?.peso_kg ?? null,
+            estatura_cm: r?.estatura_cm ?? null,
+            edad: r?.edad ?? null,
+            imc: r?.imc ?? null,
+            problemas: r?.problemas ?? '',
+            enfermedades,
+            foto_url
+          } as PerfilVM;
+        })
+      );
   }
 
-  /** Guarda los cambios en el perfil */
-  savePerfil(vm: Partial<PerfilVM>): Observable<PerfilVM> {
+  /**
+   * ✅ Guarda los cambios del perfil sin token (usa user_id)
+   */
+  savePerfil(vm: Partial<PerfilVM>, userId: number): Observable<PerfilVM> {
     const enfermedadesList = (vm.enfermedades ?? [])
       .filter(s => typeof s === 'string' && !!s.trim());
 
@@ -111,22 +97,23 @@ export class PerfilService {
     };
 
     return this.http.patch<PerfilVM>(
-      `${this.base}/perfil`,
-      body,
-      { headers: this.jsonHeaders() }
+      `${this.base}/perfil?user_id=${userId}`,
+      body
     );
   }
 
-  /** ✅ Sube la foto de perfil (avatar/foto_url) */
-uploadAvatar(file: File): Observable<{ foto_url?: string; avatar_url?: string }> {
+  /**
+   * ✅ Sube el avatar del usuario sin requerir token
+   */
+uploadAvatar(file: File, userId: number): Observable<{ foto_url?: string; avatar_url?: string }> {
   const fd = new FormData();
-  fd.append('file', file);
+  fd.append('avatar', file); // 👈 usar 'avatar' porque envías a /usuarios/perfil/avatar
 
   return this.http
     .post<{ foto_url?: string; avatar_url?: string }>(
-      `${this.base}/avatar`,
+      `${this.base}/perfil/avatar?user_id=${userId}`, // 👈 ruta correcta
       fd,
-      { headers: this.formHeaders() }
+      { }
     )
     .pipe(
       map(r => ({
@@ -137,11 +124,14 @@ uploadAvatar(file: File): Observable<{ foto_url?: string; avatar_url?: string }>
 }
 
 
-  /** ✅ Elimina la foto de perfil */
-  deleteAvatar(): Observable<void> {
-    return this.http.delete<void>(
-      `${this.base}/avatar`,
-      { headers: this.jsonHeaders() }
-    );
+  /**
+   * ✅ Elimina el avatar del usuario sin token
+   */
+  deleteAvatar(userId: number): Observable<{ foto_url: string }> {
+    return this.http
+      .delete(`${this.base}/perfil/avatar?user_id=${userId}`)
+      .pipe(
+        map(() => ({ foto_url: this.defaultAvatar }))
+      );
   }
 }

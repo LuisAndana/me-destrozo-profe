@@ -1,0 +1,179 @@
+/* Por si el root de la página tenía empujes a la izquierda */
+:host > *{
+  float: none !important;
+  position: relative;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* ===== Shell base (solo layout app) ===== */
+body.layout-default .app-shell{
+  min-height: 100%;
+}
+
+/* ===== Contenedor centrado global ===== */
+body.layout-default .center-frame{
+  width: min(1200px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto;
+  transition: transform .25s ease;
+  will-change: transform;
+}
+
+/* (Opcional) pantallas muy anchas */
+@media (min-width: 1600px){
+  body.layout-default .center-frame{
+    width: min(1320px, 100% - clamp(24px, 6vw, 64px));
+  }
+}
+
+/* ===== Sidebar overlay (no empuja) ===== */
+.sidebar-glass{
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  transform: translateX(-100%);
+  transition: transform .3s ease;
+  z-index: 40;
+}
+.sidebar-glass:not(.compact){
+  transform: translateX(0);
+}
+
+/* ===== Recentrado óptico SOLO si NO estamos en páginas no-recenter ===== */
+body.layout-default.menu-open:not(.no-recenter) .center-frame{
+  transform: translateX(calc(var(--sidebar-w) / 2));
+}
+
+/* En pantallas chicas igual */
+@media (max-width: 768px){
+  body.layout-default.menu-open:not(.no-recenter) .center-frame{
+    transform: translateX(calc(var(--sidebar-w) / 2));
+  }
+}
+
+/* 🚫 Fuerza a NO mover nada en páginas marcadas como no-recenter */
+body.layout-default.no-recenter .center-frame,
+body.layout-default.menu-open.no-recenter .center-frame{
+  transform: none !important;
+}
+
+/* ===== Nunca empujes el layout con margen (solo layout) ===== */
+body.layout-default.has-sidebar .center-frame,
+body.layout-default.has-sidebar main,
+body.layout-default.has-sidebar .page,
+body.layout-default.has-sidebar .page-wrap{
+  margin-left: 0 !important;
+}
+
+/* Contenedores que heredan el centrado del padre (solo layout) */
+body.layout-default .container{
+  max-width: inherit;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+/* ================================
+   CENTRADO DURO SOLO EN no-recenter
+   (lista y detalle de entrenadores)
+   ================================ */
+
+/* 1) En estas páginas dejamos la frame a ancho fluido
+      para que el centrado lo controle el hijo */
+body.layout-default.no-recenter .center-frame{
+  width: 100%;
+}
+
+/* 2) Forzamos que el PRIMER NIVEL dentro de .center-frame
+      se comporte como contenedor centrado con ancho máximo */
+body.layout-default.no-recenter .center-frame > :where(
+  main,
+  .page,
+  .content,
+  .page-wrap,
+  .container,
+  section
+){
+  max-width: min(1280px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto !important;
+}
+
+/* 3) Si la vista trae un grid/lista directamente,
+      lo centramos igual */
+body.layout-default.no-recenter .center-frame > :where(.grid, .cards, .list, .wrapper){
+  max-width: min(1280px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto !important;
+}
+
+/* 4) Evita “trucos” de vistas que empujan hacia la izquierda */
+body.layout-default.no-recenter .center-frame > *{
+  /* anula empujes típicos */
+  float: none !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* 5) En pantallas MUY anchas, amplía un poco */
+@media (min-width: 1600px){
+  body.layout-default.no-recenter .center-frame > :where(
+    main, .page, .content, .page-wrap, .container, section, .grid, .cards, .list, .wrapper
+  ){
+    max-width: min(1400px, 100% - clamp(24px, 6vw, 72px));
+  }
+}
+
+/* =========================================================
+   CENTRADO DURO para páginas marcadas como no-recenter
+   (lista y detalle de entrenadores)
+   ========================================================= */
+
+/* 1) La shell actúa como “pista” para centrar cualquier página */
+body.layout-default.no-recenter .app-shell{
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* 2) Centra el/los host element(s) que pinta Angular dentro de la shell.
+      Excluimos header/topbar/sidebar (que son fixed) */
+body.layout-default.no-recenter .app-shell > *:not(header):not(.topbar-glass):not(.sidebar-glass){
+  max-width: min(1280px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 3) Si la página pinta un contenedor directo (main/page/content/section/grid...),
+      lo centramos igual (por si el host tiene 100% y dentro vive el layout real) */
+body.layout-default.no-recenter .app-shell > *:not(header):not(.topbar-glass):not(.sidebar-glass)
+  > :where(main, .page, .content, .page-wrap, .container, section, .grid, .cards, .list, .wrapper){
+  max-width: min(1280px, 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 4) Desactiva cualquier empuje accidental hacia la izquierda */
+body.layout-default.no-recenter .app-shell > *:not(header):not(.topbar-glass):not(.sidebar-glass),
+body.layout-default.no-recenter .app-shell > *:not(header):not(.topbar-glass):not(.sidebar-glass)
+  > :where(main, .page, .content, .page-wrap, .container, section, .grid, .cards, .list, .wrapper){
+  float: none !important;
+  position: relative;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* 5) Ancho un poco mayor en pantallas muy grandes */
+@media (min-width: 1600px){
+  body.layout-default.no-recenter .app-shell > *:not(header):not(.topbar-glass):not(.sidebar-glass),
+  body.layout-default.no-recenter .app-shell > *:not(header):not(.topbar-glass):not(.sidebar-glass)
+    > :where(main, .page, .content, .page-wrap, .container, section, .grid, .cards, .list, .wrapper){
+    max-width: min(1400px, 100% - clamp(24px, 6vw, 72px));
+  }
+}
+
+/* 6) Asegura que no se aplique el “recentrado óptico” en estas páginas */
+body.layout-default.no-recenter .center-frame,
+body.layout-default.menu-open.no-recenter .center-frame{
+  transform: none !important;
+}

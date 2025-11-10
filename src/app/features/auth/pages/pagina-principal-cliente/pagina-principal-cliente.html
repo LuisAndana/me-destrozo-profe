@@ -1,170 +1,67 @@
-<div class="app" [class.menu-open]="menuOpen" [class.collapsed]="collapsed">
-  <!-- BOTÓN FLECHA -->
-  <button
-    type="button"
-    class="rail-toggle"
-    (click)="toggleCollapse()"
-    [attr.aria-label]="collapsed ? 'Expandir menú' : 'Colapsar menú'">
-    <span class="chev" [class.right]="collapsed"></span>
-  </button>
+<!-- features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador.html -->
 
-  <!-- ===== SIDEBAR ===== -->
-  <aside
-    class="sidebar"
-    role="navigation"
-    aria-label="Menú"
-    [attr.aria-hidden]="collapsed && !menuOpen ? 'true' : null">
+<!-- Página limpia: usa el header/menú global. 
+     La clase .page-wrap permite que app.css aplique los offsets del topbar y sidebar -->
+<div class="page-wrap">
 
-    <!-- 🔹 Bloque de usuario -->
-    <a
-      class="brand user-link user-entry"
-      routerLink="/perfil"
-      routerLinkActive="active"
-      role="link"
-      aria-label="Abrir perfil de usuario">
-      
-      <div class="avatar">
-        <!-- Si el usuario tiene foto -->
-        <img
-          *ngIf="fotoUrl && fotoUrl.trim() !== ''"
-          [src]="fotoUrl"
-          alt="Foto de perfil"
-          width="48"
-          height="48"
-          class="avatar-img"
-        />
-
-        <!-- Si no hay foto: mostrar iniciales -->
-        <div *ngIf="!fotoUrl || fotoUrl.trim() === ''" class="avatar-iniciales">
-          {{ inicial }}
-        </div>
-      </div>
-
-      <div class="user-block">
-        <span class="user-label">Usuario</span>
-        <span class="user-name">{{ nombre }}</span>
-      </div>
-    </a>
-
-    <!-- 🔹 Navegación -->
-    <nav class="nav">
-      <a class="nav-item" routerLink="/cliente" routerLinkActive="active">
-        <i class="lucide-home"></i><span>Inicio</span>
-      </a>
-
-      <a class="nav-item" routerLink="/rutina" routerLinkActive="active">
-        <i class="lucide-dumbbell"></i><span>Rutina</span>
-      </a>
-
-      <a class="nav-item" routerLink="/mensajes" routerLinkActive="active">
-        <i class="lucide-message-square"></i><span>Mensajes</span>
-      </a>
-
-      <a class="nav-item" routerLink="/entrenadores" routerLinkActive="active">
-        <i class="lucide-users"></i><span>Entrenadores</span>
-      </a>
-
-      <a class="nav-item" routerLink="/configuracion" routerLinkActive="active">
-        <i class="lucide-settings"></i><span>Configuración</span>
-      </a>
-    </nav>
-
-    <button class="logout" type="button" (click)="logout()">
-      <i class="lucide-log-out"></i><span>Salir</span>
-    </button>
-  </aside>
-
-  <!-- ===== CONTENT ===== -->
-  <main class="content">
-    <header class="topbar">
-      <div class="container topbar-inner edge-left">
-        <button
-          class="hamburger"
-          type="button"
-          aria-label="Abrir menú"
-          (click)="menuOpen = !menuOpen">
-          <i class="lucide-menu"></i>
-        </button>
-
-        <form class="search" role="search">
-          <i class="lucide-search" aria-hidden="true"></i>
-          <input type="search" placeholder="Buscar..." aria-label="Buscar" />
-        </form>
-
-        <button class="notif" type="button" aria-label="Notificaciones">
-          <i class="lucide-bell" aria-hidden="true"></i>
-          <span class="dot" aria-hidden="true"></span>
-        </button>
-
-        <!-- Perfil superior -->
-        <a
-          class="profile"
-          aria-label="Abrir perfil"
-          routerLink="/perfil"
-          routerLinkActive="active">
-          <img
-            [src]="fotoUrl && fotoUrl.trim() !== '' ? fotoUrl : 'assets/img/default-user.png'"
-            width="36"
-            height="36"
-            alt="Foto de perfil"
-            decoding="async"
-            fetchpriority="high" />
-          <span>{{ nombre }}</span>
+  <!-- Hero -->
+  <section
+    class="hero"
+    style="--hero-bg: url('https://images.unsplash.com/photo-1517963628607-8e2e9a9da4d6?auto=format&fit=crop&w=1600&q=80')">
+    <div class="container hero-inner">
+      <h1>Impulsa a tus clientes al siguiente nivel</h1>
+      <p class="sub">Gestiona rutinas, sigue su progreso y mantén la motivación constante.</p>
+      <div class="hero-actions">
+        <a routerLink="/entrenador/mis-clientes" class="btn btn-accent btn-lg btn-glow">
+          <i class="lucide-users"></i> Gestionar clientes
+        </a>
+        <a routerLink="/entrenador/rutinas" class="btn btn-outline-light btn-lg">
+          <i class="lucide-dumbbell"></i> Ver rutinas
         </a>
       </div>
-    </header>
+    </div>
+  </section>
 
-    <!-- Hero -->
-    <section class="hero" style="--hero-bg: url('/assets/img/fitman-logo.png')">
-      <div class="container hero-inner edge-left">
-        <h1>El primer paso es el que más significa</h1>
-        <p class="sub">Construye constancia con pequeñas victorias diarias.</p>
-        <div class="hero-actions">
-          <a routerLink="/rutina" class="btn btn-accent btn-lg btn-glow">
-            <i class="lucide-play-circle"></i> Empezar rutina de hoy
-          </a>
-          <a routerLink="/progreso" class="btn btn-outline-light btn-lg">
-            <i class="lucide-activity"></i> Ver progreso
-          </a>
+  <!-- Cards -->
+  <section class="container grid">
+    <!-- Card: Mis Clientes -->
+    <article class="card">
+      <header>
+        <h3>Mis Clientes</h3>
+        <span class="badge">{{ clientesActivos }}</span>
+      </header>
+      <ul class="list">
+        <li *ngIf="clientesActivos === 0">No tienes clientes asignados aún.</li>
+        <li *ngIf="clientesActivos > 0">Tienes <strong>{{ clientesActivos }} clientes</strong> activos.</li>
+      </ul>
+      <a routerLink="/entrenador/mis-clientes" class="btn btn-secondary btn-block">Ver detalles</a>
+    </article>
+
+    <!-- Card: Tu Calificación -->
+    <article class="card">
+      <header>
+        <h3>Tu Calificación</h3>
+        <span class="badge">⭐ 4.8</span>
+      </header>
+      <div class="stat">
+        <div class="rating-display">
+          <span class="rating-number">4.8</span>
+          <span class="rating-label">de 5 estrellas</span>
         </div>
       </div>
-    </section>
+      <a routerLink="/entrenador/resenas" class="btn btn-secondary btn-block">Ver reseñas</a>
+    </article>
 
-    <!-- Cards -->
-    <section class="container grid edge-left">
-      <article class="card">
-        <header>
-          <h3>Rutina de hoy</h3><span class="badge">0 min</span>
-        </header>
-        <ul class="list">
-          <li>No hay bloques disponibles.</li>
-        </ul>
-        <a routerLink="/rutina" class="btn btn-secondary btn-block">Ver detalles</a>
-      </article>
+    <!-- Card: Mensajes -->
+    <article class="card">
+      <header>
+        <h3>Mensajes</h3>
+        <span class="badge badge-info">{{ mensajesNuevos }} nuevos</span>
+      </header>
+      <p class="muted" *ngIf="mensajesNuevos === 0">No tienes mensajes nuevos.</p>
+      <p class="muted" *ngIf="mensajesNuevos > 0">Tienes <strong>{{ mensajesNuevos }} mensajes</strong> nuevos.</p>
+      <a routerLink="/entrenador/mensajes" class="btn btn-secondary btn-block">Ver mensajes</a>
+    </article>
+  </section>
 
-      <article class="card">
-        <header><h3>Progreso semanal</h3></header>
-        <div class="stat">
-          <div
-            class="ring"
-            role="img"
-            aria-label="Progreso 0%"
-            style="background: conic-gradient(var(--primary) 0%, #1f2530 0)">
-            <span>0%</span>
-          </div>
-          <div>
-            <p class="muted">Sesiones completadas</p>
-            <p class="strong">0 / 0</p>
-          </div>
-        </div>
-        <a routerLink="/progreso" class="btn btn-secondary btn-block">Abrir reportes</a>
-      </article>
-
-      <article class="card">
-        <header><h3>Mensajes</h3><span class="badge badge-info">0 nuevos</span></header>
-        <p class="muted">No tienes mensajes nuevos.</p>
-        <a routerLink="/mensajes" class="btn btn-secondary btn-block">Ver mensajes</a>
-      </article>
-    </section>
-  </main>
 </div>
