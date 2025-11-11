@@ -75,20 +75,15 @@ export class RutinaService {
   }
 
   // ============================================================
-  // 🔹 ALUMNOS (actualizado al nuevo backend)
+  // 🔹 ALUMNOS
   // ============================================================
 
-  /**
-   * Obtener lista de alumnos del entrenador actual
-   * (usa el nuevo endpoint /cliente-entrenador/mis-clientes)
-   */
   obtenerAlumnos(): Observable<Alumno[]> {
     const headers = this.getHeaders();
     return new Observable<Alumno[]>(observer => {
       this.http.get<any[]>(`${this.apiUrl}/cliente-entrenador/mis-clientes`, { headers })
         .subscribe({
           next: (relaciones) => {
-            // El backend devuelve { cliente: {...}, fecha_contratacion, ... }
             const alumnos = relaciones.map(r => r.cliente);
             observer.next(alumnos);
             observer.complete();
@@ -98,9 +93,6 @@ export class RutinaService {
     });
   }
 
-  /**
-   * Obtener alumno específico por ID
-   */
   obtenerAlumnoPorId(id: number): Observable<Alumno> {
     const headers = this.getHeaders();
     return this.http.get<Alumno>(`${this.apiUrl}/usuarios/${id}`, { headers });
@@ -110,17 +102,11 @@ export class RutinaService {
   // 🔹 EJERCICIOS
   // ============================================================
 
-  /**
-   * Obtener todos los ejercicios de la BD
-   */
   obtenerEjerciciosDb(): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
     return this.http.get<Ejercicio[]>(`${this.apiUrl}/ejercicios`, { headers });
   }
 
-  /**
-   * Cargar ejercicios internamente
-   */
   private cargarEjerciciosDb(): void {
     this.obtenerEjerciciosDb().subscribe({
       next: (ejercicios) => this.ejerciciosDb.next(ejercicios),
@@ -128,17 +114,11 @@ export class RutinaService {
     });
   }
 
-  /**
-   * Obtener ejercicios por grupo muscular
-   */
   obtenerEjerciciosPorGrupo(grupo: string): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
     return this.http.get<Ejercicio[]>(`${this.apiUrl}/ejercicios/grupo/${grupo}`, { headers });
   }
 
-  /**
-   * Obtener ejercicios por dificultad
-   */
   obtenerEjerciciosPorDificultad(dificultad: string): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
     return this.http.get<Ejercicio[]>(`${this.apiUrl}/ejercicios/dificultad/${dificultad}`, { headers });
@@ -149,7 +129,7 @@ export class RutinaService {
   // ============================================================
 
   /**
-   * Generar rutina con IA - Devuelve RutinaGenerada con estructura de días
+   * 🔹 Generar rutina con IA - Devuelve estructura completa
    */
   generarRutinaIA(
     idAlumno: number,
@@ -169,15 +149,33 @@ export class RutinaService {
   }
 
   /**
-   * Guardar rutina generada
+   * 🔹 Guardar rutina generada en la BD
+   *  (nombre, descripción, creado_por, etc.)
    */
   guardarRutina(rutina: Rutina): Observable<Rutina> {
     const headers = this.getHeaders();
-    return this.http.post<Rutina>(`${this.apiUrl}/rutinas`, rutina, { headers });
+
+    // ✅ Normalizar campos según backend
+    const payload = {
+      nombre: rutina.nombre?.trim() || 'Rutina personalizada',
+      descripcion: rutina.descripcion?.trim() || 'Rutina generada automáticamente',
+      creado_por: rutina.id_cliente,
+      objetivo: rutina.objetivo || '',
+      grupo_muscular: rutina.grupo_muscular || 'General',
+      nivel: rutina.nivel || 'Intermedio',
+      dias_semana: rutina.dias_semana || rutina.dias?.length || 4,
+      total_ejercicios: rutina.total_ejercicios || this.contarEjercicios(rutina),
+      minutos_aproximados: rutina.minutos_aproximados || 60,
+      fecha_creacion: rutina.fecha_creacion || new Date().toISOString(),
+      generada_por: rutina.generada_por || 'Entrenador',
+      dias: rutina.dias || [],
+    };
+
+    return this.http.post<Rutina>(`${this.apiUrl}/rutinas`, payload, { headers });
   }
 
   /**
-   * Actualizar rutina existente
+   * 🔹 Actualizar rutina existente
    */
   actualizarRutina(id: number, rutina: Rutina): Observable<Rutina> {
     const headers = this.getHeaders();
@@ -185,7 +183,7 @@ export class RutinaService {
   }
 
   /**
-   * Obtener rutinas de un alumno
+   * 🔹 Obtener rutinas asignadas a un alumno
    */
   obtenerRutinasAlumno(idAlumno: number): Observable<Rutina[]> {
     const headers = this.getHeaders();
@@ -193,49 +191,46 @@ export class RutinaService {
   }
 
   /**
-   * Eliminar rutina
-   */
-  eliminarRutina(idRutina: number): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http.delete(`${this.apiUrl}/rutinas/${idRutina}`, { headers });
-  }
-
-  /**
-   * Obtener detalle de rutina
+   * 🔹 Obtener una rutina específica por ID
    */
   obtenerDetalleRutina(idRutina: number): Observable<Rutina> {
     const headers = this.getHeaders();
     return this.http.get<Rutina>(`${this.apiUrl}/rutinas/${idRutina}`, { headers });
   }
 
+  /**
+   * 🔹 Eliminar rutina
+   */
+  eliminarRutina(idRutina: number): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.delete(`${this.apiUrl}/rutinas/${idRutina}`, { headers });
+  }
+
+  // ============================================================
+  // 🔹 FUNCIONES AUXILIARES
+  // ============================================================
+
+  private contarEjercicios(rutina: Rutina): number {
+    if (!rutina.dias) return 0;
+    return rutina.dias.reduce((total, dia) => total + (dia.ejercicios?.length || 0), 0);
+  }
+
   // ============================================================
   // 🔹 SELECCIÓN DE ALUMNO
   // ============================================================
 
-  /**
-   * Seleccionar un alumno
-   */
   seleccionarAlumno(alumno: Alumno): void {
     this.alumnoSeleccionadoSubject.next(alumno);
   }
 
-  /**
-   * Obtener alumno seleccionado actualmente
-   */
   obtenerAlumnoSeleccionado(): Alumno | null {
     return this.alumnoSeleccionadoSubject.value;
   }
 
-  /**
-   * Obtener ejercicios cargados
-   */
   obtenerEjerciciosCargados(): Ejercicio[] {
     return this.ejerciciosDb.value;
   }
 
-  /**
-   * Preparar datos del alumno formateados
-   */
   prepararDatosAlumno(alumno: Alumno): any {
     return {
       id_usuario: alumno.id_usuario,
@@ -248,9 +243,6 @@ export class RutinaService {
     };
   }
 
-  /**
-   * Calcular IMC
-   */
   private calcularIMC(peso: number, altura: number): number {
     const alturaEnMetros = altura / 100;
     return Math.round((peso / (alturaEnMetros * alturaEnMetros)) * 100) / 100;
@@ -260,9 +252,6 @@ export class RutinaService {
   // 🔹 HELPERS
   // ============================================================
 
-  /**
-   * Obtener headers con token de autenticación
-   */
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Authorization': `Bearer ${this.token}`,
@@ -270,9 +259,6 @@ export class RutinaService {
     });
   }
 
-  /**
-   * Cargar ejercicios al inicializar el servicio
-   */
   private cargarEjercicios(): void {
     this.cargarEjerciciosDb();
   }

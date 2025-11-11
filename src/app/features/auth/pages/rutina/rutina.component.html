@@ -1,8 +1,9 @@
 <div class="rutina-wrapper">
+  <!-- ===== ENCABEZADO ===== -->
   <div class="rutina-header">
     <div>
-      <h1>Mi Rutina</h1>
-      <p>Consulta tus entrenamientos personalizados de la semana</p>
+      <h1>Mis Rutinas</h1>
+      <p>Consulta tus entrenamientos personalizados generados por tu entrenador o IA</p>
     </div>
 
     <div class="filtros">
@@ -13,43 +14,65 @@
         [(ngModel)]="semanaSeleccionada"
         (change)="filtrarPorSemana()"
       />
-      <button (click)="cargarRutina()">Actualizar</button>
+      <button [disabled]="!idAlumno" (click)="cargarRutina(idAlumno!)">
+        <i class="fa-solid fa-rotate-right"></i> Actualizar
+      </button>
     </div>
   </div>
 
-  <!-- Estado de carga -->
+  <!-- ===== ESTADOS ===== -->
   <div *ngIf="cargando" class="estado loading">
     <div class="spinner"></div>
-    <p>Cargando rutina semanal...</p>
+    <p>Cargando rutinas...</p>
   </div>
 
-  <!-- Error -->
-  <div *ngIf="error" class="estado error">
+  <div *ngIf="error && !cargando" class="estado error">
     <p>{{ error }}</p>
   </div>
 
-  <!-- Rutinas -->
+  <!-- ===== LISTA DE RUTINAS ===== -->
   <div *ngIf="!cargando && rutinaFiltrada.length > 0" class="rutina-lista">
-    <div *ngFor="let dia of rutinaFiltrada" class="rutina-card">
+    <div *ngFor="let rutina of rutinaFiltrada" class="rutina-card fade-in">
       <div class="card-header">
-        <div class="glow-line"></div>
         <div class="titulo-dia">
-          <h2>{{ dia.nombre_dia | titlecase }}</h2>
-          <span>{{ dia.fecha | date: 'EEEE, dd/MM' }}</span>
+          <h2>{{ rutina.nombre | titlecase }}</h2>
+          <span class="fecha">{{ rutina.fecha_creacion | date: 'EEEE, dd/MM/yyyy' }}</span>
+        </div>
+        <p class="descripcion">{{ rutina.descripcion }}</p>
+        <div class="info">
+          <span>Objetivo: {{ rutina.objetivo }}</span>
+          <span>Nivel: {{ rutina.nivel }}</span>
+          <span>Días: {{ rutina.dias_semana }}</span>
         </div>
       </div>
 
-      <ul>
-        <li *ngFor="let ejercicio of dia.ejercicios">
-          <span class="nombre">{{ ejercicio.nombre }}</span>
-          <span class="detalles">{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</span>
-        </li>
-      </ul>
+      <!-- ===== DÍAS ===== -->
+      <div *ngFor="let dia of rutina.dias" class="dia-section fade-up">
+        <div class="dia-header">
+          <div class="barra-dia"></div>
+          <h3 class="nombre-dia">💪 {{ dia.nombre_dia | titlecase }}</h3>
+          <p class="desc-dia">{{ dia.descripcion }}</p>
+        </div>
+
+        <ul class="ejercicios-lista">
+          <li *ngFor="let ejercicio of dia.ejercicios">
+            <div class="ejercicio-info">
+              <strong>{{ ejercicio.nombre }}</strong>
+              <small>{{ ejercicio.grupo_muscular || 'General' }} • {{ ejercicio.dificultad || 'N/A' }}</small>
+            </div>
+            <div class="detalles">
+              <span *ngIf="ejercicio.series">{{ ejercicio.series }}×</span>
+              <span *ngIf="ejercicio.repeticiones">{{ ejercicio.repeticiones }}</span>
+              <span *ngIf="ejercicio.descanso_segundos"> | Descanso: {{ ejercicio.descanso_segundos }}s</span>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 
-  <!-- Sin datos -->
-  <div *ngIf="!cargando && rutinaFiltrada.length === 0" class="estado sin-datos">
+  <!-- ===== SIN DATOS ===== -->
+  <div *ngIf="!cargando && rutinaFiltrada.length === 0 && !error" class="estado sin-datos">
     <h3>No tienes rutinas registradas para esta semana</h3>
     <p>Tu entrenador asignará tus ejercicios próximamente.</p>
   </div>
