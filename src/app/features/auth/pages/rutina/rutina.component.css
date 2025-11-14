@@ -1,219 +1,423 @@
-:root {
-  --fondo: #0a1224;
-  --card: #111b33;
-  --card-sec: #16213f;
-  --borde: #22345a;
-  --texto: #e9ecf6;
-  --texto-sec: #a9b3c9;
-  --azul: #4e8cff;
-  --azul-claro: #7aa2ff;
-  --grad: linear-gradient(90deg, #4e8cff, #7aa2ff);
-  --hover: #1a2a4d;
+/* ===== VARIABLES CSS ===== */
+:host {
+  display: block;
+  width: 100%;
+  --fondo: #0a0e1a;
+  --card: #1a1f2e;
+  --card-sec: #232935;
+  --borde: #2a3441;
+  --texto: #e8edf5;
+  --texto-sec: #9ca3af;
+  --azul: #3b82f6;
+  --azul-claro: #60a5fa;
+  --azul-oscuro: #2563eb;
+  --grad: linear-gradient(135deg, #3b82f6, #60a5fa);
+  --hover: #1e2532;
+  --acento: #3b82f6;
+  --sombra: rgba(0, 0, 0, 0.5);
 }
 
 /* ===== CONTENEDOR PRINCIPAL ===== */
 .rutina-wrapper {
-  background-color: var(--fondo);
+  background-color: var(--fondo) !important;
   min-height: 100vh;
-  padding: 2.5rem 3rem;
-  color: var(--texto);
-  font-family: 'Inter', sans-serif;
+  padding: 2rem 2.5rem;
+  color: var(--texto) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* ===== ENCABEZADO ===== */
 .rutina-header {
-  display: flex;
+  display: flex !important;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
-  margin-bottom: 2.2rem;
-  gap: 1rem;
+  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+}
+
+.rutina-header > div:first-child {
+  flex: 1;
+  min-width: 300px;
 }
 
 .rutina-header h1 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  background: var(--grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  background: var(--grad) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  margin: 0 0 0.5rem 0 !important;
+  line-height: 1.2 !important;
+  padding: 0 !important;
 }
 
 .rutina-header p {
-  color: var(--texto-sec);
-  margin-top: 0.3rem;
+  color: var(--texto-sec) !important;
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5;
+  padding: 0 !important;
 }
 
+/* ===== FILTROS ===== */
 .filtros {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 0.8rem;
-  background: var(--card);
-  border: 1px solid var(--borde);
-  padding: 0.8rem 1.2rem;
-  border-radius: 10px;
+  background: var(--card) !important;
+  border: 1px solid var(--borde) !important;
+  padding: 1rem 1.4rem !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 12px var(--sombra) !important;
+}
+
+.filtros label {
+  color: var(--texto-sec) !important;
+  font-weight: 500 !important;
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .filtros input[type="week"] {
-  background: var(--card-sec);
-  border: 1px solid var(--borde);
-  color: var(--texto);
-  border-radius: 8px;
-  padding: 0.5rem 0.8rem;
-  font-size: 1rem;
+  background: var(--card-sec) !important;
+  border: 1px solid var(--borde) !important;
+  color: var(--texto) !important;
+  border-radius: 10px !important;
+  padding: 0.6rem 1rem !important;
+  font-size: 0.95rem !important;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.filtros input[type="week"]:focus {
+  outline: none !important;
+  border-color: var(--azul) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+  background: var(--hover) !important;
 }
 
 .filtros button {
-  background: var(--grad);
-  border: none;
-  color: #fff;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
+  background: var(--grad) !important;
+  border: none !important;
+  color: #fff !important;
+  padding: 0.6rem 1.2rem !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.9rem;
 }
-.filtros button:hover {
+
+.filtros button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0 18px rgba(78, 140, 255, 0.5);
+  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4) !important;
+}
+
+.filtros button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filtros button i {
+  font-size: 0.9rem;
+}
+
+/* ===== ESTADOS (LOADING, ERROR, SIN DATOS) ===== */
+.estado {
+  text-align: center;
+  margin-top: 4rem;
+  padding: 3rem 2rem;
+  background: var(--card) !important;
+  border: 1px solid var(--borde) !important;
+  border-radius: 18px !important;
+  color: var(--texto-sec) !important;
+  box-shadow: 0 4px 16px var(--sombra) !important;
+}
+
+.estado h3 {
+  color: var(--texto) !important;
+  margin: 0 0 0.5rem 0 !important;
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  padding: 0 !important;
+}
+
+.estado p {
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5;
+  padding: 0 !important;
+  color: var(--texto-sec) !important;
+}
+
+.spinner {
+  border: 3px solid var(--card-sec) !important;
+  border-top: 3px solid var(--azul) !important;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+/* ===== LISTA DE RUTINAS ===== */
+.rutina-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* ===== TARJETA DE RUTINA ===== */
 .rutina-card {
-  background: var(--card);
-  border: 1px solid var(--borde);
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: var(--card) !important;
+  border: 1px solid var(--borde) !important;
+  border-radius: 18px !important;
+  padding: 2rem 2.5rem !important;
+  box-shadow: 0 6px 24px var(--sombra) !important;
   animation: fadeIn 0.6s ease;
+  transition: all 0.3s ease;
+  margin-bottom: 0;
+}
+
+.rutina-card:hover {
+  border-color: var(--azul) !important;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25) !important;
+  transform: translateY(-3px);
 }
 
 .card-header {
-  border-bottom: 1px solid var(--borde);
-  padding-bottom: 0.6rem;
-  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--borde) !important;
+  padding-bottom: 1.2rem !important;
+  margin-bottom: 1.8rem !important;
 }
 
+/* ===== TÍTULO Y FECHA ===== */
 .titulo-dia {
-  display: flex;
+  display: flex !important;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.8rem !important;
 }
 
 .titulo-dia h2 {
-  color: var(--azul);
-  font-size: 1.4rem;
-  font-weight: 600;
+  color: var(--azul-claro) !important;
+  font-size: 1.6rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-transform: capitalize;
+  background: none !important;
+  -webkit-text-fill-color: var(--azul-claro) !important;
 }
 
 .fecha {
-  color: var(--texto-sec);
-  font-size: 0.9rem;
+  color: var(--texto-sec) !important;
+  font-size: 0.9rem !important;
+  background: var(--card-sec) !important;
+  padding: 0.4rem 0.9rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--borde) !important;
+  white-space: nowrap;
 }
 
+/* ===== DESCRIPCIÓN ===== */
 .descripcion {
-  color: var(--texto-sec);
-  font-size: 0.95rem;
-  margin-top: 0.3rem;
+  color: var(--texto-sec) !important;
+  font-size: 0.95rem !important;
+  margin: 0 0 0.8rem 0 !important;
+  padding: 0 !important;
+  line-height: 1.6;
 }
 
+/* ===== INFO (OBJETIVO, NIVEL, DÍAS) ===== */
 .info {
-  display: flex;
+  display: flex !important;
+  flex-wrap: wrap;
   gap: 1.5rem;
-  margin-top: 0.6rem;
-  color: var(--texto-sec);
-  font-size: 0.9rem;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--texto-sec) !important;
+  font-size: 0.9rem !important;
+  list-style: none;
+}
+
+.info span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--texto-sec) !important;
 }
 
 .info span::before {
   content: "• ";
-  color: var(--azul);
+  color: var(--acento) !important;
+  font-weight: bold;
+  font-size: 1.2rem;
 }
 
-/* ===== DÍAS ===== */
+/* ===== SECCIÓN DE DÍA ===== */
 .dia-section {
-  background: var(--card-sec);
-  border: 1px solid var(--borde);
-  border-radius: 12px;
-  padding: 1rem 1.4rem;
-  margin-top: 1.2rem;
+  background: var(--card-sec) !important;
+  border: 1px solid var(--borde) !important;
+  border-radius: 14px !important;
+  padding: 1.5rem 1.8rem !important;
+  margin-top: 1.3rem !important;
+  margin-bottom: 0 !important;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dia-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--grad);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dia-section:hover::before {
+  opacity: 1;
 }
 
 .dia-section:hover {
-  border-color: var(--azul);
-  box-shadow: 0 0 14px rgba(78, 140, 255, 0.25);
-  transform: translateY(-2px);
+  border-color: var(--azul) !important;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2) !important;
+  transform: translateX(4px);
+}
+
+/* ===== HEADER DEL DÍA ===== */
+.dia-header {
+  margin-bottom: 1.2rem !important;
+  padding: 0 !important;
 }
 
 .nombre-dia {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--azul-claro);
-  margin-bottom: 0.3rem;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: var(--azul-claro) !important;
+  margin: 0 0 0.5rem 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: capitalize;
+  background: none !important;
+  -webkit-text-fill-color: var(--azul-claro) !important;
 }
 
 .desc-dia {
-  color: var(--texto-sec);
-  font-size: 0.9rem;
+  color: var(--texto-sec) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* ===== EJERCICIOS ===== */
+/* ===== LISTA DE EJERCICIOS ===== */
 .ejercicios-lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
 .ejercicios-lista li {
-  background: var(--hover);
-  border: 1px solid var(--borde);
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  margin-bottom: 0.6rem;
-  display: flex;
+  background: var(--hover) !important;
+  border: 1px solid var(--borde) !important;
+  border-radius: 10px !important;
+  padding: 1rem 1.3rem !important;
+  margin: 0 !important;
+  display: flex !important;
   justify-content: space-between;
   align-items: center;
   transition: all 0.25s ease;
+  position: relative;
+  gap: 1rem;
+  list-style: none !important;
+}
+
+.ejercicios-lista li::before {
+  content: '' !important;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--azul) !important;
+  border-radius: 0 3px 3px 0;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.ejercicios-lista li:hover::before {
+  opacity: 1;
 }
 
 .ejercicios-lista li:hover {
-  background: var(--card);
-  border-color: var(--azul);
-  box-shadow: 0 0 12px rgba(122, 162, 255, 0.25);
+  background: var(--card) !important;
+  border-color: var(--azul-claro) !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15) !important;
+  transform: translateX(5px);
+}
+
+/* ===== INFO DEL EJERCICIO ===== */
+.ejercicio-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .ejercicio-info strong {
-  color: #fff;
-  font-size: 1rem;
+  color: #fff !important;
+  font-size: 1rem !important;
+  display: block;
+  margin: 0 0 0.4rem 0 !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
 }
 
 .ejercicio-info small {
   display: block;
-  color: var(--texto-sec);
-  font-size: 0.88rem;
+  color: var(--texto-sec) !important;
+  font-size: 0.85rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
+/* ===== DETALLES DEL EJERCICIO ===== */
 .detalles {
-  color: var(--azul-claro);
-  font-weight: 600;
-  font-size: 0.9rem;
+  color: var(--azul-claro) !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+  padding: 0.4rem 0.9rem !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin: 0 !important;
 }
 
-/* ===== ESTADOS ===== */
-.estado {
-  text-align: center;
-  margin-top: 4rem;
-  color: var(--texto-sec);
-}
-
-.spinner {
-  border: 3px solid #1f2937;
-  border-top: 3px solid var(--azul);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 10px;
-  animation: spin 1s linear infinite;
+.detalles span {
+  color: var(--azul-claro) !important;
 }
 
 /* ===== ANIMACIONES ===== */
@@ -226,10 +430,97 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .rutina-wrapper {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .rutina-header {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .rutina-header > div:first-child {
+    min-width: 100%;
+  }
+
+  .rutina-header h1 {
+    font-size: 1.6rem !important;
+  }
+
+  .filtros {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .filtros input[type="week"] {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .rutina-card {
+    padding: 1.5rem 1.2rem !important;
+  }
+
+  .titulo-dia {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .titulo-dia h2 {
+    font-size: 1.3rem !important;
+  }
+
+  .info {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+
+  .dia-section {
+    padding: 1.2rem 1rem !important;
+  }
+
+  .ejercicios-lista li {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 1rem !important;
+  }
+
+  .detalles {
+    align-self: flex-start;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rutina-wrapper {
+    padding: 1rem 0.8rem !important;
+  }
+
+  .rutina-header h1 {
+    font-size: 1.4rem !important;
+  }
+
+  .rutina-card {
+    padding: 1.2rem 1rem !important;
+  }
+
+  .filtros {
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .filtros button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
   }
 }

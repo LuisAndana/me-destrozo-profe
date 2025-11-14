@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
 // ============================================================
@@ -51,11 +51,23 @@ export interface RutinaGenerada {
   dias: DiaRutina[];
   fecha_creacion: string;
   generada_por: string;
+  vigencia?: VigenciaRutina;
 }
 
 export interface Rutina extends RutinaGenerada {
   id_rutina?: number;
   ejercicios?: Ejercicio[];
+}
+
+export interface VigenciaRutina {
+  duracion_meses: number;
+  duracion_dias: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  dias_restantes: number;
+  estado: 'activa' | 'por_vencer' | 'vencida' | 'pendiente';
+  porcentaje_completado: number;
+  activada: boolean;
 }
 
 @Injectable({
@@ -132,21 +144,32 @@ export class RutinaService {
    * 🔹 Generar rutina con IA - Devuelve estructura completa
    */
   generarRutinaIA(
-    idAlumno: number,
-    objetivos: string,
-    dias: number,
-    nivel: string
-  ): Observable<RutinaGenerada> {
-    const headers = this.getHeaders();
-    const payload = {
-      id_cliente: idAlumno,
-      objetivos,
-      dias,
-      nivel,
-      usar_ejercicios_db: true
-    };
-    return this.http.post<RutinaGenerada>(`${this.apiUrl}/ia/generar-rutina`, payload, { headers });
-  }
+  idCliente: number,
+  objetivos: string,
+  dias: number,
+  nivel: string,
+  duracionMeses: number = 1,  // NUEVO: Duración en meses
+  activarVigencia: boolean = true  // NUEVO: Activar inmediatamente
+): Observable<RutinaGenerada> {
+  const url = `${this.apiUrl}/ia/generar-rutina`;
+  
+  const body = {
+    id_cliente: idCliente,
+    objetivos: objetivos,
+    dias: dias,
+    nivel: nivel,
+    grupo_muscular_foco: 'general',
+    duracion_meses: duracionMeses,  // NUEVO
+    proveedor: 'auto'
+  };
+
+   const params = activarVigencia 
+    ? new HttpParams().set('activar_vigencia', 'true')
+    : new HttpParams();
+
+  return this.http.post<RutinaGenerada>(url, body, { params });
+}
+  
 
   /**
    * 🔹 Guardar rutina generada en la BD

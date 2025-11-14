@@ -25,9 +25,11 @@
           accept="image/*"
           (change)="changeAvatar($event)"
         />
-        <label for="avatarFile" class="btn btn-ghost btn-sm">📷 Cambiar</label>
+        <label for="avatarFile" class="btn btn-ghost btn-sm">
+          <span class="material-icons-outlined">photo_camera</span> Cambiar
+        </label>
         <button class="btn btn-danger-ghost btn-sm" (click)="removeAvatar()">
-          ✕ Quitar
+          <span class="material-icons-outlined">close</span> Quitar
         </button>
       </div>
     </div>
@@ -37,13 +39,12 @@
     <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
     <article class="card card-hero">
       <header class="card-head">
-        <h3>📋 Información Profesional</h3>
+        <h3><span class="material-icons-outlined">assignment</span> Información Profesional</h3>
       </header>
 
       <div class="form-grid">
-        <!-- Resumen -->
         <div class="form-group span-full">
-          <label class="label">✨ Resumen Profesional</label>
+          <label class="label"><span class="material-icons-outlined">description</span> Resumen Profesional</label>
           <textarea
             class="input textarea"
             rows="4"
@@ -52,9 +53,8 @@
           ></textarea>
         </div>
 
-        <!-- Row: Especialidad & Experiencia -->
         <div class="form-group">
-          <label class="label">💪 Especialidad Principal</label>
+          <label class="label"><span class="material-icons-outlined">fitness_center</span> Especialidad Principal</label>
           <input
             type="text"
             class="input"
@@ -64,7 +64,7 @@
         </div>
 
         <div class="form-group">
-          <label class="label">📅 Años de Experiencia</label>
+          <label class="label"><span class="material-icons-outlined">calendar_month</span> Años de Experiencia</label>
           <input
             type="number"
             class="input"
@@ -73,9 +73,8 @@
           />
         </div>
 
-        <!-- Certificaciones -->
         <div class="form-group span-full">
-          <label class="label">🏆 Certificaciones Principales</label>
+          <label class="label"><span class="material-icons-outlined">verified</span> Certificaciones Principales</label>
           <textarea
             class="input textarea"
             rows="3"
@@ -88,27 +87,22 @@
 
     <!-- SECCIÓN 2: UBICACIÓN Y TARIFA -->
     <div class="grid-single">
-      <!-- Ciudad & Modalidades -->
       <article class="card card-secondary">
         <header class="card-head-compact">
-          <h3>📍 Ubicación y Modalidades</h3>
+          <h3><span class="material-icons-outlined">location_on</span> Ubicación y Modalidades</h3>
         </header>
 
         <div class="form-grid">
-          <!-- Ciudad -->
           <div class="form-group span-full">
-            <label class="label">🏙️ Ciudad</label>
+            <label class="label"><span class="material-icons-outlined">location_city</span> Ciudad</label>
             <select class="input" [(ngModel)]="data.ciudad">
               <option value="">Selecciona tu ciudad...</option>
-              <option *ngFor="let c of ciudadesDisponibles" [value]="c">
-                {{ c }}
-              </option>
+              <option *ngFor="let c of ciudadesDisponibles" [value]="c">{{ c }}</option>
             </select>
           </div>
 
-          <!-- Modalidades -->
           <div class="form-group span-full">
-            <label class="label">🎯 Modalidades de Entrenamiento</label>
+            <label class="label"><span class="material-icons-outlined">sports_gymnastics</span> Modalidades de Entrenamiento</label>
             <div class="modalidades-grid">
               <button
                 *ngFor="let mod of modalidadesDisponibles"
@@ -117,17 +111,19 @@
                 [class.active]="isModalidadSeleccionada(mod)"
                 (click)="toggleModalidad(mod)"
               >
-                {{ mod === 'Online' ? '💻' : '🏋️' }} {{ mod }}
+                <span class="material-icons-outlined">
+                  {{ mod === 'Online' ? 'computer' : 'fitness_center' }}
+                </span>
+                {{ mod }}
               </button>
             </div>
           </div>
         </div>
       </article>
 
-      <!-- Precio Fijo -->
       <article class="card card-price">
         <header class="card-head-compact">
-          <h3>💰 Mi Tarifa</h3>
+          <h3><span class="material-icons-outlined">attach_money</span> Mi Tarifa</h3>
         </header>
 
         <div class="form-grid">
@@ -158,7 +154,7 @@
     <!-- SECCIÓN 3: ESPECIALIDADES MÚLTIPLES -->
     <article class="card card-hero">
       <header class="card-head">
-        <h3>🎓 Especialidades Adicionales</h3>
+        <h3><span class="material-icons-outlined">workspace_premium</span> Especialidades Adicionales</h3>
       </header>
 
       <div class="especialidades-container">
@@ -175,7 +171,7 @@
             class="btn btn-accent btn-sm"
             (click)="agregarEspecialidad()"
           >
-            ➕ Agregar
+            <span class="material-icons-outlined">add</span> Agregar
           </button>
         </div>
 
@@ -190,311 +186,23 @@
               class="badge-close"
               (click)="eliminarEspecialidad(i)"
             >
-              ✕
+              <span class="material-icons-outlined">close</span>
             </button>
           </span>
         </div>
       </div>
     </article>
-
-    <!-- SECCIÓN 4: FORMACIÓN (2 COLUMNAS) -->
-    <div class="grid-2">
-      <!-- Educación -->
-      <article class="card">
-        <header class="card-head">
-          <h3>🎓 Educación</h3>
-          <button class="btn btn-ghost btn-sm" (click)="addEdu()">
-            ➕ Agregar
-          </button>
-        </header>
-
-        <ng-container *ngIf="data.educacion?.length; else emptyEdu">
-          <ul class="list">
-            <li
-              *ngFor="let e of data.educacion; let i = index"
-              class="item"
-              [attr.data-index]="i"
-            >
-              <div class="item-body">
-                <input
-                  class="input input-sm"
-                  placeholder="Título"
-                  [(ngModel)]="e.titulo"
-                />
-                <input
-                  class="input input-sm"
-                  placeholder="Institución"
-                  [(ngModel)]="e.institucion"
-                />
-                <div class="row">
-                  <input
-                    class="input input-sm"
-                    placeholder="Inicio (YYYY)"
-                    [(ngModel)]="e.inicio"
-                  />
-                  <input
-                    class="input input-sm"
-                    placeholder="Fin (YYYY)"
-                    [(ngModel)]="e.fin"
-                  />
-                </div>
-                <textarea
-                  class="input textarea-sm"
-                  rows="2"
-                  placeholder="Descripción"
-                  [(ngModel)]="e.descripcion"
-                ></textarea>
-              </div>
-
-              <div class="item-actions">
-                <input
-                  class="hidden-file"
-                  [id]="'eduFile' + i"
-                  type="file"
-                  (change)="onPickFileFor('educacion', i, $event)"
-                />
-                <label class="btn btn-ghost btn-xs" [for]="'eduFile' + i">
-                  📎 Evidencia
-                </label>
-                <a
-                  *ngIf="e.evidenciaUrl"
-                  class="link"
-                  [href]="e.evidenciaUrl"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  👁 Ver
-                </a>
-                <button
-                  class="btn btn-danger-ghost btn-xs"
-                  (click)="delEdu(i)"
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          </ul>
-        </ng-container>
-        <ng-template #emptyEdu>
-          <p class="empty">📚 Sin registros de educación</p>
-        </ng-template>
-      </article>
-
-      <!-- Diplomas -->
-      <article class="card">
-        <header class="card-head">
-          <h3>🏅 Diplomas y Certificados</h3>
-          <button class="btn btn-ghost btn-sm" (click)="addDiploma()">
-            ➕ Agregar
-          </button>
-        </header>
-
-        <ng-container *ngIf="data.diplomas?.length; else emptyDip">
-          <ul class="list">
-            <li
-              *ngFor="let d of data.diplomas; let i = index"
-              class="item"
-              [attr.data-index]="i"
-            >
-              <div class="item-body">
-                <input
-                  class="input input-sm"
-                  placeholder="Título del certificado"
-                  [(ngModel)]="d.titulo"
-                />
-                <input
-                  class="input input-sm"
-                  placeholder="Institución"
-                  [(ngModel)]="d.institucion"
-                />
-                <input
-                  class="input input-sm"
-                  placeholder="Fecha (YYYY-MM)"
-                  [(ngModel)]="d.fecha"
-                />
-              </div>
-
-              <div class="item-actions">
-                <input
-                  class="hidden-file"
-                  [id]="'dipFile' + i"
-                  type="file"
-                  (change)="onPickFileFor('diplomas', i, $event)"
-                />
-                <label class="btn btn-ghost btn-xs" [for]="'dipFile' + i">
-                  📎 Evidencia
-                </label>
-                <a
-                  *ngIf="d.evidenciaUrl"
-                  class="link"
-                  [href]="d.evidenciaUrl"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  👁 Ver
-                </a>
-                <button
-                  class="btn btn-danger-ghost btn-xs"
-                  (click)="delDiploma(i)"
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          </ul>
-        </ng-container>
-        <ng-template #emptyDip>
-          <p class="empty">🎖️ Sin registros de diplomas</p>
-        </ng-template>
-      </article>
-    </div>
-
-    <!-- SECCIÓN 5: DESARROLLO (2 COLUMNAS) -->
-    <div class="grid-2">
-      <!-- Cursos -->
-      <article class="card">
-        <header class="card-head">
-          <h3>📚 Cursos y Capacitaciones</h3>
-          <button class="btn btn-ghost btn-sm" (click)="addCurso()">
-            ➕ Agregar
-          </button>
-        </header>
-
-        <ng-container *ngIf="data.cursos?.length; else emptyCur">
-          <ul class="list">
-            <li
-              *ngFor="let c of data.cursos; let i = index"
-              class="item"
-              [attr.data-index]="i"
-            >
-              <div class="item-body">
-                <input
-                  class="input input-sm"
-                  placeholder="Nombre del curso"
-                  [(ngModel)]="c.titulo"
-                />
-                <input
-                  class="input input-sm"
-                  placeholder="Institución / Plataforma"
-                  [(ngModel)]="c.institucion"
-                />
-                <input
-                  class="input input-sm"
-                  placeholder="Fecha (YYYY-MM)"
-                  [(ngModel)]="c.fecha"
-                />
-              </div>
-
-              <div class="item-actions">
-                <input
-                  class="hidden-file"
-                  [id]="'curFile' + i"
-                  type="file"
-                  (change)="onPickFileFor('cursos', i, $event)"
-                />
-                <label class="btn btn-ghost btn-xs" [for]="'curFile' + i">
-                  📎 Evidencia
-                </label>
-                <a
-                  *ngIf="c.evidenciaUrl"
-                  class="link"
-                  [href]="c.evidenciaUrl"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  👁 Ver
-                </a>
-                <button
-                  class="btn btn-danger-ghost btn-xs"
-                  (click)="delCurso(i)"
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          </ul>
-        </ng-container>
-        <ng-template #emptyCur>
-          <p class="empty">📖 Sin registros de cursos</p>
-        </ng-template>
-      </article>
-
-      <!-- Logros -->
-      <article class="card">
-        <header class="card-head">
-          <h3>⭐ Logros y Reconocimientos</h3>
-          <button class="btn btn-ghost btn-sm" (click)="addLogro()">
-            ➕ Agregar
-          </button>
-        </header>
-
-        <ng-container *ngIf="data.logros?.length; else emptyLog">
-          <ul class="list">
-            <li
-              *ngFor="let l of data.logros; let i = index"
-              class="item"
-              [attr.data-index]="i"
-            >
-              <div class="item-body">
-                <input
-                  class="input input-sm"
-                  placeholder="Título del logro"
-                  [(ngModel)]="l.titulo"
-                />
-                <input
-                  class="input input-sm"
-                  placeholder="Año (YYYY)"
-                  [(ngModel)]="l.anio"
-                />
-                <textarea
-                  class="input textarea-sm"
-                  rows="2"
-                  placeholder="Descripción"
-                  [(ngModel)]="l.descripcion"
-                ></textarea>
-              </div>
-
-              <div class="item-actions">
-                <input
-                  class="hidden-file"
-                  [id]="'logFile' + i"
-                  type="file"
-                  (change)="onPickFileFor('logros', i, $event)"
-                />
-                <label class="btn btn-ghost btn-xs" [for]="'logFile' + i">
-                  📎 Evidencia
-                </label>
-                <a
-                  *ngIf="l.evidenciaUrl"
-                  class="link"
-                  [href]="l.evidenciaUrl"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  👁 Ver
-                </a>
-                <button
-                  class="btn btn-danger-ghost btn-xs"
-                  (click)="delLogro(i)"
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          </ul>
-        </ng-container>
-        <ng-template #emptyLog>
-          <p class="empty">🏆 Sin registros de logros</p>
-        </ng-template>
-      </article>
-    </div>
   </main>
 
-  <!-- Barra de acciones pegajosa -->
   <footer class="actions container">
-    <button class="btn btn-ghost" (click)="cancel()"> Cancelar</button>
+    <button class="btn btn-ghost" (click)="cancel()">
+      <span class="material-icons-outlined">cancel</span> Cancelar
+    </button>
     <button class="btn btn-accent" [disabled]="saving" (click)="save()">
-      {{ saving ? '⏳ Guardando...' : '✓ Guardar cambios' }}
+      <span class="material-icons-outlined">
+        {{ saving ? 'hourglass_top' : 'check' }}
+      </span>
+      {{ saving ? 'Guardando...' : 'Guardar cambios' }}
     </button>
   </footer>
 </section>

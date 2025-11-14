@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RutinaService, Rutina } from '../../../../core/services/rutina.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-rutina',
@@ -18,7 +19,10 @@ export class RutinaComponent implements OnInit {
   semanaSeleccionada: string = '';
   idAlumno: number | null = null;
 
-  constructor(private rutinaService: RutinaService) {}
+  constructor(
+  private rutinaService: RutinaService,
+  private router: Router
+) {}
 
   ngOnInit() {
     const alumnoGuardado = this.rutinaService.obtenerAlumnoSeleccionado();
@@ -104,4 +108,10 @@ export class RutinaComponent implements OnInit {
       (a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
     );
   }
+
+  irProgresionCliente() {
+  if (!this.idAlumno) return;
+  this.router.navigate(['/progresion-cliente', this.idAlumno]);
+}
+
 }

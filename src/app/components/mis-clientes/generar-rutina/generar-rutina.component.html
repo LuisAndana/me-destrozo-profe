@@ -1,116 +1,204 @@
-<div class="generar-rutina-container">
-  <!-- Header -->
-  <div class="header-section">
-    <h1>🤖 Generar Rutina con IA</h1>
-    <p class="subtitle">Distribución inteligente - Cada día enfoque muscular diferente</p>
-  </div>
-
-  <!-- Mensajes de estado -->
-  <div *ngIf="mensajeError" class="alert alert-error">
-    <span>⚠️ {{ mensajeError }}</span>
-  </div>
-  <div *ngIf="mensajeExito" class="alert alert-success">
-    <span>✓ {{ mensajeExito }}</span>
-  </div>
-
-  <div class="content-grid">
-    <!-- Panel izquierdo: Selección de alumno y formulario -->
+<div class="container-generar">
+  <div class="content-wrapper">
+    <!-- Panel izquierdo: Formulario -->
     <div class="left-panel">
-      <!-- Selección de alumno -->
-      <div class="section alumno-section">
-        <h2>1. Selecciona un Alumno</h2>
-        
-        <div *ngIf="cargandoAlumnos" class="loading">
-          <p>Cargando alumnos...</p>
+      <h2>1. Seleccionar Alumno</h2>
+      <div class="alumnos-list">
+        <div
+          *ngFor="let alumno of alumnos"
+          class="alumno-item"
+          [class.selected]="alumnoSeleccionado?.id_usuario === alumno.id_usuario"
+          (click)="seleccionarAlumno(alumno)"
+        >
+          <span class="alumno-nombre">{{ getNombreAlumno(alumno) }}</span>
         </div>
-
-        <div *ngIf="!cargandoAlumnos && alumnos.length > 0" class="alumnos-list">
-          <button
-            *ngFor="let alumno of alumnos"
-            (click)="seleccionarAlumno(alumno)"
-            [class.selected]="alumnoSeleccionado?.id_usuario === alumno.id_usuario"
-            class="alumno-btn"
-          >
-            <div class="alumno-info">
-              <strong>{{ getNombreAlumno(alumno) }}</strong>
-              <small>{{ alumno.email }}</small>
-              <div class="alumno-stats" *ngIf="alumno.edad || alumno.peso">
-                <span *ngIf="alumno.edad">Edad: {{ alumno.edad }}</span>
-                <span *ngIf="alumno.peso">Peso: {{ alumno.peso }}kg</span>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        <div *ngIf="!cargandoAlumnos && alumnos.length === 0" class="no-data">
-          <p>No hay alumnos disponibles</p>
-        </div>
+        <p *ngIf="cargandoAlumnos" class="loading-message">Cargando alumnos...</p>
+        <p *ngIf="!cargandoAlumnos && alumnos.length === 0" class="empty-message">
+          No hay alumnos disponibles
+        </p>
       </div>
 
-      <!-- Datos del alumno seleccionado -->
-      <div *ngIf="alumnoSeleccionado" class="section alumno-datos-section">
-        <h3>Datos del Alumno</h3>
-        <div class="datos-grid">
-          <div class="dato" *ngIf="getDatosAlumnoFormateados()">
-            <strong>IMC:</strong> {{ getDatosAlumnoFormateados().imc }}
-          </div>
-          <div class="dato" *ngIf="getDatosAlumnoFormateados()">
-            <strong>Altura:</strong> {{ getDatosAlumnoFormateados().altura }}cm
-          </div>
-          <div class="dato" *ngIf="getDatosAlumnoFormateados()">
-            <strong>Peso:</strong> {{ getDatosAlumnoFormateados().peso }}kg
-          </div>
-        </div>
-      </div>
+      <h2>2. Parámetros de la Rutina</h2>
 
-      <!-- Formulario de generación -->
-      <div class="section formulario-section">
-        <h2>2. Parámetros de la Rutina</h2>
-
+      <div class="form-section">
+        <!-- OBJETIVO PRINCIPAL -->
         <div class="form-group">
-          <label for="objetivos">Objetivos del Alumno *</label>
-          <textarea
-            id="objetivos"
-            [(ngModel)]="objetivos"
-            placeholder="Ej: Ganar masa muscular en brazos y espalda, mejorar resistencia..."
-            class="textarea"
-          ></textarea>
-          <small>Describe los objetivos y preferencias del alumno</small>
+          <label>Objetivo Principal *</label>
+          <select [(ngModel)]="parametros.objetivo" class="select">
+            <option value="">Seleccionar objetivo...</option>
+            <option value="hipertrofia">💪 Ganar masa muscular (Hipertrofia)</option>
+            <option value="fuerza">🏋️ Aumentar fuerza</option>
+            <option value="resistencia">🏃 Mejorar resistencia</option>
+            <option value="perdida_grasa">🔥 Pérdida de grasa</option>
+            <option value="tonificacion">✨ Tonificación general</option>
+            <option value="gluteos">🍑 Enfoque en glúteos</option>
+            <option value="funcional">⚡ Entrenamiento funcional</option>
+          </select>
         </div>
 
+        <!-- LUGAR DE ENTRENAMIENTO -->
+        <div class="form-group">
+          <label>Lugar de Entrenamiento *</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" [(ngModel)]="parametros.lugar" value="gimnasio" name="lugar">
+              <span class="radio-label">🏢 Gimnasio</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" [(ngModel)]="parametros.lugar" value="casa" name="lugar">
+              <span class="radio-label">🏠 Casa</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" [(ngModel)]="parametros.lugar" value="parque" name="lugar">
+              <span class="radio-label">🌳 Parque/Exterior</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- EQUIPAMIENTO DISPONIBLE -->
+        <div class="form-group">
+          <label>Equipamiento Disponible *</label>
+          <div class="chips-container">
+            <label *ngFor="let equipo of opcionesEquipamiento" class="chip-option">
+              <input 
+                type="checkbox" 
+                [value]="equipo.value"
+                (change)="toggleEquipamiento(equipo.value)"
+                [checked]="parametros.equipamiento.includes(equipo.value)">
+              <span class="chip-label">{{ equipo.icon }} {{ equipo.label }}</span>
+            </label>
+          </div>
+          <small *ngIf="parametros.equipamiento.length === 0" class="text-warning">
+            ⚠️ Sin equipo = ejercicios de peso corporal
+          </small>
+        </div>
+
+        <!-- TIEMPO DISPONIBLE -->
+        <div class="form-group">
+          <label>Tiempo por Sesión *</label>
+          <div class="time-selector">
+            <button 
+              type="button"
+              *ngFor="let tiempo of opcionesTiempo" 
+              class="time-btn"
+              [class.active]="parametros.tiempo_minutos === tiempo"
+              (click)="parametros.tiempo_minutos = tiempo">
+              {{ tiempo }} min
+            </button>
+          </div>
+        </div>
+
+        <!-- DÍAS POR SEMANA -->
         <div class="form-group">
           <label for="dias">Días por Semana *</label>
           <select id="dias" [(ngModel)]="diasPorSemana" class="select">
-            <option *ngFor="let dia of [2, 3, 4, 5, 6]" [value]="dia">
+            <option *ngFor="let dia of [2, 3, 4, 5, 6, 7]" [value]="dia">
               {{ dia }} días
             </option>
           </select>
         </div>
 
+        <!-- EXPERIENCIA/NIVEL -->
         <div class="form-group">
-          <label for="nivel">Nivel de Dificultad *</label>
-          <select id="nivel" [(ngModel)]="nivel" class="select">
-            <option value="principiante">Principiante</option>
-            <option value="intermedio">Intermedio</option>
-            <option value="avanzado">Avanzado</option>
+          <label>Nivel de Experiencia *</label>
+          <select [(ngModel)]="parametros.experiencia" class="select">
+            <option value="">Seleccionar...</option>
+            <option value="principiante">🆕 Principiante (0-6 meses)</option>
+            <option value="intermedio">📈 Intermedio (6-24 meses)</option>
+            <option value="avanzado">🏆 Avanzado (2+ años)</option>
           </select>
         </div>
 
+        <!-- GRUPO MUSCULAR FOCO (AHORA OBLIGATORIO) -->
         <div class="form-group">
-          <label for="grupo">Grupo Muscular (Opcional)</label>
+          <label for="grupo">Énfasis en Grupo Muscular *</label>
           <select id="grupo" [(ngModel)]="grupoMuscularFoco" class="select">
-            <option value="general">General</option>
-            <option *ngFor="let grupo of obtenerGruposMuscularesUnicos()" [value]="grupo">
-              {{ grupo }}
-            </option>
+            <option value="">Seleccionar grupo...</option>
+            <option value="general">General (todo el cuerpo)</option>
+            <option value="PECHO">Pecho</option>
+            <option value="ESPALDA">Espalda</option>
+            <option value="PIERNAS">Piernas</option>
+            <option value="GLÚTEOS">Glúteos</option>
+            <option value="BRAZOS">Brazos</option>
+            <option value="HOMBROS">Hombros</option>
+            <option value="CORE">Core/Abdomen</option>
+            <option value="CARDIO">Cardio</option>
           </select>
+          <small>Este grupo muscular tendrá más ejercicios en la rutina</small>
+        </div>
+
+        <!-- NUEVO: DURACIÓN Y VIGENCIA -->
+        <div class="form-group vigencia-section">
+          <label>⏳ Duración de la Rutina *</label>
+          <div class="duration-selector">
+            <button 
+              type="button"
+              *ngFor="let duracion of opcionesDuracion" 
+              class="duration-btn"
+              [class.active]="duracionMeses === duracion"
+              (click)="duracionMeses = duracion">
+              {{ duracion }} {{ duracion === 1 ? 'mes' : 'meses' }}
+            </button>
+          </div>
+          <small class="duration-description">
+            {{ getDescripcionDuracion(duracionMeses) }}
+          </small>
+        </div>
+
+        <!-- NUEVO: ACTIVACIÓN INMEDIATA -->
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="activarVigenciaInmediata"
+              class="checkbox-input">
+            <span class="checkbox-text">
+              🚀 Activar vigencia inmediatamente
+            </span>
+          </label>
+          <small *ngIf="activarVigenciaInmediata" class="text-success">
+            ✓ La rutina comenzará a contar desde hoy hasta: {{ getFechaVencimientoEstimada() }}
+          </small>
+          <small *ngIf="!activarVigenciaInmediata" class="text-info">
+            ℹ️ La vigencia se activará manualmente cuando asignes la rutina al alumno
+          </small>
+        </div>
+
+        <!-- RESUMEN DE PARÁMETROS -->
+        <div class="info-box" *ngIf="alumnoSeleccionado && parametros.objetivo">
+          <strong>📋 Resumen de Parámetros:</strong>
+          <ul class="params-summary">
+            <li><strong>Alumno:</strong> {{ getNombreAlumno(alumnoSeleccionado) }}</li>
+            <li><strong>Objetivo:</strong> {{ getNombreObjetivo(parametros.objetivo) }}</li>
+            <li><strong>Énfasis:</strong> 
+              <span *ngIf="grupoMuscularFoco && grupoMuscularFoco !== 'general'" class="emphasis-badge">
+                {{ grupoMuscularFoco }}
+              </span>
+              <span *ngIf="!grupoMuscularFoco || grupoMuscularFoco === 'general'" class="text-muted">
+                General (todo el cuerpo)
+              </span>
+            </li>
+            <li><strong>Lugar:</strong> {{ parametros.lugar }}</li>
+            <li><strong>Equipamiento:</strong> 
+              <span *ngIf="parametros.equipamiento.length > 0">{{ parametros.equipamiento.join(', ') }}</span>
+              <span *ngIf="parametros.equipamiento.length === 0" class="text-warning">Sin equipo</span>
+            </li>
+            <li><strong>Duración:</strong> {{ parametros.tiempo_minutos }} minutos</li>
+            <li><strong>Frecuencia:</strong> {{ diasPorSemana }} días/semana</li>
+            <li><strong>Nivel:</strong> {{ parametros.experiencia }}</li>
+            <li class="vigencia-highlight">
+              <strong>⏳ Vigencia:</strong> {{ duracionMeses }} {{ duracionMeses === 1 ? 'mes' : 'meses' }}
+              <span *ngIf="activarVigenciaInmediata" class="badge-activa">ACTIVA</span>
+              <span *ngIf="!activarVigenciaInmediata" class="badge-pendiente">PENDIENTE</span>
+            </li>
+          </ul>
         </div>
 
         <div class="info-box">
           <strong>ℹ️ Ejercicios Disponibles:</strong>
           <p>{{ ejerciciosDisponibles.length }} ejercicios cargados de la base de datos</p>
           <p *ngIf="obtenerEjerciciosRecomendados().length > 0">
-            {{ obtenerEjerciciosRecomendados().length }} ejercicios para nivel {{ nivel }}
+            {{ obtenerEjerciciosRecomendados().length }} ejercicios para nivel {{ parametros.experiencia }}
           </p>
         </div>
       </div>
@@ -133,13 +221,21 @@
           Limpiar
         </button>
       </div>
+
+      <!-- Mensajes -->
+      <div *ngIf="mensajeError" class="alert alert-error">
+        ❌ {{ mensajeError }}
+      </div>
+      <div *ngIf="mensajeExito" class="alert alert-success">
+        ✅ {{ mensajeExito }}
+      </div>
     </div>
 
     <!-- Panel derecho: Rutina generada -->
     <div class="right-panel">
       <div *ngIf="!rutinaGenerada && !cargandoRutina" class="placeholder">
         <div class="placeholder-content">
-          <p>📋 Selecciona un alumno y configura los parámetros</p>
+          <p>📋 Configura los parámetros de entrenamiento</p>
           <p>Luego haz clic en "Generar Rutina IA" para crear una rutina personalizada</p>
         </div>
       </div>
@@ -153,6 +249,51 @@
         <div class="rutina-header">
           <h2>{{ rutinaGenerada.nombre }}</h2>
           <p class="rutina-descripcion">{{ rutinaGenerada.descripcion }}</p>
+          
+          <!-- NUEVO: Badge de vigencia -->
+          <div class="vigencia-info" *ngIf="rutinaGenerada?.vigencia as vigencia">
+            <div class="vigencia-badge" [ngClass]="{
+              'vigencia-activa': vigencia.estado === 'activa',
+              'vigencia-por-vencer': vigencia.estado === 'por_vencer',
+              'vigencia-vencida': vigencia.estado === 'vencida',
+              'vigencia-pendiente': vigencia.estado === 'pendiente'
+            }">
+              <span class="vigencia-icon">⏳</span>
+              <div class="vigencia-details">
+                <span class="vigencia-titulo">
+                  {{ vigencia.activada ? 'Vigencia Activa' : 'Vigencia Pendiente' }}
+                </span>
+                <span class="vigencia-fechas" *ngIf="vigencia.activada">
+                  {{ vigencia.fecha_inicio | date:'dd/MM/yyyy' }} - {{ vigencia.fecha_fin | date:'dd/MM/yyyy' }}
+                </span>
+                <span class="vigencia-duracion" *ngIf="!vigencia.activada">
+                  Duración: {{ vigencia.duracion_meses }} mes(es)
+                </span>
+              </div>
+            </div>
+            
+            <!-- Barra de progreso -->
+            <div class="vigencia-progress" *ngIf="vigencia.activada">
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" 
+                     [style.width.%]="vigencia.porcentaje_completado"
+                     [ngClass]="{
+                       'progress-activa': vigencia.estado === 'activa',
+                       'progress-por-vencer': vigencia.estado === 'por_vencer',
+                       'progress-vencida': vigencia.estado === 'vencida'
+                     }">
+                </div>
+              </div>
+              <div class="progress-info">
+                <span class="progress-text">
+                  {{ vigencia.dias_restantes }} días restantes
+                </span>
+                <span class="progress-percentage">
+                  {{ vigencia.porcentaje_completado }}%
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Estadísticas -->
@@ -166,43 +307,39 @@
             <span class="stat-label">Minutos</span>
           </div>
           <div class="stat-card">
-            <strong class="stat-number">{{ diasPorSemana }}</strong>
+            <strong class="stat-number">{{ rutinaGenerada.dias_semana }}</strong>
             <span class="stat-label">Días/Semana</span>
           </div>
         </div>
 
-        <!-- TABS DE DÍAS - V3 -->
-        <div class="tabs-dias-section" *ngIf="rutinaGenerada.dias && rutinaGenerada.dias.length > 0">
-          <h3>Selecciona un Día</h3>
+        <!-- Tabs de días -->
+        <div class="tabs-dias-section">
+          <h3>Selecciona un día</h3>
           <div class="tabs-container">
             <button
               *ngFor="let dia of rutinaGenerada.dias; let i = index"
-              (click)="cambiarDia(i)"
-              [class.tab-activo]="diaSeleccionado === i"
               class="tab-dia"
+              [class.tab-activo]="diaSeleccionado === i"
+              (click)="cambiarDia(i)"
             >
               {{ dia.nombre_dia }}
             </button>
           </div>
         </div>
 
-        <!-- CONTENIDO DEL DÍA SELECCIONADO - V3 -->
-        <div *ngIf="obtenerDiaActual()" class="dia-contenido">
-          
-          <!-- Información del día -->
+        <!-- Contenido del día -->
+        <div class="dia-contenido" *ngIf="obtenerDiaActual()">
           <div class="dia-info">
-            <h4 class="dia-nombre">
-              📅 Día {{ obtenerDiaActual()!.numero_dia }}: {{ obtenerDiaActual()!.nombre_dia }}
-            </h4>
+            <h3 class="dia-nombre">{{ obtenerDiaActual()!.nombre_dia }}</h3>
             <p class="dia-descripcion">{{ obtenerDiaActual()!.descripcion }}</p>
-            <p class="dia-enfoque" *ngIf="obtenerDiaActual() && obtenerDiaActual()!.grupos_enfoque && obtenerDiaActual()!.grupos_enfoque.length > 0">
-              <strong>🎯 Enfoque Muscular:</strong> {{ obtenerDiaActual()!.grupos_enfoque.join(' + ') }}
+            <p class="dia-enfoque" *ngIf="obtenerDiaActual()!.grupos_enfoque && obtenerDiaActual()!.grupos_enfoque.length > 0">
+              <strong>🎯 Grupos musculares:</strong> {{ obtenerDiaActual()!.grupos_enfoque.join(', ') }}
             </p>
           </div>
 
-          <!-- Lista de ejercicios del día -->
+          <!-- Lista de ejercicios -->
           <div class="ejercicios-section">
-            <h3>💪 Ejercicios del Día</h3>
+            <h3>Ejercicios del día</h3>
             <div class="ejercicios-list">
               <div
                 *ngFor="let ejercicio of obtenerDiaActual()!.ejercicios; let i = index"
@@ -259,17 +396,17 @@
 
         <!-- Acciones -->
         <div class="button-group rutina-actions">
-          <button (click)="abrirModalGuardar()" class="btn btn-success">
+          <button (click)="abrirModalGuardar()" class="btn btn-success" [disabled]="cargandoRutina">
             <span *ngIf="!cargandoRutina">💾 Guardar Rutina</span>
             <span *ngIf="cargandoRutina">Guardando...</span>
           </button>
-          <button (click)="descargarRutina('json')" class="btn btn-info">
-            📥 Descargar JSON
+          <button (click)="descargarRutinaPDF()" class="btn btn-info" [disabled]="cargandoRutina">
+            📄 Descargar PDF
           </button>
-          <button (click)="abrirModalEditar()" class="btn btn-warning">
+          <button (click)="abrirModalEditar()" class="btn btn-warning" [disabled]="cargandoRutina">
             ✏️ Editar
           </button>
-          <button (click)="generarRutina()" class="btn btn-secondary">
+          <button (click)="generarRutina()" class="btn btn-secondary" [disabled]="cargandoRutina">
             🔄 Regenerar
           </button>
         </div>

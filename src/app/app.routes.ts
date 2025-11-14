@@ -114,6 +114,13 @@ export const routes: Routes = [
       .then(m => m.ProcesoPagoPage),
 },
 
+{
+  path: 'progresion-cliente/:id',
+  loadComponent: () =>
+    import('./features/auth/pages/progreso_cliente/progreso_cliente.component')
+      .then(m => m.ProgresoClienteComponent),
+},
+
 
 
   // Comodín

@@ -1,0 +1,788 @@
+<!-- progreso-cliente.component.html -->
+<div class="progreso-cliente-container">
+  
+  <!-- ============================================================ -->
+  <!-- HEADER CON NOMBRE DEL CLIENTE -->
+  <!-- ============================================================ -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>📊 Progreso y Seguimiento</h1>
+        <p class="subtitle" *ngIf="nombreCliente">{{ nombreCliente }}</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="analizarProgresion()" [disabled]="cargando">
+          <span *ngIf="!cargando">🔍 Analizar Progresión</span>
+          <span *ngIf="cargando">Analizando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MENSAJES DE ESTADO -->
+  <!-- ============================================================ -->
+  <div *ngIf="error" class="alert alert-error">
+    <span>⚠️ {{ error }}</span>
+    <button class="close-btn" (click)="error = ''">✕</button>
+  </div>
+
+  <div *ngIf="exito" class="alert alert-success">
+    <span>{{ exito }}</span>
+    <button class="close-btn" (click)="exito = ''">✕</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TABS DE NAVEGACIÓN -->
+  <!-- ============================================================ -->
+  <div class="tabs-container">
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'dashboard'"
+      (click)="cambiarTab('dashboard')">
+      📈 Dashboard
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'historial'"
+      (click)="cambiarTab('historial')">
+      📋 Historial Rutinas
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'alertas'"
+      (click)="cambiarTab('alertas')">
+      🔔 Alertas
+      <span class="badge" *ngIf="dashboard && dashboard.alertas_pendientes > 0">
+        {{ dashboard.alertas_pendientes }}
+      </span>
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'objetivos'"
+      (click)="cambiarTab('objetivos')">
+      🎯 Objetivos
+      <span class="badge" *ngIf="dashboard && dashboard.objetivos_activos > 0">
+        {{ dashboard.objetivos_activos }}
+      </span>
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'ejercicios'"
+      (click)="cambiarTab('ejercicios')">
+      💪 Ejercicios
+    </button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB: DASHBOARD -->
+  <!-- ============================================================ -->
+  <div *ngIf="tabActiva === 'dashboard'" class="tab-content">
+    <div class="dashboard-grid" *ngIf="dashboard">
+      
+      <!-- Card: Resumen General -->
+      <div class="card card-primary">
+        <div class="card-header">
+          <h3>📊 Resumen General</h3>
+        </div>
+        <div class="card-body">
+          <div class="stats-row">
+            <div class="stat-item">
+              <span class="stat-label">Total Rutinas:</span>
+              <span class="stat-value">{{ dashboard.resumen.total_rutinas }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Completadas:</span>
+              <span class="stat-value success">{{ dashboard.resumen.rutinas_completadas }}</span>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-item">
+              <span class="stat-label">Total Sesiones:</span>
+              <span class="stat-value">{{ dashboard.resumen.total_sesiones }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Cumplimiento:</span>
+              <span class="stat-value" [class.success]="dashboard.resumen.cumplimiento_promedio >= 80">
+                {{ formatearNumero(dashboard.resumen.cumplimiento_promedio, 0) }}%
+              </span>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-item">
+              <span class="stat-label">Última Sesión:</span>
+              <span class="stat-value">{{ formatearFecha(dashboard.resumen.ultima_sesion) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Alertas Pendientes -->
+      <div class="card card-warning">
+        <div class="card-header">
+          <h3>🔔 Alertas Pendientes</h3>
+        </div>
+        <div class="card-body">
+          <div class="big-stat">
+            <div class="big-number">{{ dashboard.alertas_pendientes }}</div>
+            <div class="big-label">alertas requieren atención</div>
+          </div>
+          <button class="btn btn-warning btn-block" (click)="cambiarTab('alertas')">
+            Ver Alertas
+          </button>
+        </div>
+      </div>
+
+      <!-- Card: Records Personales -->
+      <div class="card card-success">
+        <div class="card-header">
+          <h3>🏆 Records Este Mes</h3>
+        </div>
+        <div class="card-body">
+          <div class="big-stat">
+            <div class="big-number">{{ dashboard.records_este_mes }}</div>
+            <div class="big-label">nuevos records personales</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Objetivos Activos -->
+      <div class="card card-info">
+        <div class="card-header">
+          <h3>🎯 Objetivos Activos</h3>
+        </div>
+        <div class="card-body">
+          <div class="big-stat">
+            <div class="big-number">{{ dashboard.objetivos_activos }}</div>
+            <div class="big-label">objetivos en progreso</div>
+          </div>
+          <button class="btn btn-info btn-block" (click)="cambiarTab('objetivos')">
+            Ver Objetivos
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="cargando && !dashboard" class="loading-state">
+      <p>Cargando dashboard...</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB: HISTORIAL DE RUTINAS -->
+  <!-- ============================================================ -->
+  <div *ngIf="tabActiva === 'historial'" class="tab-content">
+    
+    <div class="historial-container">
+      
+      <!-- Lista de rutinas -->
+      <div class="rutinas-list">
+        <h3>📋 Historial de Rutinas</h3>
+        
+        <div *ngIf="historialRutinas.length === 0 && !cargando" class="empty-state">
+          <p>No hay rutinas en el historial</p>
+        </div>
+
+        <div class="rutina-item" 
+             *ngFor="let rutina of historialRutinas"
+             [class.active]="rutinaSeleccionada?.id_historial === rutina.id_historial"
+             (click)="seleccionarRutina(rutina)">
+          
+          <div class="rutina-header">
+            <h4>{{ rutina.nombre_rutina }}</h4>
+            <span class="badge-estado" [class]="'badge-' + rutina.estado">
+              {{ rutina.estado }}
+            </span>
+          </div>
+
+          <div class="rutina-info">
+            <div class="info-item">
+              <span class="icon">📅</span>
+              <span class="text">
+                {{ formatearFecha(rutina.fecha_inicio) }} - {{ formatearFecha(rutina.fecha_fin) }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="icon">⏱️</span>
+              <span class="text">{{ rutina.duracion_dias }} días ({{ Math.floor(rutina.duracion_dias / 30) }} meses)</span>
+            </div>
+            <div class="info-item">
+              <span class="icon">💪</span>
+              <span class="text">{{ rutina.sesiones_completadas }} sesiones</span>
+            </div>
+            <div class="info-item">
+              <span class="icon">📊</span>
+              <span class="text">{{ formatearNumero(rutina.porcentaje_cumplimiento, 0) }}% cumplimiento</span>
+            </div>
+          </div>
+
+          <!-- Progreso visual -->
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="rutina.porcentaje_cumplimiento"></div>
+          </div>
+
+          <!-- Datos de peso si están disponibles -->
+          <div class="rutina-footer" *ngIf="rutina.peso_inicial || rutina.peso_final">
+            <div class="peso-info">
+              <span *ngIf="rutina.peso_inicial">Peso inicial: {{ rutina.peso_inicial }}kg</span>
+              <span *ngIf="rutina.peso_final">Peso final: {{ rutina.peso_final }}kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalles de rutina seleccionada -->
+      <div class="rutina-detalles" *ngIf="rutinaSeleccionada">
+        <h3>📊 Detalles de la Rutina</h3>
+        
+        <div class="detalles-card">
+          <div class="detalle-section">
+            <h4>{{ rutinaSeleccionada.nombre_rutina }}</h4>
+            <p class="objetivo" *ngIf="rutinaSeleccionada.objetivo">
+              <strong>Objetivo:</strong> {{ rutinaSeleccionada.objetivo }}
+            </p>
+          </div>
+
+          <div class="detalle-section">
+            <h5>Estadísticas</h5>
+            <div class="stats-grid-small">
+              <div class="stat-box">
+                <div class="stat-label">Duración</div>
+                <div class="stat-value">{{ rutinaSeleccionada.duracion_dias }} días</div>
+                <div class="stat-sublabel">{{ Math.floor(rutinaSeleccionada.duracion_dias / 30) }} meses</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Días Entrenados</div>
+                <div class="stat-value">{{ rutinaSeleccionada.dias_entrenados }}</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Sesiones</div>
+                <div class="stat-value">{{ rutinaSeleccionada.sesiones_completadas }}</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Cumplimiento</div>
+                <div class="stat-value" [class.success]="rutinaSeleccionada.porcentaje_cumplimiento >= 80">
+                  {{ formatearNumero(rutinaSeleccionada.porcentaje_cumplimiento, 0) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ejercicios de la rutina con progreso -->
+          <div class="detalle-section" *ngIf="ejercicios.length > 0">
+            <h5>💪 Ejercicios y Progreso</h5>
+            <div class="ejercicios-progreso-list">
+              <div class="ejercicio-progreso-item" *ngFor="let ejercicio of ejercicios">
+                <div class="ejercicio-info">
+                  <h6>{{ ejercicio.nombre }}</h6>
+                  <span class="grupo">{{ ejercicio.grupo_muscular }}</span>
+                </div>
+                <div class="progreso-stats">
+                  <div class="progreso-stat">
+                    <span class="label">Sesiones:</span>
+                    <span class="value">{{ ejercicio.total_sesiones }}</span>
+                  </div>
+                  <div class="progreso-stat" *ngIf="ejercicio.peso_inicial">
+                    <span class="label">Peso inicial:</span>
+                    <span class="value">{{ formatearNumero(ejercicio.peso_inicial) }}kg</span>
+                  </div>
+                  <div class="progreso-stat" *ngIf="ejercicio.peso_actual">
+                    <span class="label">Peso actual:</span>
+                    <span class="value">{{ formatearNumero(ejercicio.peso_actual) }}kg</span>
+                  </div>
+                  <div class="progreso-stat mejora" *ngIf="ejercicio.porcentaje_mejora">
+                    <span class="label">Mejora:</span>
+                    <span class="value success">+{{ formatearNumero(ejercicio.porcentaje_mejora, 1) }}%</span>
+                  </div>
+                </div>
+                <button class="btn btn-small btn-primary" (click)="seleccionarEjercicio(ejercicio)">
+                  Ver Historial
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="detalle-section" *ngIf="ejercicios.length === 0">
+            <p class="empty-message">No hay ejercicios registrados para esta rutina</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB: ALERTAS DE PROGRESIÓN -->
+  <!-- ============================================================ -->
+  <div *ngIf="tabActiva === 'alertas'" class="tab-content">
+    
+    <div class="alertas-header">
+      <h3>🔔 Alertas de Progresión</h3>
+      <div class="filtros-alertas">
+        <button class="filtro-btn" 
+                [class.active]="filtroAlerta === 'pendiente'"
+                (click)="filtroAlerta = 'pendiente'; filtrarAlertas()">
+          Pendientes
+        </button>
+        <button class="filtro-btn" 
+                [class.active]="filtroAlerta === 'vista'"
+                (click)="filtroAlerta = 'vista'; filtrarAlertas()">
+          Vistas
+        </button>
+        <button class="filtro-btn" 
+                [class.active]="filtroAlerta === 'atendida'"
+                (click)="filtroAlerta = 'atendida'; filtrarAlertas()">
+          Atendidas
+        </button>
+        <button class="filtro-btn" 
+                [class.active]="filtroAlerta === 'todas'"
+                (click)="filtroAlerta = 'todas'; filtrarAlertas()">
+          Todas
+        </button>
+      </div>
+    </div>
+
+    <div class="alertas-list">
+      
+      <div *ngIf="alertasFiltradas.length === 0" class="empty-state">
+        <p>No hay alertas {{ filtroAlerta === 'todas' ? '' : filtroAlerta + 's' }}</p>
+      </div>
+
+      <div class="alerta-card" 
+           *ngFor="let alerta of alertasFiltradas"
+           [class]="'priority-' + alerta.prioridad">
+        
+        <div class="alerta-header">
+          <div class="alerta-icon">
+            {{ getIconoAlerta(alerta.tipo_alerta) }}
+          </div>
+          <div class="alerta-title-section">
+            <h4>{{ alerta.titulo }}</h4>
+            <span class="alerta-tipo">{{ alerta.tipo_alerta.replace('_', ' ') }}</span>
+          </div>
+          <div class="alerta-prioridad" 
+               [style.background-color]="getColorPrioridad(alerta.prioridad)">
+            {{ alerta.prioridad }}
+          </div>
+        </div>
+
+        <div class="alerta-body">
+          <p class="alerta-mensaje">{{ alerta.mensaje }}</p>
+          
+          <div class="alerta-detalles" *ngIf="alerta.nombre_ejercicio">
+            <div class="detalle-item">
+              <strong>Ejercicio:</strong> {{ alerta.nombre_ejercicio }}
+            </div>
+            <div class="detalle-item" *ngIf="alerta.peso_actual">
+              <strong>Peso actual:</strong> {{ formatearNumero(alerta.peso_actual) }}kg
+            </div>
+            <div class="detalle-item" *ngIf="alerta.peso_sugerido">
+              <strong>Peso sugerido:</strong> {{ formatearNumero(alerta.peso_sugerido) }}kg
+            </div>
+            <div class="detalle-item" *ngIf="alerta.sesiones_sin_progreso">
+              <strong>Sesiones sin progreso:</strong> {{ alerta.sesiones_sin_progreso }}
+            </div>
+          </div>
+
+          <div class="alerta-recomendacion" *ngIf="alerta.recomendacion">
+            <strong>💡 Recomendación:</strong>
+            <p>{{ alerta.recomendacion }}</p>
+          </div>
+        </div>
+
+        <div class="alerta-footer">
+          <span class="alerta-fecha">
+            {{ formatearFechaHora(alerta.fecha_generacion) }}
+          </span>
+          <div class="alerta-actions" *ngIf="alerta.estado === 'pendiente'">
+            <button class="btn btn-small btn-success" 
+                    (click)="atenderAlerta(alerta, 'Aumentar peso como se sugiere')">
+              ✓ Atender
+            </button>
+            <button class="btn btn-small btn-secondary" 
+                    (click)="atenderAlerta(alerta, 'Descartada')">
+              Descartar
+            </button>
+          </div>
+          <span class="badge-estado-alerta" *ngIf="alerta.estado !== 'pendiente'">
+            {{ alerta.estado }}
+          </span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB: OBJETIVOS -->
+  <!-- ============================================================ -->
+  <div *ngIf="tabActiva === 'objetivos'" class="tab-content">
+    
+    <div class="objetivos-header">
+      <h3>🎯 Objetivos del Cliente</h3>
+      <div class="filtros-objetivos">
+        <button class="filtro-btn" 
+                [class.active]="filtroObjetivo === 'en_progreso'"
+                (click)="filtroObjetivo = 'en_progreso'; filtrarObjetivos()">
+          En Progreso
+        </button>
+        <button class="filtro-btn" 
+                [class.active]="filtroObjetivo === 'pendiente'"
+                (click)="filtroObjetivo = 'pendiente'; filtrarObjetivos()">
+          Pendientes
+        </button>
+        <button class="filtro-btn" 
+                [class.active]="filtroObjetivo === 'alcanzado'"
+                (click)="filtroObjetivo = 'alcanzado'; filtrarObjetivos()">
+          Alcanzados
+        </button>
+        <button class="filtro-btn" 
+                [class.active]="filtroObjetivo === 'todos'"
+                (click)="filtroObjetivo = 'todos'; filtrarObjetivos()">
+          Todos
+        </button>
+      </div>
+    </div>
+
+    <div class="objetivos-list">
+      
+      <div *ngIf="objetivosFiltrados.length === 0" class="empty-state">
+        <p>No hay objetivos {{ filtroObjetivo === 'todos' ? '' : filtroObjetivo + 's' }}</p>
+      </div>
+
+      <div class="objetivo-card" *ngFor="let objetivo of objetivosFiltrados">
+        
+        <div class="objetivo-header">
+          <h4>{{ objetivo.titulo }}</h4>
+          <span class="badge-objetivo" 
+                [style.background-color]="getColorObjetivo(objetivo.estado)">
+            {{ objetivo.estado.replace('_', ' ') }}
+          </span>
+        </div>
+
+        <p class="objetivo-descripcion" *ngIf="objetivo.descripcion">
+          {{ objetivo.descripcion }}
+        </p>
+
+        <div class="objetivo-progreso">
+          <div class="progreso-info">
+            <span class="progreso-actual">
+              {{ formatearNumero(objetivo.valor_actual || 0) }} / {{ formatearNumero(objetivo.valor_objetivo) }} {{ objetivo.unidad }}
+            </span>
+            <span class="progreso-porcentaje" 
+                  [class.success]="objetivo.porcentaje_completado >= 100">
+              {{ formatearNumero(objetivo.porcentaje_completado, 0) }}%
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" 
+                 [style.width.%]="objetivo.porcentaje_completado"
+                 [class.complete]="objetivo.porcentaje_completado >= 100"></div>
+          </div>
+        </div>
+
+        <div class="objetivo-footer">
+          <div class="objetivo-fechas">
+            <span class="fecha-item">
+              <strong>Inicio:</strong> {{ formatearFecha(objetivo.fecha_inicio) }}
+            </span>
+            <span class="fecha-item">
+              <strong>Límite:</strong> {{ formatearFecha(objetivo.fecha_limite) }}
+            </span>
+            <span class="fecha-item" *ngIf="objetivo.fecha_alcanzado">
+              <strong>Alcanzado:</strong> {{ formatearFecha(objetivo.fecha_alcanzado) }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB: EJERCICIOS CON PROGRESO -->
+  <!-- ============================================================ -->
+  <div *ngIf="tabActiva === 'ejercicios'" class="tab-content">
+    
+    <div *ngIf="!ejercicioSeleccionado">
+      <h3>💪 Ejercicios del Cliente</h3>
+      
+      <div *ngIf="ejercicios.length === 0" class="empty-state">
+        <p>No hay ejercicios con progreso registrado</p>
+        <p class="hint">Registra progreso de los ejercicios en la rutina activa</p>
+      </div>
+
+      <div class="ejercicios-grid">
+        <div class="ejercicio-card-progreso" 
+             *ngFor="let ejercicio of ejercicios"
+             (click)="seleccionarEjercicio(ejercicio)">
+          
+          <h4>{{ ejercicio.nombre }}</h4>
+          <span class="grupo-badge">{{ ejercicio.grupo_muscular }}</span>
+
+          <div class="ejercicio-stats-grid">
+            <div class="stat">
+              <span class="label">Sesiones</span>
+              <span class="value">{{ ejercicio.total_sesiones }}</span>
+            </div>
+            <div class="stat" *ngIf="ejercicio.peso_actual">
+              <span class="label">Peso Actual</span>
+              <span class="value">{{ formatearNumero(ejercicio.peso_actual) }}kg</span>
+            </div>
+            <div class="stat" *ngIf="ejercicio.porcentaje_mejora">
+              <span class="label">Mejora</span>
+              <span class="value success">+{{ formatearNumero(ejercicio.porcentaje_mejora, 1) }}%</span>
+            </div>
+            <div class="stat" *ngIf="ejercicio.ultima_sesion">
+              <span class="label">Última Sesión</span>
+              <span class="value">{{ calcularDiasDesde(ejercicio.ultima_sesion) }}d</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block">Ver Detalles</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista detallada de ejercicio seleccionado -->
+    <div *ngIf="ejercicioSeleccionado" class="ejercicio-detalle-view">
+      
+      <div class="detalle-header">
+        <button class="btn btn-secondary" (click)="ejercicioSeleccionado = null">
+          ← Volver
+        </button>
+        <h3>{{ ejercicioSeleccionado.nombre }}</h3>
+      </div>
+
+      <div class="ejercicio-resumen">
+        <div class="stat-box-large">
+          <span class="label">Total Sesiones</span>
+          <span class="value">{{ ejercicioSeleccionado.total_sesiones }}</span>
+        </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_inicial">
+          <span class="label">Peso Inicial</span>
+          <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_inicial) }}kg</span>
+        </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_actual">
+          <span class="label">Peso Actual</span>
+          <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_actual) }}kg</span>
+        </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_maximo">
+          <span class="label">Peso Máximo</span>
+          <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_maximo) }}kg</span>
+        </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.progreso_total">
+          <span class="label">Progreso Total</span>
+          <span class="value success">+{{ formatearNumero(ejercicioSeleccionado.progreso_total) }}kg</span>
+        </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.porcentaje_mejora">
+          <span class="label">Mejora</span>
+          <span class="value success">+{{ formatearNumero(ejercicioSeleccionado.porcentaje_mejora, 1) }}%</span>
+        </div>
+      </div>
+
+      <!-- Historial de sesiones -->
+      <div class="sesiones-historial">
+        <h4>📊 Historial de Sesiones</h4>
+
+        <div *ngIf="cargando" class="loading-state">
+          <p>Cargando historial...</p>
+        </div>
+
+        <div *ngIf="!cargando && progresoEjercicio.length === 0" class="empty-state">
+          <p>No hay sesiones registradas</p>
+        </div>
+
+        <div class="sesion-item" *ngFor="let sesion of progresoEjercicio">
+          <div class="sesion-header">
+            <div class="sesion-numero">
+              <span class="numero">#{{ sesion.numero_sesion }}</span>
+              <span class="record" *ngIf="sesion.es_record_personal">🏆 PR</span>
+            </div>
+            <span class="sesion-fecha">{{ formatearFechaHora(sesion.fecha_sesion) }}</span>
+          </div>
+
+          <div class="sesion-stats">
+            <div class="sesion-stat" *ngIf="sesion.peso_kg">
+              <span class="label">Peso:</span>
+              <span class="value">{{ formatearNumero(sesion.peso_kg) }}kg</span>
+            </div>
+            <div class="sesion-stat">
+              <span class="label">Series:</span>
+              <span class="value">{{ sesion.series_completadas }}</span>
+            </div>
+            <div class="sesion-stat">
+              <span class="label">Reps:</span>
+              <span class="value">{{ sesion.repeticiones_completadas }}</span>
+            </div>
+            <div class="sesion-stat" *ngIf="sesion.rpe">
+              <span class="label">RPE:</span>
+              <span class="value">{{ sesion.rpe }}/10</span>
+            </div>
+          </div>
+
+          <div class="sesion-calidad" *ngIf="sesion.calidad_tecnica">
+            <span class="label">Calidad Técnica:</span>
+            <span class="estrellas">{{ getTextoCalidadTecnica(sesion.calidad_tecnica) }}</span>
+          </div>
+
+          <div class="sesion-progreso" *ngIf="sesion.diferencia_peso || sesion.porcentaje_mejora">
+            <div class="progreso-item" *ngIf="sesion.peso_anterior">
+              <span class="label">Peso anterior:</span>
+              <span class="value">{{ formatearNumero(sesion.peso_anterior) }}kg</span>
+            </div>
+            <div class="progreso-item mejora" *ngIf="sesion.diferencia_peso">
+              <span class="label">Diferencia:</span>
+              <span class="value" [class.positive]="sesion.diferencia_peso > 0">
+                {{ sesion.diferencia_peso > 0 ? '+' : '' }}{{ formatearNumero(sesion.diferencia_peso) }}kg
+              </span>
+            </div>
+            <div class="progreso-item mejora" *ngIf="sesion.porcentaje_mejora">
+              <span class="label">Mejora:</span>
+              <span class="value positive">+{{ formatearNumero(sesion.porcentaje_mejora, 1) }}%</span>
+            </div>
+          </div>
+
+          <div class="sesion-notas" *ngIf="sesion.notas">
+            <strong>Notas:</strong>
+            <p>{{ sesion.notas }}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: REGISTRAR PROGRESO -->
+<!-- ============================================================ -->
+<div class="modal-overlay" *ngIf="mostrarModalRegistro" (click)="mostrarModalRegistro = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <h3>📊 Registrar Progreso</h3>
+      <button class="close-btn" (click)="mostrarModalRegistro = false">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="registrarProgreso()">
+        
+        <div class="form-group">
+          <label>Fecha y Hora</label>
+          <input type="datetime-local" 
+                 [(ngModel)]="registroForm.fecha_sesion" 
+                 name="fecha_sesion"
+                 class="form-control">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Peso (kg) *</label>
+            <input type="number" 
+                   [(ngModel)]="registroForm.peso_kg" 
+                   name="peso_kg"
+                   step="0.1"
+                   min="0"
+                   required
+                   class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Series *</label>
+            <input type="number" 
+                   [(ngModel)]="registroForm.series_completadas" 
+                   name="series"
+                   min="1"
+                   required
+                   class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Repeticiones *</label>
+            <input type="number" 
+                   [(ngModel)]="registroForm.repeticiones_completadas" 
+                   name="repeticiones"
+                   min="1"
+                   required
+                   class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>RPE (1-10)</label>
+            <input type="number" 
+                   [(ngModel)]="registroForm.rpe" 
+                   name="rpe"
+                   min="1"
+                   max="10"
+                   class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Calidad Técnica</label>
+            <select [(ngModel)]="registroForm.calidad_tecnica" 
+                    name="calidad_tecnica"
+                    class="form-control">
+              <option value="excelente">⭐⭐⭐⭐⭐ Excelente</option>
+              <option value="buena">⭐⭐⭐⭐ Buena</option>
+              <option value="regular">⭐⭐⭐ Regular</option>
+              <option value="mala">⭐⭐ Mala</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Estado de Ánimo</label>
+            <select [(ngModel)]="registroForm.estado_animo" 
+                    name="estado_animo"
+                    class="form-control">
+              <option [ngValue]="null">Seleccionar...</option>
+              <option value="excelente">😁 Excelente</option>
+              <option value="bueno">😊 Bueno</option>
+              <option value="regular">😐 Regular</option>
+              <option value="malo">😞 Malo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea [(ngModel)]="registroForm.notas" 
+                    name="notas"
+                    rows="3"
+                    placeholder="Comentarios adicionales sobre la sesión..."
+                    class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Dolor o Molestias</label>
+          <textarea [(ngModel)]="registroForm.dolor_molestias" 
+                    name="dolor_molestias"
+                    rows="2"
+                    placeholder="Describir cualquier dolor o molestia..."
+                    class="form-control"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" 
+                  class="btn btn-secondary" 
+                  (click)="mostrarModalRegistro = false">
+            Cancelar
+          </button>
+          <button type="submit" 
+                  class="btn btn-primary" 
+                  [disabled]="cargando">
+            <span *ngIf="!cargando">✓ Registrar</span>
+            <span *ngIf="cargando">Guardando...</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>

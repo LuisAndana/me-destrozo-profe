@@ -1,4 +1,7 @@
-/* ==== 1) Reset & base ==== */
+/* ==== 1) Fuente global ==== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* ==== 2) Reset & base ==== */
 html, body {
   margin: 0;
   padding: 0;
@@ -6,71 +9,140 @@ html, body {
   background: #04060b;
   color-scheme: dark;
   overflow-x: hidden;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.2px;
+  color: #e4e8f7;
 }
 
-:root{
+:root {
   --topbar-h: 65px;
   --topbar-gap: 8px;
   --sidebar-w: 300px;
+
+  /* 🎨 Paleta base azul moderna */
+  --fondo: #04060b;
+  --card: #0a1224;
+  --card-sec: #111b33;
+  --borde: #22345a;
+  --azul: #4e8cff;
+  --azul-claro: #7aa2ff;
+  --texto: #e4e8f7;
+  --texto-sec: #a8b3d0;
+  --grad: linear-gradient(90deg, #4e8cff, #7aa2ff);
+  --hover: #1a2a4d;
 }
 
+/* ==== 3) Responsividad de topbar y sidebar ==== */
+@media (max-width: 768px) {
+  :root {
+    --topbar-h: 72px;
+    --sidebar-w: 260px;
+  }
+}
+@media (max-width: 480px) {
+  :root {
+    --topbar-h: 64px;
+    --sidebar-w: 240px;
+  }
+}
 
-
-@media (max-width: 768px){ :root{ --topbar-h: 72px; --sidebar-w: 260px; } }
-@media (max-width: 480px){ :root{ --topbar-h: 64px; --sidebar-w: 240px; } }
-
-/* ==== 2) Offset del header (contenido nunca se pega) ==== */
-body.has-topbar{
+/* ==== 4) Offset del header ==== */
+body.has-topbar {
   padding-top: calc(var(--topbar-h) + var(--topbar-gap));
 }
 
-/* Evita dobles espacios si una vista mete padding/margen arriba */
-main, .content, .page { padding-top: 0 !important; }
+main, .content, .page {
+  padding-top: 0 !important;
+}
+
 main > :first-child,
 .content > :first-child,
-.page > :first-child { margin-top: 0 !important; padding-top: 0 !important; }
+.page > :first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
 
-/* ==== 3) Sidebar como OVERLAY (no empuja el contenido) ==== */
-.sidebar-glass{
+/* ==== 5) Sidebar overlay ==== */
+.sidebar-glass {
   position: fixed;
   top: var(--topbar-h);
   left: 0;
   bottom: 0;
   width: var(--sidebar-w);
-  transform: translateX(-100%);         /* oculto por defecto */
+  transform: translateX(-100%);
   transition: transform .3s ease;
   will-change: transform;
   z-index: 40;
+  background: rgba(10, 18, 36, 0.85);
+  backdrop-filter: blur(14px);
+  border-right: 1px solid var(--borde);
 }
 
-/* Cuando abres el menú, solo cambias a translateX(0) */
-.sidebar-glass:not(.compact){
-  transform: translateX(0);             /* visible como overlay */
+.sidebar-glass:not(.compact) {
+  transform: translateX(0);
 }
 
-/* ⛔️ IMPORTANTE: elimina cualquier empuje del layout */
+/* Elimina empuje del layout */
 body.has-sidebar .app,
 body.has-sidebar main,
-body.has-sidebar .page-wrap{
-  margin-left: 0 !important;            /* <- sin desplazamiento */
+body.has-sidebar .page-wrap {
+  margin-left: 0 !important;
 }
 
-/* ==== 4) Contenido centrado siempre ==== */
+/* ==== 6) Contenido centrado ==== */
 .page-container,
 .app,
 .page,
 .content {
-  max-width: 1200px;                     /* ajusta a tu preferencia */
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   padding-left: clamp(16px, 4vw, 32px);
   padding-right: clamp(16px, 4vw, 32px);
 }
 
-/* Opcional: en pantallas muy anchas puedes ampliar el ancho */
-@media (min-width: 1600px){
+/* Pantallas grandes */
+@media (min-width: 1600px) {
   .page-container,
   .app,
   .page,
-  .content { max-width: 1320px; }
+  .content {
+    max-width: 1320px;
+  }
+}
+
+/* ==== 7) Tipografía y suavizado ==== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  color: #ffffff;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+p, span, small, label {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  color: var(--texto-sec);
+}
+
+strong {
+  font-weight: 600;
+  color: var(--texto);
+}
+
+/* ==== 8) Scrollbar elegante ==== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--borde);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--azul);
+}
+
+/* ==== 9) Transiciones globales ==== */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
