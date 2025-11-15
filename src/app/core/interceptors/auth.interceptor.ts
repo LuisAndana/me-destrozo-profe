@@ -88,42 +88,46 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // 1) Permite forzar el salto del auth en una petición concreta
-    const skipAuth = req.headers.has('X-Skip-Auth');
-    let request = skipAuth ? req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
-
-    // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
-    request = this.rewriteClienteEntrenadorUrls(request);
-
-    // 2) Obtén el token (fallback a localStorage por si carga inicial)
-    const token =
-      this.auth.getToken?.() ||
-      localStorage.getItem('access_token') ||
-      sessionStorage.getItem('access_token');
-
-    // 3) Adjunta Authorization sólo cuando aplica
-    const canAttach =
-      !!token &&
-      !skipAuth &&
-      request.method !== 'OPTIONS' &&
-      this.isApiUrl(request.url) &&
-      !this.isAuthEndpoint(request);
-
-    if (canAttach) {
-      request = request.clone({
-        setHeaders: { Authorization: `Bearer ${token}` }
-      });
-    }
-
-    // 4) Manejo básico de 401
-    return next.handle(request).pipe(
-      catchError((err: any) => {
-        if (err instanceof HttpErrorResponse && err.status === 401) {
-          console.warn('[AuthInterceptor] 401 en', request.method, request.url);
-          // Opcional: this.auth.logout(); // o limpiar token/redirect a login
-        }
-        return throwError(() => err);
-      })
-    );
+  // 🚫 0) NO tocar rutas de IA
+  if (req.url.includes('/api/ia/')) {
+    return next.handle(req);
   }
+
+  // 1) Permite forzar el salto del auth en una petición concreta
+  const skipAuth = req.headers.has('X-Skip-Auth');
+  let request = skipAuth ? req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
+
+  // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
+  request = this.rewriteClienteEntrenadorUrls(request);
+
+  // 2) Obtén el token 
+  const token =
+    this.auth.getToken?.() ||
+    localStorage.getItem('access_token') ||
+    sessionStorage.getItem('access_token');
+
+  // 3) Adjunta Authorization sólo cuando aplica
+  const canAttach =
+    !!token &&
+    !skipAuth &&
+    request.method !== 'OPTIONS' &&
+    this.isApiUrl(request.url) &&
+    !this.isAuthEndpoint(request);
+
+  if (canAttach) {
+    request = request.clone({
+      setHeaders: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  // 4) Manejo básico de 401
+  return next.handle(request).pipe(
+    catchError((err: any) => {
+      if (err instanceof HttpErrorResponse && err.status === 401) {
+        console.warn('[AuthInterceptor] 401 en', request.method, request.url);
+      }
+      return throwError(() => err);
+    })
+  );
+}
 }

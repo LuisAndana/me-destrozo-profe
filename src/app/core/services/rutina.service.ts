@@ -74,7 +74,8 @@ export interface VigenciaRutina {
   providedIn: 'root'
 })
 export class RutinaService {
-  private apiUrl = 'http://localhost:8000/api';
+  private apiUrl = 'http://127.0.0.1:8000/api';
+
   private token = localStorage.getItem('token');
   private alumnoSeleccionadoSubject = new BehaviorSubject<Alumno | null>(null);
   private ejerciciosDb = new BehaviorSubject<Ejercicio[]>([]);
