@@ -335,24 +335,17 @@
         this.duracionMeses,  // NUEVO
         this.activarVigenciaInmediata  // NUEVO
       ).subscribe({
-        next: (rutina: RutinaGenerada) => {
-          this.rutinaGenerada = rutina;
+        next: (resp: any) => {
+          this.rutinaGenerada = resp.rutina;  // 👈 EXTRAER LA RUTINA REAL
           
-          // Mensaje de éxito con información de vigencia
-          let mensaje = '✓ Rutina generada exitosamente con parámetros personalizados';
-          if ((rutina as any).vigencia) {
-            const vigencia = (rutina as any).vigencia;
-            if (vigencia.activada) {
-              mensaje += ` | ⏳ Válida hasta: ${new Date(vigencia.fecha_fin).toLocaleDateString('es-ES')}`;
-            } else {
-              mensaje += ` | 📅 Duración configurada: ${vigencia.duracion_meses} mes(es)`;
-            }
-          }
-          
-          this.mensajeExito = mensaje;
+          this.diaSeleccionado = 0;
+
+          this.mensajeExito = '✓ Rutina generada correctamente';
           this.cargandoRutina = false;
-          console.log('✅ Rutina generada con vigencia:', rutina);
+
+          console.log('🔥 Rutina recibida:', this.rutinaGenerada);
         },
+
         error: (error: any) => {
           console.error('❌ Error al generar rutina:', error);
           this.mensajeError = error.error?.detail || 'Error al generar la rutina. Intenta de nuevo.';
