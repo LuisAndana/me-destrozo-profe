@@ -178,4 +178,9 @@ export class HeaderMenuComponent implements OnInit, OnDestroy {
     if (this.collapsed() && this.touchStartX < 30 && dx > 50) this.toggleSidebar();
     this.swiping = false;
   }
+
+  goToNuevaConversacion(): void {
+  this.router.navigate(['/mensajes/nueva']);
+}
+
 }

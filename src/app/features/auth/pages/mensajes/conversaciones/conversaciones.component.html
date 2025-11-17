@@ -1,0 +1,113 @@
+<!-- src/app/components/mensajes/conversaciones/conversaciones.component.html -->
+<div class="conversaciones-container">
+  <!-- Header -->
+  <div class="conversaciones-header">
+    <h1>💬 Mensajes</h1>
+    <div class="header-actions">
+      <button class="btn-icon" (click)="recargar()" title="Recargar">
+        <span class="icon">🔄</span>
+      </button>
+      <button class="btn-icon" (click)="nuevaConversacion()" title="Nueva conversación">
+        <span class="icon">✏️</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="filtrarConversaciones()"
+        placeholder="Buscar conversaciones..."
+      />
+      <button 
+        *ngIf="busqueda" 
+        class="clear-btn" 
+        (click)="limpiarBusqueda()"
+        title="Limpiar búsqueda"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="conversaciones-content">
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando conversaciones...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error && !cargando" class="error-container">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error }}</p>
+      <button class="btn-primary" (click)="recargar()">Reintentar</button>
+    </div>
+
+    <!-- Sin conversaciones -->
+    <div *ngIf="!cargando && !error && conversacionesFiltradas.length === 0" class="empty-container">
+      <div class="empty-icon">💬</div>
+      <h2>{{ busqueda ? 'Sin resultados' : 'No tienes conversaciones' }}</h2>
+      <p>{{ busqueda ? 'Intenta con otra búsqueda' : 'Comienza una nueva conversación para empezar a chatear' }}</p>
+      <button class="btn-primary" (click)="nuevaConversacion()" *ngIf="!busqueda">
+        Nueva Conversación
+      </button>
+    </div>
+
+    <!-- Lista de conversaciones -->
+    <div *ngIf="!cargando && !error && conversacionesFiltradas.length > 0" class="conversaciones-lista">
+      <div 
+        *ngFor="let conversacion of conversacionesFiltradas"
+        class="conversacion-item"
+        (click)="abrirConversacion(conversacion)"
+        [class.no-leida]="conversacion.mensajes_no_leidos > 0"
+      >
+        <!-- Avatar -->
+        <div class="avatar-container">
+          <img 
+            *ngIf="conversacion.otro_usuario.foto_url"
+            [src]="conversacion.otro_usuario.foto_url"
+            [alt]="obtenerNombreCompleto(conversacion.otro_usuario)"
+            class="avatar"
+            (error)="onImageError($event)"
+          />
+          <div *ngIf="!conversacion.otro_usuario.foto_url" class="avatar avatar-placeholder">
+            {{ obtenerIniciales(conversacion.otro_usuario) }}
+          </div>
+          
+          <!-- Badge de mensajes no leídos -->
+          <div *ngIf="conversacion.mensajes_no_leidos > 0" class="badge-no-leidos">
+            {{ conversacion.mensajes_no_leidos > 99 ? '99+' : conversacion.mensajes_no_leidos }}
+          </div>
+        </div>
+
+        <!-- Información de la conversación -->
+        <div class="conversacion-info">
+          <div class="conversacion-header-info">
+            <h3 class="nombre">{{ obtenerNombreCompleto(conversacion.otro_usuario) }}</h3>
+            <span class="fecha">{{ formatearFecha(conversacion.ultimo_mensaje.fecha_envio) }}</span>
+          </div>
+          
+          <div class="ultimo-mensaje">
+            <!-- Indicador de mensaje enviado/recibido -->
+            <span class="mensaje-indicador" *ngIf="conversacion.ultimo_mensaje.es_remitente">
+              {{ conversacion.ultimo_mensaje.leido ? '✓✓' : '✓' }}
+            </span>
+            <span class="mensaje-contenido" [class.no-leido]="!conversacion.ultimo_mensaje.leido && !conversacion.ultimo_mensaje.es_remitente">
+              {{ truncarContenido(conversacion.ultimo_mensaje.contenido) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Indicador visual de no leído -->
+        <div *ngIf="conversacion.mensajes_no_leidos > 0" class="indicador-no-leido"></div>
+      </div>
+    </div>
+  </div>
+</div>

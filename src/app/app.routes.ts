@@ -2,9 +2,10 @@ import { Routes } from '@angular/router';
 import { authGuard, roleGuard, perfilRoleGuard } from './core/guards/auth.guards';
 
 export const routes: Routes = [
+
   { path: '', pathMatch: 'full', redirectTo: 'bienvenida' },
 
-  // Público
+  // ================== PÚBLICO ==================
   {
     path: 'bienvenida',
     loadComponent: () =>
@@ -21,7 +22,7 @@ export const routes: Routes = [
       import('./features/auth/pages/register/register').then(m => m.RegisterComponent),
   },
 
-  // Perfil genérico
+  // ================== PERFIL GENERAL ==================
   {
     path: 'perfil',
     canActivate: [authGuard, perfilRoleGuard],
@@ -29,7 +30,7 @@ export const routes: Routes = [
       import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
   },
 
-  // Cliente
+  // ================== CLIENTE ==================
   {
     path: 'cliente',
     canActivate: [authGuard, roleGuard('cliente')],
@@ -47,50 +48,46 @@ export const routes: Routes = [
   },
 
   // ================== ENTRENADOR ==================
-{
-  path: 'entrenador',
-  canActivate: [authGuard, roleGuard('entrenador')],
-  children: [
-    { path: '', pathMatch: 'full', redirectTo: 'home' },
-    
-    // Home/Principal
-    {
-      path: 'home',
-      loadComponent: () =>
-        import('./features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador')
-          .then(m => m.PaginaPrincipalEntrenador),
-    },
-    
-    // Perfil
-    {
-      path: 'perfil',
-      loadComponent: () =>
-        import('./features/auth/pages/perfil-entrenador/perfil-entrenador')
-          .then(m => m.PerfilEntrenadorPage),
-    },
+  {
+    path: 'entrenador',
+    canActivate: [authGuard, roleGuard('entrenador')],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
 
-    // ✅ MIS CLIENTES - NUEVO
-    {
-      path: 'mis-clientes',
-      loadComponent: () =>
-        import('./components/mis-clientes/mis-clientes.component')
-          .then(m => m.MisClientesComponent),
-    },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador')
+            .then(m => m.PaginaPrincipalEntrenador),
+      },
 
-    // ✅ GENERAR RUTINA - NUEVO
-    {
-      path: 'generar-rutina/:id',
-      loadComponent: () =>
-        import('./components/mis-clientes/generar-rutina/generar-rutina.component')
-          .then(m => m.GenerarRutinaComponent),
-    },
-  ],
-},
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/auth/pages/perfil-entrenador/perfil-entrenador')
+            .then(m => m.PerfilEntrenadorPage),
+      },
+
+      {
+        path: 'mis-clientes',
+        loadComponent: () =>
+          import('./components/mis-clientes/mis-clientes.component')
+            .then(m => m.MisClientesComponent),
+      },
+
+      {
+        path: 'generar-rutina/:id',
+        loadComponent: () =>
+          import('./components/mis-clientes/generar-rutina/generar-rutina.component')
+            .then(m => m.GenerarRutinaComponent),
+      },
+    ],
+  },
 
   // Alias legacy
   { path: 'pagina-principal-entrenador', pathMatch: 'full', redirectTo: 'entrenador/home' },
 
-  // ================== ENTRENADORES (listado + detalle) ==================
+  // ================== ENTRENADORES (LISTA / DETALLE) ==================
   {
     path: 'entrenadores',
     loadComponent: () =>
@@ -104,25 +101,54 @@ export const routes: Routes = [
         .then(m => m.DetalleEntrenadorPage),
   },
 
-  // ================== PROCESO DE PAGO ==================
- // ================== PROCESO DE PAGO ==================
-{
-  path: 'pago/:id',
+  // ================== PAGO ==================
+  {
+    path: 'pago/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/perfil/proceso-pago/proceso-pago.page')
+        .then(m => m.ProcesoPagoPage),
+  },
+
+  // ================== PROGRESIÓN CLIENTE ==================
+  {
+    path: 'progresion-cliente/:id',
+    loadComponent: () =>
+      import('./features/auth/pages/progreso_cliente/progreso_cliente.component')
+        .then(m => m.ProgresoClienteComponent),
+  },
+
+  // ================== MENSAJES ==================
+  // Lista de conversaciones
+  
+  {
+  path: 'mensajes',
   canActivate: [authGuard],
   loadComponent: () =>
-    import('./pages/perfil/proceso-pago/proceso-pago.page')
-      .then(m => m.ProcesoPagoPage),
+    import('./features/auth/pages/mensajes/conversaciones/conversaciones.component')
+      .then(m => m.ConversacionesComponent),
 },
 
-{
-  path: 'progresion-cliente/:id',
+
+  // Chat con un usuario
+  {
+    path: 'mensajes/chat/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/pages/mensajes/chat/chat.component')
+        .then(m => m.ChatComponent),
+  },
+
+  // Nueva conversación
+  {
+  path: 'mensajes/nueva',
+  canActivate: [authGuard],
   loadComponent: () =>
-    import('./features/auth/pages/progreso_cliente/progreso_cliente.component')
-      .then(m => m.ProgresoClienteComponent),
+    import('./features/auth/pages/mensajes/nueva-conversacion/nueva-conversacion')
+      .then(m => m.NuevaConversacionComponent),
 },
 
 
-
-  // Comodín
+  // ================== WILDCARD ==================
   { path: '**', redirectTo: 'login' },
 ];

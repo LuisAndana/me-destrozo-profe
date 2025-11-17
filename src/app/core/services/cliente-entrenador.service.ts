@@ -29,6 +29,7 @@ export interface ClienteEntrenadorOut {
 export interface ClienteOut {
   id_usuario: number;
   nombre: string;
+  apellido?: string;
   email: string;
   foto_url?: string;
   ciudad?: string;

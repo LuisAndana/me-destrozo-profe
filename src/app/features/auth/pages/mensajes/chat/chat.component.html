@@ -1,0 +1,107 @@
+<!-- src/app/components/mensajes/chat/chat.component.html -->
+<div class="chat-container">
+  <!-- Header del chat -->
+  <div class="chat-header">
+    <button class="btn-back" (click)="volver()" title="Volver">
+      ←
+    </button>
+
+    <div class="header-usuario" *ngIf="otroUsuario">
+      <img 
+        *ngIf="otroUsuario.foto_url"
+        [src]="otroUsuario.foto_url"
+        [alt]="obtenerNombreCompleto()"
+        class="avatar-header"
+        (error)="onImageError($event)"
+      />
+      <div *ngIf="!otroUsuario.foto_url" class="avatar-header avatar-placeholder">
+        {{ obtenerIniciales() }}
+      </div>
+      
+      <div class="header-info">
+        <h2>{{ obtenerNombreCompleto() }}</h2>
+        <span class="estado-usuario">{{ otroUsuario.rol || 'Usuario' }}</span>
+      </div>
+    </div>
+
+    <button class="btn-icon" (click)="recargar()" title="Actualizar">
+      🔄
+    </button>
+  </div>
+
+  <!-- Área de mensajes -->
+  <div class="chat-mensajes" #chatContainer>
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando mensajes...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error && !cargando" class="error-container">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error }}</p>
+      <button class="btn-primary" (click)="recargar()">Reintentar</button>
+    </div>
+
+    <!-- Mensajes agrupados por fecha -->
+    <div *ngIf="!cargando && !error" class="mensajes-lista">
+      <div *ngFor="let grupo of agruparMensajesPorFecha()" class="grupo-fecha">
+        <!-- Separador de fecha -->
+        <div class="fecha-separador">
+          <span>{{ grupo.fecha }}</span>
+        </div>
+
+        <!-- Mensajes del día -->
+        <div *ngFor="let mensaje of grupo.mensajes" 
+             class="mensaje-wrapper"
+             [class.mensaje-mio]="esMensajeMio(mensaje)"
+             [class.mensaje-otro]="!esMensajeMio(mensaje)">
+          
+          <div class="mensaje-bubble">
+            <p class="mensaje-contenido">{{ mensaje.contenido }}</p>
+            
+            <div class="mensaje-footer">
+              <span class="mensaje-hora">{{ formatearHora(mensaje.fecha_envio) }}</span>
+              
+              <!-- Check marks para mensajes propios -->
+              <span *ngIf="esMensajeMio(mensaje)" class="mensaje-estado">
+                {{ mensaje.leido ? '✓✓' : '✓' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje inicial cuando no hay mensajes -->
+      <div *ngIf="mensajes.length === 0" class="empty-chat">
+        <div class="empty-icon">💬</div>
+        <p>Inicia la conversación enviando un mensaje</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área de entrada de mensaje -->
+  <div class="chat-input-container">
+    <div class="input-wrapper">
+      <textarea
+        [(ngModel)]="nuevoMensaje"
+        (keydown)="onKeyPress($event)"
+        placeholder="Escribe un mensaje..."
+        class="mensaje-input"
+        rows="1"
+        [disabled]="enviando"
+      ></textarea>
+      
+      <button 
+        class="btn-send"
+        (click)="enviarMensaje()"
+        [disabled]="!nuevoMensaje.trim() || enviando"
+        [title]="enviando ? 'Enviando...' : 'Enviar mensaje'"
+      >
+        <span *ngIf="!enviando">📤</span>
+        <span *ngIf="enviando" class="spinner-small"></span>
+      </button>
+    </div>
+  </div>
+</div>

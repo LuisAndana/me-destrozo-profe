@@ -1,0 +1,95 @@
+<!-- src/app/components/mensajes/nueva-conversacion/nueva-conversacion.component.html -->
+<div class="nueva-conversacion-container">
+  <!-- Header -->
+  <div class="nueva-conversacion-header">
+    <button class="btn-back" (click)="volver()" title="Volver">
+      ←
+    </button>
+    <h1>Nueva Conversación</h1>
+    <button class="btn-icon" (click)="recargar()" title="Recargar">
+      🔄
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="filtrarContactos()"
+        placeholder="Buscar contacto..."
+      />
+      <button 
+        *ngIf="busqueda" 
+        class="clear-btn" 
+        (click)="limpiarBusqueda()"
+        title="Limpiar búsqueda"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="nueva-conversacion-content">
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando contactos...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error && !cargando" class="error-container">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error }}</p>
+      <button class="btn-primary" (click)="recargar()">Reintentar</button>
+    </div>
+
+    <!-- Sin contactos -->
+    <div *ngIf="!cargando && !error && contactosFiltrados.length === 0" class="empty-container">
+      <div class="empty-icon">👥</div>
+      <h2>{{ busqueda ? 'Sin resultados' : 'No hay contactos disponibles' }}</h2>
+      <p>{{ busqueda ? 'Intenta con otra búsqueda' : 'No tienes contactos para iniciar una conversación' }}</p>
+    </div>
+
+    <!-- Lista de contactos -->
+    <div *ngIf="!cargando && !error && contactosFiltrados.length > 0" class="contactos-lista">
+      <div 
+        *ngFor="let contacto of contactosFiltrados"
+        class="contacto-item"
+        (click)="iniciarConversacion(contacto)"
+      >
+        <!-- Avatar -->
+        <div class="avatar-container">
+          <img 
+            *ngIf="contacto.foto_url"
+            [src]="contacto.foto_url"
+            [alt]="obtenerNombreCompleto(contacto)"
+            class="avatar"
+            (error)="onImageError($event)"
+          />
+          <div *ngIf="!contacto.foto_url" class="avatar avatar-placeholder">
+            {{ obtenerIniciales(contacto) }}
+          </div>
+        </div>
+
+        <!-- Información del contacto -->
+        <div class="contacto-info">
+          <h3 class="nombre">{{ obtenerNombreCompleto(contacto) }}</h3>
+          <p class="rol" *ngIf="contacto.rol">
+            {{ contacto.rol === 'cliente' ? '👤 Cliente' : '💪 Entrenador' }}
+          </p>
+          <p class="email" *ngIf="contacto.email">{{ contacto.email }}</p>
+        </div>
+
+        <!-- Icono de acción -->
+        <div class="contacto-action">
+          <span class="icon-chat">💬</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
