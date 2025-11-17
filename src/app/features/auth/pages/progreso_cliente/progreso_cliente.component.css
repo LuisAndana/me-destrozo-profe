@@ -5,9 +5,9 @@
 /* ============================================================ */
 
 :host {
-  --primary: #51cf66;
-  --secondary: #00d4ff;
-  --success: #51cf66;
+  --primary: #3b82f6;
+  --secondary: #60a5fa;
+  --success: #10b981;
   --warning: #ffa500;
   --danger: #ff6b6b;
   --info: #74c0fc;
@@ -18,6 +18,7 @@
   --text-primary: #ffffff;
   --text-secondary: #cbd5e0;
   --text-muted: #a0a0a0;
+  --gradient-primary: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
 /* ============================================================ */
@@ -56,7 +57,7 @@
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(81, 207, 102, 0.3);
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 .subtitle {
@@ -91,9 +92,9 @@
 }
 
 .alert-success {
-  background: rgba(81, 207, 102, 0.15);
-  border: 1px solid var(--primary);
-  color: var(--primary);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--success);
+  color: var(--success);
 }
 
 .close-btn {
@@ -158,10 +159,10 @@
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, rgba(81, 207, 102, 0.2), rgba(0, 212, 255, 0.2));
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: 0 0 20px rgba(81, 207, 102, 0.3);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 .badge {
@@ -289,7 +290,7 @@
   font-size: 4rem;
   font-weight: 800;
   color: var(--primary);
-  text-shadow: 0 0 30px rgba(81, 207, 102, 0.5);
+  text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
   margin-bottom: 0.5rem;
 }
 
@@ -343,8 +344,8 @@
 
 .rutina-item.active {
   border-color: var(--primary);
-  background: rgba(81, 207, 102, 0.1);
-  box-shadow: 0 0 20px rgba(81, 207, 102, 0.2);
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
 }
 
 .rutina-header {
@@ -369,15 +370,15 @@
 }
 
 .badge-activa {
-  background: rgba(81, 207, 102, 0.2);
+  background: rgba(16, 185, 129, 0.2);
   color: var(--success);
   border: 1px solid var(--success);
 }
 
 .badge-completada {
-  background: rgba(0, 212, 255, 0.2);
-  color: var(--secondary);
-  border: 1px solid var(--secondary);
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .badge-pausada {
@@ -415,13 +416,13 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  background: var(--gradient-primary);
   border-radius: 1rem;
   transition: width 0.3s;
 }
 
 .progress-fill.complete {
-  background: linear-gradient(90deg, var(--success), #3dc253);
+  background: linear-gradient(90deg, var(--success), #059669);
 }
 
 .rutina-footer {
@@ -551,7 +552,7 @@
 
 .ejercicio-progreso-item:hover {
   border-color: var(--primary);
-  background: rgba(81, 207, 102, 0.05);
+  background: rgba(59, 130, 246, 0.05);
 }
 
 .ejercicio-info h6 {
@@ -639,7 +640,7 @@
 }
 
 .filtro-btn.active {
-  background: rgba(81, 207, 102, 0.2);
+  background: rgba(59, 130, 246, 0.2);
   border-color: var(--primary);
   color: var(--primary);
 }
@@ -753,8 +754,8 @@
 }
 
 .alerta-recomendacion {
-  background: rgba(81, 207, 102, 0.1);
-  border: 1px solid rgba(81, 207, 102, 0.3);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-top: 1rem;
@@ -937,7 +938,7 @@
 .ejercicio-card-progreso:hover {
   transform: translateY(-5px);
   border-color: var(--primary);
-  box-shadow: 0 8px 24px rgba(81, 207, 102, 0.2);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
 }
 
 .ejercicio-card-progreso h4 {
@@ -949,7 +950,7 @@
 .grupo-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background: rgba(81, 207, 102, 0.2);
+  background: rgba(59, 130, 246, 0.2);
   border: 1px solid var(--primary);
   border-radius: 1rem;
   font-size: 0.75rem;
@@ -1143,8 +1144,8 @@
   gap: 1rem;
   flex-wrap: wrap;
   padding: 1rem;
-  background: rgba(81, 207, 102, 0.1);
-  border: 1px solid rgba(81, 207, 102, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 0.5rem;
   margin: 1rem 0;
 }
@@ -1213,14 +1214,14 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), #3dc253);
+  background: var(--gradient-primary);
   color: white;
-  box-shadow: 0 4px 15px rgba(81, 207, 102, 0.3);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(81, 207, 102, 0.4);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .btn-secondary {
@@ -1230,13 +1231,13 @@
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(81, 207, 102, 0.1);
+  background: rgba(59, 130, 246, 0.1);
   border-color: var(--primary);
   color: var(--primary);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--success), #3dc253);
+  background: linear-gradient(135deg, var(--success), #059669);
   color: white;
 }
 
@@ -1260,7 +1261,7 @@
 }
 
 /* ============================================================ */
-/* MODAL */
+/* MODAL MEJORADO */
 /* ============================================================ */
 
 .modal-overlay {
@@ -1269,21 +1270,22 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.3s ease-out;
+  padding: 1rem;
 }
 
 .modal-content {
   background: var(--bg-dark);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
-  max-width: 600px;
-  width: 90%;
+  max-width: 650px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -1296,6 +1298,7 @@
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-color);
+  background: rgba(59, 130, 246, 0.05);
 }
 
 .modal-header h3 {
@@ -1313,14 +1316,16 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
 /* ============================================================ */
-/* FORMULARIOS */
+/* FORMULARIOS MEJORADOS */
 /* ============================================================ */
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
@@ -1340,12 +1345,13 @@
   color: var(--text-primary);
   font-size: 1rem;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-control::placeholder {
@@ -1355,12 +1361,18 @@
 textarea.form-control {
   resize: vertical;
   min-height: 80px;
+  font-family: inherit;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
 }
 
 /* ============================================================ */
@@ -1487,6 +1499,10 @@ textarea.form-control {
   .form-row {
     grid-template-columns: 1fr;
   }
+
+  .modal-content {
+    max-width: 95%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1510,8 +1526,8 @@ textarea.form-control {
     grid-template-columns: 1fr;
   }
 
-  .modal-content {
-    width: 95%;
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1534,14 +1550,14 @@ textarea.form-control {
 .rutinas-list::-webkit-scrollbar-thumb,
 .rutina-detalles::-webkit-scrollbar-thumb,
 .modal-content::-webkit-scrollbar-thumb {
-  background: rgba(81, 207, 102, 0.3);
+  background: rgba(59, 130, 246, 0.3);
   border-radius: 4px;
 }
 
 .rutinas-list::-webkit-scrollbar-thumb:hover,
 .rutina-detalles::-webkit-scrollbar-thumb:hover,
 .modal-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(81, 207, 102, 0.5);
+  background: rgba(59, 130, 246, 0.5);
 }
 
 /* ============================================================ */
@@ -1566,7 +1582,7 @@ textarea.form-control {
 
 .btn-progreso {
   margin-top: 1rem;
-  background: var(--grad) !important;
+  background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
   padding: 0.7rem 1.2rem !important;
@@ -1582,5 +1598,12 @@ textarea.form-control {
 
 .btn-progreso:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(59, 130, 246, 0.25) !important;
+  box-shadow: 0 6px 22px rgba(59, 130, 246, 0.35) !important;
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem;
+  font-size: 1rem;
 }

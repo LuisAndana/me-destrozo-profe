@@ -1,3 +1,4 @@
+// progreso.service.ts - VERSIÓN COMPLETA Y MEJORADA
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -66,6 +67,7 @@ export interface HistorialRutina {
   peso_inicial: number | null;
   peso_final: number | null;
   objetivo: string | null;
+  entrenador: string | null;
 }
 
 export interface AlertaProgresion {
@@ -99,19 +101,15 @@ export interface ObjetivoCliente {
   fecha_alcanzado: Date | null;
 }
 
-export interface CrearObjetivoRequest {
-  id_cliente: number;
-  id_ejercicio?: number;
-  tipo_objetivo: string;
-  titulo: string;
-  descripcion?: string;
-  valor_inicial?: number;
-  valor_objetivo: number;
-  unidad?: string;
-  fecha_limite: string;
-}
-
 export interface DashboardCliente {
+  id_cliente: number;
+  nombre_cliente: string;
+  dias_entrenando: number;
+  sesiones_completadas: number;
+  rutinas_activas: number;
+  ultima_rutina: string | null;
+  ultimo_entrenamiento: string | null;
+  progreso_general: number;
   resumen: {
     total_rutinas: number;
     rutinas_completadas: number;
@@ -122,6 +120,19 @@ export interface DashboardCliente {
   alertas_pendientes: number;
   records_este_mes: number;
   objetivos_activos: number;
+}
+
+export interface EjercicioConProgreso {
+  id_ejercicio: number;
+  nombre: string;
+  grupo_muscular: string;
+  total_sesiones: number;
+  peso_inicial: number | null;
+  peso_actual: number | null;
+  peso_maximo: number | null;
+  progreso_total: number | null;
+  porcentaje_mejora: number | null;
+  ultima_sesion: string | null;
 }
 
 export interface RegistrarProgresoResponse {
@@ -153,6 +164,18 @@ export interface CompletarRutinaResponse {
   mensaje: string;
 }
 
+export interface CrearObjetivoRequest {
+  id_cliente: number;
+  id_ejercicio?: number;
+  tipo_objetivo: string;
+  titulo: string;
+  descripcion?: string;
+  valor_inicial?: number;
+  valor_objetivo: number;
+  unidad?: string;
+  fecha_limite: string;
+}
+
 export interface CrearObjetivoResponse {
   success: boolean;
   id_objetivo: number;
@@ -172,18 +195,83 @@ export class ProgresoService {
   constructor(private http: HttpClient) {}
 
   // ============================================================
-  // REGISTRO DE PROGRESO
+  // DASHBOARD
   // ============================================================
 
   /**
-   * Registra el progreso de un ejercicio en una sesión
+   * ✅ Obtiene el dashboard completo del cliente
    */
-  registrarProgreso(progreso: RegistrarProgresoRequest): Observable<RegistrarProgresoResponse> {
-    return this.http.post<RegistrarProgresoResponse>(`${this.apiUrl}/registrar`, progreso);
+  obtenerDashboardCliente(idCliente: number): Observable<DashboardCliente> {
+    return this.http.get<DashboardCliente>(`${this.apiUrl}/dashboard/cliente/${idCliente}`);
+  }
+
+  // ============================================================
+  // HISTORIAL DE RUTINAS
+  // ============================================================
+
+  /**
+   * ✅ Obtiene el historial completo de rutinas
+   */
+  obtenerHistorialCliente(
+    idCliente: number,
+    limit: number = 30,
+    offset: number = 0
+  ): Observable<HistorialRutina[]> {
+    const params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString());
+    
+    return this.http.get<HistorialRutina[]>(
+      `${this.apiUrl}/historial/cliente/${idCliente}`,
+      { params }
+    );
   }
 
   /**
-   * Obtiene el historial de progreso de un ejercicio para un cliente
+   * Crea un registro en el historial cuando se activa una rutina
+   */
+  crearHistorialRutina(
+    idRutina: number,
+    idCliente: number
+  ): Observable<CrearHistorialResponse> {
+    return this.http.post<CrearHistorialResponse>(
+      `${this.apiUrl}/progresion/historial/crear`,
+      null,
+      { params: new HttpParams().set('id_rutina', idRutina).set('id_cliente', idCliente) }
+    );
+  }
+
+  /**
+   * Marca una rutina como completada
+   */
+  completarRutina(idHistorial: number): Observable<CompletarRutinaResponse> {
+    return this.http.patch<CompletarRutinaResponse>(
+      `${this.apiUrl}/historial/${idHistorial}/completar`,
+      {}
+    );
+  }
+
+  // ============================================================
+  // EJERCICIOS CON PROGRESO
+  // ============================================================
+
+  /**
+   * ✅ NUEVO: Obtiene ejercicios de una rutina con métricas de progreso
+   */
+  obtenerEjerciciosConProgreso(
+    idHistorial: number,
+    idCliente: number
+  ): Observable<EjercicioConProgreso[]> {
+    const params = new HttpParams().set('id_cliente', idCliente.toString());
+    
+    return this.http.get<EjercicioConProgreso[]>(
+      `${this.apiUrl}/historial/${idHistorial}/ejercicios`,
+      { params }
+    );
+  }
+
+  /**
+   * ✅ Obtiene el historial detallado de progreso de un ejercicio
    */
   obtenerProgresoEjercicio(
     idEjercicio: number,
@@ -191,8 +279,9 @@ export class ProgresoService {
     limite: number = 50
   ): Observable<ProgresoEjercicio[]> {
     const params = new HttpParams().set('limite', limite.toString());
+    
     return this.http.get<ProgresoEjercicio[]>(
-      `${this.apiUrl}/ejercicio/${idEjercicio}/cliente/${idCliente}`,
+      `${this.apiUrl}/ejercicio/${idEjercicio}/cliente/${idCliente}/progreso`,
       { params }
     );
   }
@@ -210,48 +299,14 @@ export class ProgresoService {
   }
 
   // ============================================================
-  // HISTORIAL DE RUTINAS
+  // REGISTRO DE PROGRESO
   // ============================================================
 
   /**
-   * Crea un registro en el historial cuando se activa una rutina
+   * ✅ Registra el progreso de un ejercicio en una sesión
    */
-  crearHistorialRutina(
-    idRutina: number,
-    fechaInicio?: Date
-  ): Observable<CrearHistorialResponse> {
-    const body: any = { id_rutina: idRutina };
-    if (fechaInicio) {
-      body.fecha_inicio = fechaInicio.toISOString();
-    }
-    return this.http.post<CrearHistorialResponse>(`${this.apiUrl}/historial/crear`, body);
-  }
-
-  /**
-   * Obtiene el historial completo de rutinas de un cliente
-   */
-  obtenerHistorialCliente(idCliente: number): Observable<HistorialRutina[]> {
-    return this.http.get<HistorialRutina[]>(`${this.apiUrl}/historial/cliente/${idCliente}`);
-  }
-
-  /**
-   * Marca una rutina como completada y registra métricas finales
-   */
-  completarRutina(
-    idHistorial: number,
-    pesoFinal?: number,
-    grasaCorporalFinal?: number,
-    notasEntrenador?: string
-  ): Observable<CompletarRutinaResponse> {
-    const body: any = {};
-    if (pesoFinal !== undefined) body.peso_final = pesoFinal;
-    if (grasaCorporalFinal !== undefined) body.grasa_corporal_final = grasaCorporalFinal;
-    if (notasEntrenador) body.notas_entrenador = notasEntrenador;
-
-    return this.http.put<CompletarRutinaResponse>(
-      `${this.apiUrl}/historial/${idHistorial}/completar`,
-      body
-    );
+  registrarProgreso(progreso: RegistrarProgresoRequest): Observable<RegistrarProgresoResponse> {
+    return this.http.post<RegistrarProgresoResponse>(`${this.apiUrl}/registrar`, progreso);
   }
 
   // ============================================================
@@ -259,24 +314,14 @@ export class ProgresoService {
   // ============================================================
 
   /**
-   * Obtiene las alertas de progresión de un cliente
+   * ✅ Obtiene todas las alertas del cliente
    */
-  obtenerAlertasCliente(
-    idCliente: number,
-    estado?: 'pendiente' | 'vista' | 'atendida' | 'descartada'
-  ): Observable<AlertaProgresion[]> {
-    let params = new HttpParams();
-    if (estado) {
-      params = params.set('estado', estado);
-    }
-    return this.http.get<AlertaProgresion[]>(
-      `${this.apiUrl}/alertas/cliente/${idCliente}`,
-      { params }
-    );
+  obtenerAlertasCliente(idCliente: number): Observable<AlertaProgresion[]> {
+    return this.http.get<AlertaProgresion[]>(`${this.apiUrl}/alertas/cliente/${idCliente}`);
   }
 
   /**
-   * Analiza la progresión del cliente y genera alertas automáticas
+   * ✅ Analiza la progresión y genera alertas automáticas
    */
   analizarProgresion(idCliente: number): Observable<AnalizarProgresionResponse> {
     return this.http.post<AnalizarProgresionResponse>(
@@ -286,19 +331,22 @@ export class ProgresoService {
   }
 
   /**
+   * Marca una alerta como vista
+   */
+  marcarAlertaVista(idAlerta: number): Observable<AtenderAlertaResponse> {
+    return this.http.patch<AtenderAlertaResponse>(
+      `${this.apiUrl}/alertas/${idAlerta}/marcar-vista`,
+      {}
+    );
+  }
+
+  /**
    * Marca una alerta como atendida
    */
-  atenderAlerta(
-    idAlerta: number,
-    idEntrenador: number,
-    accionTomada?: string
-  ): Observable<AtenderAlertaResponse> {
-    const body: any = { id_entrenador: idEntrenador };
-    if (accionTomada) body.accion_tomada = accionTomada;
-
-    return this.http.put<AtenderAlertaResponse>(
+  atenderAlerta(idAlerta: number): Observable<AtenderAlertaResponse> {
+    return this.http.patch<AtenderAlertaResponse>(
       `${this.apiUrl}/alertas/${idAlerta}/atender`,
-      body
+      {}
     );
   }
 
@@ -307,27 +355,69 @@ export class ProgresoService {
   // ============================================================
 
   /**
-   * Crea un nuevo objetivo para un cliente
-   */
-  crearObjetivo(objetivo: CrearObjetivoRequest): Observable<CrearObjetivoResponse> {
-    return this.http.post<CrearObjetivoResponse>(`${this.apiUrl}/objetivos/crear`, objetivo);
-  }
-
-  /**
-   * Obtiene los objetivos de un cliente
+   * ✅ Obtiene todos los objetivos del cliente
    */
   obtenerObjetivosCliente(idCliente: number): Observable<ObjetivoCliente[]> {
     return this.http.get<ObjetivoCliente[]>(`${this.apiUrl}/objetivos/cliente/${idCliente}`);
   }
 
-  // ============================================================
-  // DASHBOARD
-  // ============================================================
+  /**
+   * Crea un nuevo objetivo para el cliente
+   */
+  crearObjetivo(objetivo: CrearObjetivoRequest): Observable<CrearObjetivoResponse> {
+    return this.http.post<CrearObjetivoResponse>(`${this.apiUrl}/objetivos`, objetivo);
+  }
 
   /**
-   * Obtiene un resumen completo del progreso del cliente para dashboard
+   * Actualiza un objetivo existente
    */
-  obtenerDashboardCliente(idCliente: number): Observable<DashboardCliente> {
-    return this.http.get<DashboardCliente>(`${this.apiUrl}/dashboard/cliente/${idCliente}`);
+  actualizarObjetivo(
+    idObjetivo: number,
+    datos: Partial<CrearObjetivoRequest>
+  ): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/objetivos/${idObjetivo}`, datos);
   }
+
+  /**
+   * Marca un objetivo como alcanzado
+   */
+  marcarObjetivoAlcanzado(idObjetivo: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/objetivos/${idObjetivo}/alcanzado`, {});
+  }
+
+  actualizarEstadoAlerta(idAlerta: number, accion: string) {
+  return this.http.put(
+    `${this.apiUrl}/alertas/${idAlerta}/actualizar-estado`,
+    { accion }
+  );
 }
+
+
+registrarSesion(
+  idEjercicio: number,
+  idCliente: number,
+  idHistorial: number,
+  datos: any
+) {
+  const params = new HttpParams()
+    .set('id_cliente', idCliente)
+    .set('id_historial', idHistorial)
+    .set('peso_kg', datos.peso_kg)
+    .set('series', datos.series_completadas)
+    .set('repeticiones', datos.repeticiones_completadas)
+    .set('rpe', datos.rpe)
+    .set('calidad_tecnica', datos.calidad_tecnica)
+    .set('notas', datos.notas || '');
+
+  return this.http.post(
+    `${this.apiUrl}/ejercicio/${idEjercicio}/registrar-sesion`,
+    null,
+    { params }
+  );
+}
+
+}
+
+
+
+

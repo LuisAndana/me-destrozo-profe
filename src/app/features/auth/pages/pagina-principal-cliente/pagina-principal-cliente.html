@@ -1,22 +1,18 @@
-<!-- features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador.html -->
-
-<!-- Página limpia: usa el header/menú global. 
-     La clase .page-wrap permite que app.css aplique los offsets del topbar y sidebar -->
+<!-- pagina-principal-cliente.html -->
 <div class="page-wrap">
 
-  <!-- Hero -->
-  <section
-    class="hero"
-    style="--hero-bg: url('https://images.unsplash.com/photo-1517963628607-8e2e9a9da4d6?auto=format&fit=crop&w=1600&q=80')">
+  <!-- Hero con imagen de fondo -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
     <div class="container hero-inner">
-      <h1>Impulsa a tus clientes al siguiente nivel</h1>
-      <p class="sub">Gestiona rutinas, sigue su progreso y mantén la motivación constante.</p>
+      <h1>Transforma Tu Cuerpo, Transforma Tu Vida</h1>
+      <p class="sub">Sigue tu rutina personalizada y alcanza tus objetivos fitness</p>
       <div class="hero-actions">
-        <a routerLink="/entrenador/mis-clientes" class="btn btn-accent btn-lg btn-glow">
-          <i class="lucide-users"></i> Gestionar clientes
+        <a routerLink="/cliente/rutina" class="btn btn-accent btn-lg btn-glow">
+          <i class="lucide-dumbbell"></i> Ver Mi Rutina
         </a>
-        <a routerLink="/entrenador/rutinas" class="btn btn-outline-light btn-lg">
-          <i class="lucide-dumbbell"></i> Ver rutinas
+        <a routerLink="/cliente/progreso" class="btn btn-outline-light btn-lg">
+          <i class="lucide-trending-up"></i> Ver Progreso
         </a>
       </div>
     </div>
@@ -24,44 +20,50 @@
 
   <!-- Cards -->
   <section class="container grid">
-    <!-- Card: Mis Clientes -->
+    
+    <!-- Card: Mi Rutina -->
     <article class="card">
       <header>
-        <h3>Mis Clientes</h3>
-        <span class="badge">{{ clientesActivos }}</span>
+        <h3>💪 Mi Rutina</h3>
+        <span class="badge">Activa</span>
       </header>
+      <p class="card-description">Accede a tu plan de entrenamiento personalizado</p>
       <ul class="list">
-        <li *ngIf="clientesActivos === 0">No tienes clientes asignados aún.</li>
-        <li *ngIf="clientesActivos > 0">Tienes <strong>{{ clientesActivos }} clientes</strong> activos.</li>
+        <li *ngIf="!tieneRutinaActiva">No tienes rutina asignada aún.</li>
+        <li *ngIf="tieneRutinaActiva">Tu rutina actual está lista para comenzar</li>
       </ul>
-      <a routerLink="/entrenador/mis-clientes" class="btn btn-secondary btn-block">Ver detalles</a>
+      <a routerLink="/cliente/rutina" class="btn btn-primary btn-block">Ver Rutina</a>
     </article>
 
-    <!-- Card: Tu Calificación -->
+    <!-- Card: Calificar -->
     <article class="card">
       <header>
-        <h3>Tu Calificación</h3>
-        <span class="badge">⭐ 4.8</span>
+        <h3>⭐ Calificar</h3>
+        <span class="badge badge-info">Tu opinión importa</span>
       </header>
+      <p class="card-description">Califica tu experiencia con tu entrenador</p>
       <div class="stat">
         <div class="rating-display">
-          <span class="rating-number">4.8</span>
-          <span class="rating-label">de 5 estrellas</span>
+          <span class="rating-stars">⭐⭐⭐⭐⭐</span>
+          <span class="rating-label">¿Cómo ha sido tu experiencia?</span>
         </div>
       </div>
-      <a routerLink="/entrenador/resenas" class="btn btn-secondary btn-block">Ver reseñas</a>
+      <a routerLink="/cliente/calificar" class="btn btn-primary btn-block">Dejar Calificación</a>
     </article>
 
     <!-- Card: Mensajes -->
     <article class="card">
       <header>
-        <h3>Mensajes</h3>
-        <span class="badge badge-info">{{ mensajesNuevos }} nuevos</span>
+        <h3>💬 Mensajes</h3>
+        <span class="badge badge-info" *ngIf="mensajesNuevos > 0">{{ mensajesNuevos }} nuevos</span>
+        <span class="badge badge-muted" *ngIf="mensajesNuevos === 0">Sin nuevos</span>
       </header>
+      <p class="card-description">Comunícate con tu entrenador</p>
       <p class="muted" *ngIf="mensajesNuevos === 0">No tienes mensajes nuevos.</p>
-      <p class="muted" *ngIf="mensajesNuevos > 0">Tienes <strong>{{ mensajesNuevos }} mensajes</strong> nuevos.</p>
-      <a routerLink="/entrenador/mensajes" class="btn btn-secondary btn-block">Ver mensajes</a>
+      <p class="highlight" *ngIf="mensajesNuevos > 0">Tienes <strong>{{ mensajesNuevos }} mensajes</strong> sin leer.</p>
+      <a routerLink="/cliente/mensajes" class="btn btn-primary btn-block">Ver Mensajes</a>
     </article>
+
   </section>
 
 </div>

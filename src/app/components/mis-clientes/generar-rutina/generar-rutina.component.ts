@@ -302,57 +302,50 @@
      * Generar rutina con IA - VERSIÓN MEJORADA CON VIGENCIA
      */
     generarRutina(): void {
-      if (!this.formularioValido() || !this.alumnoSeleccionado) {
-        this.mensajeError = 'Por favor completa todos los campos y selecciona un alumno.';
-        return;
-      }
+  if (!this.formularioValido() || !this.alumnoSeleccionado) {
+    this.mensajeError = 'Por favor completa todos los campos y selecciona un alumno.';
+    return;
+  }
 
-      this.cargandoRutina = true;
-      this.mensajeError = '';
-      this.mensajeExito = '';
-      this.rutinaGenerada = null;
+  this.cargandoRutina = true;
+  this.mensajeError = '';
+  this.mensajeExito = '';
+  this.rutinaGenerada = null;
+  this.diaSeleccionado = 0;
+
+  const objetivosTexto = this.construirObjetivosTexto();
+
+  this.rutinaService.generarRutinaIA(
+    this.alumnoSeleccionado.id_usuario,
+    objetivosTexto,
+    this.diasPorSemana,
+    this.parametros.experiencia,
+    this.duracionMeses,
+    this.activarVigenciaInmediata
+  ).subscribe({
+    next: (resp: any) => {
+      this.rutinaGenerada = resp.rutina;
+
+if (this.rutinaGenerada && resp?.rutina?.id_rutina) {
+  this.rutinaGenerada.id_rutina = resp.rutina.id_rutina;
+}
+
+
       this.diaSeleccionado = 0;
+      this.mensajeExito = '✓ Rutina generada correctamente';
+      this.cargandoRutina = false;
 
-      // Construir texto de objetivos desde parámetros estructurados
-      const objetivosTexto = this.construirObjetivosTexto();
+      console.log('🔥 Rutina recibida:', this.rutinaGenerada);
+    },
 
-      console.log('🚀 Generando rutina con parámetros estructurados y vigencia:', {
-        alumno: this.alumnoSeleccionado,
-        parametros: this.parametros,
-        objetivosTexto,
-        dias: this.diasPorSemana,
-        duracionMeses: this.duracionMeses,
-        activarVigencia: this.activarVigenciaInmediata,
-        ejerciciosDisponibles: this.ejerciciosDisponibles.length
-      });
-
-      // MODIFICACIÓN: Agregar parámetros de vigencia a la llamada al servicio
-      this.rutinaService.generarRutinaIA(
-        this.alumnoSeleccionado.id_usuario,
-        objetivosTexto,
-        this.diasPorSemana,
-        this.parametros.experiencia,
-        this.duracionMeses,  // NUEVO
-        this.activarVigenciaInmediata  // NUEVO
-      ).subscribe({
-        next: (resp: any) => {
-          this.rutinaGenerada = resp.rutina;  // 👈 EXTRAER LA RUTINA REAL
-          
-          this.diaSeleccionado = 0;
-
-          this.mensajeExito = '✓ Rutina generada correctamente';
-          this.cargandoRutina = false;
-
-          console.log('🔥 Rutina recibida:', this.rutinaGenerada);
-        },
-
-        error: (error: any) => {
-          console.error('❌ Error al generar rutina:', error);
-          this.mensajeError = error.error?.detail || 'Error al generar la rutina. Intenta de nuevo.';
-          this.cargandoRutina = false;
-        }
-      });
+    error: (error: any) => {
+      console.error('❌ Error al generar rutina:', error);
+      this.mensajeError = error.error?.detail || 'Error al generar la rutina. Intenta de nuevo.';
+      this.cargandoRutina = false;
     }
+  });
+}
+
 
     /**
      * Cambiar día seleccionado
@@ -407,64 +400,59 @@
      * Guardar rutina desde modal - VERSIÓN CORREGIDA
      */
     guardarRutinaDesdeModal(datos: { nombre: string; descripcion: string }): void {
-      if (!this.rutinaGenerada || !this.alumnoSeleccionado) {
-        this.mensajeError = 'No hay rutina para guardar.';
-        return;
+  if (!this.rutinaGenerada || !this.alumnoSeleccionado) {
+    this.mensajeError = 'No hay rutina para guardar.';
+    return;
+  }
+
+  this.cargandoRutina = true;
+  this.mensajeError = '';
+
+  const nombreTruncado = datos.nombre.length > 95 
+    ? datos.nombre.substring(0, 92) + '...'
+    : datos.nombre;
+
+  const rutinaAGuardar = {
+    id_rutina: this.rutinaGenerada.id_rutina,   // 👈 agregado
+    id_cliente: this.alumnoSeleccionado.id_usuario,
+    nombre: nombreTruncado,
+    descripcion: datos.descripcion,
+    objetivo: this.rutinaGenerada.objetivo,
+    nivel: this.rutinaGenerada.nivel,
+    dias_semana: this.rutinaGenerada.dias_semana,
+    total_ejercicios: this.rutinaGenerada.total_ejercicios,
+    minutos_aproximados: this.rutinaGenerada.minutos_aproximados,
+    ejercicios: [],
+    dias: this.rutinaGenerada.dias,
+    grupo_muscular: this.rutinaGenerada.grupo_muscular,
+    fecha_creacion: this.rutinaGenerada.fecha_creacion,
+    generada_por: this.rutinaGenerada.generada_por
+  };
+
+  this.rutinaService.guardarRutina(rutinaAGuardar).subscribe({
+    next: (rutina: any) => {
+      let mensaje = '✓ Rutina guardada correctamente en la base de datos';
+      
+      if (rutina.vigencia && rutina.vigencia.activada) {
+        mensaje += ` | ⏳ Válida hasta: ${new Date(rutina.vigencia.fecha_fin).toLocaleDateString('es-ES')}`;
       }
+      
+      this.mensajeExito = mensaje;
+      this.mostrarModalGuardar = false;
+      this.cargandoRutina = false;
 
-      this.cargandoRutina = true;
-      this.mensajeError = '';
-
-      // Truncar nombre si es muy largo (máximo 95 caracteres para MySQL)
-      const nombreTruncado = datos.nombre.length > 95 
-        ? datos.nombre.substring(0, 92) + '...' 
-        : datos.nombre;
-
-      // Construir payload compatible con el backend
-      const rutinaAGuardar = {
-        id_cliente: this.alumnoSeleccionado.id_usuario,
-        nombre: nombreTruncado,
-        descripcion: datos.descripcion,
-        objetivo: this.rutinaGenerada.objetivo,
-        nivel: this.rutinaGenerada.nivel,
-        dias_semana: this.rutinaGenerada.dias_semana,
-        total_ejercicios: this.rutinaGenerada.total_ejercicios,
-        minutos_aproximados: this.rutinaGenerada.minutos_aproximados,
-        ejercicios: [],
-        dias: this.rutinaGenerada.dias,
-        grupo_muscular: this.rutinaGenerada.grupo_muscular,
-        fecha_creacion: this.rutinaGenerada.fecha_creacion,
-        generada_por: this.rutinaGenerada.generada_por
-      };
-
-      console.log('💾 Guardando rutina en BD:', rutinaAGuardar);
-
-      this.rutinaService.guardarRutina(rutinaAGuardar as any).subscribe({
-        next: (rutina: any) => {
-          let mensaje = '✓ Rutina guardada correctamente en la base de datos';
-          
-          // Agregar información de vigencia si está disponible
-          if (rutina.vigencia && rutina.vigencia.activada) {
-            mensaje += ` | ⏳ Válida hasta: ${new Date(rutina.vigencia.fecha_fin).toLocaleDateString('es-ES')}`;
-          }
-          
-          this.mensajeExito = mensaje;
-          this.mostrarModalGuardar = false;
-          this.cargandoRutina = false;
-          console.log('✅ Rutina guardada:', rutina);
-          
-          // Limpiar formulario después de 2 segundos
-          setTimeout(() => {
-            this.limpiarFormulario();
-          }, 2000);
-        },
-        error: (error: any) => {
-          console.error('❌ Error al guardar rutina:', error);
-          this.mensajeError = error.error?.detail || 'Error al guardar la rutina. Intenta de nuevo.';
-          this.cargandoRutina = false;
-        }
-      });
+      setTimeout(() => {
+        this.limpiarFormulario();
+      }, 2000);
+    },
+    error: (error: any) => {
+      console.error('❌ Error al guardar rutina:', error);
+      this.mensajeError = error.error?.detail || 'Error al guardar la rutina.';
+      this.cargandoRutina = false;
     }
+  });
+}
+
 
     /**
      * Abrir modal de editar
