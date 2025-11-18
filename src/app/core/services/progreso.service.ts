@@ -416,6 +416,14 @@ registrarSesion(
   );
 }
 
+generarAlertasAutomaticas(idCliente: number) {
+  return this.http.post<any>(
+    `${this.apiUrl}/alertas/generar-automatico/${idCliente}`,
+    {}
+  );
+}
+
+
 }
 
 

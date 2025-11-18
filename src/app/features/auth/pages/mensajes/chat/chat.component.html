@@ -1,4 +1,6 @@
 <!-- src/app/components/mensajes/chat/chat.component.html -->
+<!-- Componente de Chat - Mostrando nombre del usuario mejorado -->
+
 <div class="chat-container">
   <!-- Header del chat -->
   <div class="chat-header">
@@ -6,24 +8,52 @@
       ←
     </button>
 
-    <div class="header-usuario" *ngIf="otroUsuario">
-      <img 
-        *ngIf="otroUsuario.foto_url"
-        [src]="otroUsuario.foto_url"
-        [alt]="obtenerNombreCompleto()"
-        class="avatar-header"
-        (error)="onImageError($event)"
-      />
-      <div *ngIf="!otroUsuario.foto_url" class="avatar-header avatar-placeholder">
-        {{ obtenerIniciales() }}
-      </div>
-      
-      <div class="header-info">
-        <h2>{{ obtenerNombreCompleto() }}</h2>
-        <span class="estado-usuario">{{ otroUsuario.rol || 'Usuario' }}</span>
-      </div>
-    </div>
+    <!-- INFORMACIÓN DEL OTRO USUARIO -->
+<div class="header-usuario" *ngIf="otroUsuario && !cargandoUsuario">
+  
+  <!-- Avatar -->
+  <img 
+    *ngIf="otroUsuario.foto_url"
+    [src]="otroUsuario.foto_url"
+    class="avatar-header"
+    (error)="onImageError($event)"
+  />
 
+  <div *ngIf="!otroUsuario.foto_url" class="avatar-header avatar-placeholder">
+    {{ obtenerIniciales() }}
+  </div>
+
+  <!-- Nombre y rol -->
+  <div class="header-info">
+    <h2>{{ obtenerNombreCompleto() }}</h2>
+
+    <span class="estado-usuario">
+      <ng-container *ngIf="rolUsuario === 'cliente'; else rolCliente">
+        💪 Entrenador
+      </ng-container>
+
+      <ng-template #rolCliente>
+        👤 Cliente
+      </ng-template>
+    </span>
+  </div>
+</div>
+
+
+<!-- ESTADO CARGANDO -->
+<div class="header-usuario cargando" *ngIf="cargandoUsuario">
+  <div class="avatar-header avatar-placeholder">
+    <span class="spinner-mini"></span>
+  </div>
+
+  <div class="header-info">
+    <h2>Cargando...</h2>
+    <span class="estado-usuario">Obteniendo información</span>
+  </div>
+</div>
+
+
+    <!-- Botón de recargar -->
     <button class="btn-icon" (click)="recargar()" title="Actualizar">
       🔄
     </button>
@@ -53,11 +83,12 @@
         </div>
 
         <!-- Mensajes del día -->
-        <div *ngFor="let mensaje of grupo.mensajes" 
-             class="mensaje-wrapper"
-             [class.mensaje-mio]="esMensajeMio(mensaje)"
-             [class.mensaje-otro]="!esMensajeMio(mensaje)">
-          
+        <div 
+          *ngFor="let mensaje of grupo.mensajes" 
+          class="mensaje-wrapper"
+          [class.mensaje-mio]="esMensajeMio(mensaje)"
+          [class.mensaje-otro]="!esMensajeMio(mensaje)"
+        >
           <div class="mensaje-bubble">
             <p class="mensaje-contenido">{{ mensaje.contenido }}</p>
             
@@ -76,7 +107,7 @@
       <!-- Mensaje inicial cuando no hay mensajes -->
       <div *ngIf="mensajes.length === 0" class="empty-chat">
         <div class="empty-icon">💬</div>
-        <p>Inicia la conversación enviando un mensaje</p>
+        <p>Inicia la conversación con <strong>{{ obtenerNombreCompleto() }}</strong> enviando un mensaje</p>
       </div>
     </div>
   </div>
@@ -87,7 +118,7 @@
       <textarea
         [(ngModel)]="nuevoMensaje"
         (keydown)="onKeyPress($event)"
-        placeholder="Escribe un mensaje..."
+        [placeholder]="'Escribe un mensaje a ' + obtenerNombreCompleto() + '...'"
         class="mensaje-input"
         rows="1"
         [disabled]="enviando"
@@ -97,7 +128,7 @@
         class="btn-send"
         (click)="enviarMensaje()"
         [disabled]="!nuevoMensaje.trim() || enviando"
-        [title]="enviando ? 'Enviando...' : 'Enviar mensaje'"
+        [title]="enviando ? 'Enviando...' : 'Enviar mensaje (Enter)'"
       >
         <span *ngIf="!enviando">📤</span>
         <span *ngIf="enviando" class="spinner-small"></span>
@@ -105,3 +136,4 @@
     </div>
   </div>
 </div>
+

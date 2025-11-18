@@ -1,11 +1,12 @@
 /* src/app/components/mensajes/nueva-conversacion/nueva-conversacion.component.css */
+/* Diseño oscuro moderno alineado con FITMAN */
 
 .nueva-conversacion-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   max-height: 100vh;
-  background-color: #f0f2f5;
+  background: linear-gradient(135deg, #0f1419 0%, #1a202c 100%);
   overflow: hidden;
 }
 
@@ -13,78 +14,87 @@
 .nueva-conversacion-header {
   display: flex;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: #fff;
-  border-bottom: 1px solid #e9ecef;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem 1.5rem;
+  background: rgba(30, 40, 54, 0.8);
+  border-bottom: 1px solid rgba(42, 63, 95, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
   gap: 1rem;
 }
 
 .nueva-conversacion-header h1 {
   margin: 0;
   font-size: 1.5rem;
-  font-weight: 600;
-  color: #111b21;
+  font-weight: 700;
+  color: #ffffff;
   flex: 1;
 }
 
 .btn-back {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 10px;
   border: none;
-  background-color: transparent;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
-  color: #54656f;
+  transition: all 0.3s ease;
+  color: #ffffff;
 }
 
 .btn-back:hover {
-  background-color: #f0f2f5;
+  background: rgba(0, 168, 132, 0.2);
+  color: #00a884;
 }
 
 .btn-icon {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 10px;
   border: none;
-  background-color: transparent;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
   font-size: 1.2rem;
 }
 
 .btn-icon:hover {
-  background-color: #f0f2f5;
+  background: rgba(0, 168, 132, 0.2);
 }
 
 /* ========== BARRA DE BÚSQUEDA ========== */
 .search-bar {
-  padding: 0.75rem 1.5rem;
-  background-color: #fff;
-  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  background: rgba(30, 40, 54, 0.4);
+  border-bottom: 1px solid rgba(42, 63, 95, 0.3);
 }
 
 .search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  background-color: #f0f2f5;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
+  background: rgba(20, 30, 45, 0.8);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(42, 63, 95, 0.3);
+  transition: all 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: rgba(0, 168, 132, 0.5);
+  box-shadow: 0 0 12px rgba(0, 168, 132, 0.2);
 }
 
 .search-icon {
   font-size: 1.2rem;
   margin-right: 0.75rem;
-  color: #667781;
+  color: #8696a0;
 }
 
 .search-input {
@@ -92,34 +102,36 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 0.9rem;
-  color: #111b21;
+  font-size: 0.95rem;
+  color: #ffffff;
+  font-family: inherit;
 }
 
 .search-input::placeholder {
-  color: #667781;
+  color: #8696a0;
 }
 
 .clear-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #667781;
+  color: #8696a0;
   font-size: 1.2rem;
   padding: 0;
   margin-left: 0.5rem;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .clear-btn:hover {
-  color: #111b21;
+  color: #00a884;
+  transform: scale(1.1);
 }
 
 /* ========== CONTENIDO ========== */
 .nueva-conversacion-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #fff;
+  background: transparent;
 }
 
 /* ========== ESTADOS ========== */
@@ -137,7 +149,7 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f0f2f5;
+  border: 4px solid rgba(0, 168, 132, 0.2);
   border-top-color: #00a884;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -145,7 +157,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-icon {
@@ -162,29 +176,31 @@
 .empty-container h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111b21;
+  color: #ffffff;
   margin-bottom: 0.5rem;
 }
 
 .empty-container p {
-  color: #667781;
+  color: #8696a0;
   margin-bottom: 1.5rem;
 }
 
 .btn-primary {
-  background-color: #00a884;
+  background: linear-gradient(135deg, #00a884 0%, #008c6f 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 168, 132, 0.3);
 }
 
 .btn-primary:hover {
-  background-color: #008c6f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 168, 132, 0.4);
 }
 
 /* ========== LISTA DE CONTACTOS ========== */
@@ -198,12 +214,13 @@
   align-items: center;
   padding: 1rem 1.5rem;
   cursor: pointer;
-  border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.2s;
+  border-bottom: 1px solid rgba(42, 63, 95, 0.2);
+  transition: all 0.3s ease;
 }
 
 .contacto-item:hover {
-  background-color: #f5f6f6;
+  background: rgba(0, 168, 132, 0.05);
+  padding-left: 1.75rem;
 }
 
 /* ========== AVATAR ========== */
@@ -215,8 +232,9 @@
 .avatar {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius: 12px;
   object-fit: cover;
+  border: 2px solid rgba(0, 168, 132, 0.3);
 }
 
 .avatar-placeholder {
@@ -227,6 +245,7 @@
   color: white;
   font-weight: 600;
   font-size: 1.1rem;
+  border: 2px solid rgba(0, 168, 132, 0.3);
 }
 
 /* ========== INFORMACIÓN DEL CONTACTO ========== */
@@ -238,8 +257,8 @@
 .nombre {
   margin: 0 0 0.25rem 0;
   font-size: 1rem;
-  font-weight: 500;
-  color: #111b21;
+  font-weight: 600;
+  color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -248,7 +267,8 @@
 .rol {
   margin: 0 0 0.25rem 0;
   font-size: 0.85rem;
-  color: #667781;
+  color: #8696a0;
+  font-weight: 500;
 }
 
 .email {
@@ -264,11 +284,22 @@
 .contacto-action {
   flex-shrink: 0;
   margin-left: 1rem;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.contacto-item:hover .contacto-action {
+  opacity: 1;
 }
 
 .icon-chat {
   font-size: 1.5rem;
   color: #00a884;
+  transition: all 0.2s ease;
+}
+
+.contacto-item:hover .icon-chat {
+  transform: scale(1.2);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -294,6 +325,10 @@
   .email {
     font-size: 0.8rem;
   }
+
+  .contacto-action {
+    opacity: 1;
+  }
 }
 
 /* ========== SCROLLBAR PERSONALIZADO ========== */
@@ -302,14 +337,14 @@
 }
 
 .nueva-conversacion-content::-webkit-scrollbar-track {
-  background: #f0f2f5;
+  background: transparent;
 }
 
 .nueva-conversacion-content::-webkit-scrollbar-thumb {
-  background: #8696a0;
+  background: rgba(0, 168, 132, 0.3);
   border-radius: 3px;
 }
 
 .nueva-conversacion-content::-webkit-scrollbar-thumb:hover {
-  background: #667781;
+  background: rgba(0, 168, 132, 0.5);
 }

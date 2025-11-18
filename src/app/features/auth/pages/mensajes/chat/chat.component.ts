@@ -1,4 +1,6 @@
 // src/app/components/mensajes/chat/chat.component.ts
+// VERSIÓN CORREGIDA - Sin error TS2339
+
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -28,6 +30,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   // IDs
   idOtroUsuario!: number;
   idUsuarioActual!: number;
+  rolUsuario: string = '';
 
   // Datos
   mensajes: Mensaje[] = [];
@@ -39,6 +42,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   error: string | null = null;
   enviando = false;
   shouldScrollToBottom = false;
+  cargandoUsuario = true;
 
   // Polling para actualizar mensajes
   private pollingInterval = 5000; // 5 segundos
@@ -47,15 +51,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   defaultAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%236366f1" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="40" fill="white" text-anchor="middle" dy=".3em"%3E?%3C/text%3E%3C/svg%3E';
 
   ngOnInit(): void {
-    console.log('💬 [INIT] ChatComponent inicializado');
-    
-    // Obtener ID del usuario actual
-    this.idUsuarioActual = this.obtenerIdUsuarioActual();
-    if (!this.idUsuarioActual) {
-      this.error = 'No se pudo identificar al usuario actual';
-      this.cargando = false;
-      return;
-    }
+  console.log('💬 [INIT] ChatComponent inicializado');
+
+  this.rolUsuario = this.obtenerRolUsuario(); // <--- AQUI
+
+  this.idUsuarioActual = this.obtenerIdUsuarioActual();
+  if (!this.idUsuarioActual) {
+    this.error = 'No se pudo identificar al usuario actual';
+    this.cargando = false;
+    this.cargandoUsuario = false;
+    return;
+  }
 
     // Obtener ID del otro usuario desde la ruta
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -65,6 +71,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       if (this.idOtroUsuario === this.idUsuarioActual) {
         this.error = 'No puedes chatear contigo mismo';
         this.cargando = false;
+        this.cargandoUsuario = false;
         return;
       }
 
@@ -117,69 +124,99 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * 👤 Carga información del otro usuario
+   * CORREGIDA - Sin errores de tipos
    */
   private cargarInfoOtroUsuario(): void {
-    // Intentar obtener del servicio de cliente-entrenador
-    // Esto asume que el otro usuario está en la relación cliente-entrenador
-    
-    const rolUsuario = this.obtenerRolUsuario();
-    
-    if (rolUsuario === 'entrenador') {
-      // El usuario actual es entrenador, buscar en sus clientes
-      this.clienteEntrenadorService.misClientes(this.idUsuarioActual)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (clientes) => {
-            const cliente = clientes.find(c => c.cliente.id_usuario === this.idOtroUsuario);
-            if (cliente) {
-              this.otroUsuario = cliente.cliente;
-              console.log('✅ Cliente encontrado:', this.otroUsuario);
-            } else {
-              this.cargarUsuarioGenerico();
-            }
-          },
-          error: () => {
-            this.cargarUsuarioGenerico();
+  this.cargandoUsuario = true;
+  const rolUsuario = this.obtenerRolUsuario();
+
+  console.log('👤 [CARGA USUARIO] Buscando información del usuario:', this.idOtroUsuario);
+  console.log('🔑 Rol del usuario actual:', rolUsuario);
+
+  // =============================
+  //    CASO 1: ENTRENADOR
+  // =============================
+  if (rolUsuario === 'entrenador' || rolUsuario === 'trainer') {
+    console.log('🔍 CASO 1: Eres ENTRENADOR, buscando CLIENTES...');
+
+    this.clienteEntrenadorService.misClientes(this.idUsuarioActual)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (clientes) => {
+          console.log('📋 Clientes obtenidos:', clientes.length);
+
+          const clienteEncontrado = clientes.find(relacion =>
+            relacion.cliente &&
+            relacion.cliente.id_usuario === this.idOtroUsuario
+          );
+
+          if (clienteEncontrado?.cliente) {
+            this.otroUsuario = clienteEncontrado.cliente;
+            console.log('✅ CLIENTE ENCONTRADO:', this.otroUsuario);
+            this.cargandoUsuario = false;
+            return;
           }
-        });
-    } else {
-      // El usuario actual es cliente, buscar su entrenador
-      this.clienteEntrenadorService.miEntrenador(this.idUsuarioActual)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (entrenador) => {
-            if (entrenador && entrenador.entrenador.id_usuario === this.idOtroUsuario) {
-              this.otroUsuario = entrenador.entrenador;
-              console.log('✅ Entrenador encontrado:', this.otroUsuario);
-            } else {
-              this.cargarUsuarioGenerico();
-            }
-          },
-          error: () => {
-            this.cargarUsuarioGenerico();
-          }
-        });
-    }
+
+          console.log('⚠️ Cliente no encontrado en tu lista');
+          this.usarFallback();
+        },
+        error: (error) => {
+          console.error('❌ Error buscando clientes:', error);
+          this.usarFallback();
+        }
+      });
+
+    return; // <---- IMPORTANTE: EVITA EJECUTAR EL CÓDIGO DEL CLIENTE
   }
 
+  // =============================
+  //    CASO 2: CLIENTE
+  // =============================
+  console.log('🔍 CASO 2: Eres CLIENTE, buscando tu ENTRENADOR...');
+
+  this.clienteEntrenadorService.miEntrenador(this.idUsuarioActual)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (respuesta) => {
+        console.log('📋 Respuesta de miEntrenador():', respuesta);
+
+        if (respuesta?.entrenador) {
+          this.otroUsuario = respuesta.entrenador;
+          this.cargandoUsuario = false;
+          return;
+        }
+
+        console.log('⚠️ Entrenador no encontrado');
+        this.usarFallback();
+      },
+      error: (error) => {
+        console.error('❌ Error buscando entrenador:', error);
+        this.usarFallback();
+      }
+    });
+}
+
   /**
-   * 👤 Carga información genérica del usuario (fallback)
+   * 📋 Fallback: Usar información mínima cuando no se puede cargar
    */
-  private cargarUsuarioGenerico(): void {
+  private usarFallback(): void {
+    console.log('⚠️ [FALLBACK] Usuario ID', this.idOtroUsuario, 'no encontrado, usando placeholder');
     this.otroUsuario = {
       id_usuario: this.idOtroUsuario,
-      nombre: 'Usuario',
+      nombre: `Usuario ${this.idOtroUsuario}`,
       apellido: '',
       email: '',
-      foto_url: null
+      foto_url: null,
+      rol: 'usuario'
     };
-    console.log('⚠️ Usando información genérica para usuario:', this.idOtroUsuario);
+    this.cargandoUsuario = false;
   }
 
   /**
    * 🔑 Obtiene el rol del usuario actual
    */
-  private obtenerRolUsuario(): string {
+  obtenerRolUsuario(): string {
+
     try {
       const usuarioStr = localStorage.getItem('usuario');
       if (!usuarioStr) return '';
@@ -350,6 +387,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
    * 🎨 Obtiene las iniciales del otro usuario
    */
   obtenerIniciales(): string {
+    if (!this.otroUsuario) return '?';
     return this.mensajesService.obtenerIniciales(this.otroUsuario);
   }
 
@@ -357,7 +395,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
    * 📝 Obtiene el nombre completo del otro usuario
    */
   obtenerNombreCompleto(): string {
-    return this.mensajesService.obtenerNombreCompleto(this.otroUsuario);
+    if (!this.otroUsuario) return 'Cargando...';
+    
+    const nombre = this.otroUsuario.nombre || '';
+    const apellido = this.otroUsuario.apellido || '';
+    const nombreCompleto = `${nombre} ${apellido}`.trim();
+    
+    return nombreCompleto || 'Usuario';
   }
 
   /**

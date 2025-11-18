@@ -94,14 +94,20 @@ export class ProgresoClienteComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Obtener ID del cliente desde la ruta
-    this.route.params.subscribe(params => {
-      this.idCliente = +params['id'];
-      if (this.idCliente) {
-        this.cargarDatos();
-      }
-    });
-  }
+  this.route.params.subscribe(params => {
+    this.idCliente = +params['id'];
+
+    if (this.idCliente) {
+
+      // 🔥 NUEVO: generar alertas automáticamente al entrar
+      this.progresoService.generarAlertasAutomaticas(this.idCliente)
+        .subscribe(() => this.cargarAlertas());
+
+      this.cargarDatos();
+    }
+  });
+}
+
 
   /**
    * Carga todos los datos del cliente
@@ -595,6 +601,7 @@ verHistorialDeRutina(rutina: HistorialRutina): void {
     }
   }, 150);
 }
-  
+
+
 }
 

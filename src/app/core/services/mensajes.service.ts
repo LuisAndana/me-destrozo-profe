@@ -2,7 +2,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject, interval } from 'rxjs';
-import { catchError, tap, switchMap, startWith } from 'rxjs/operators';
+import { catchError, tap, switchMap, startWith, map } from 'rxjs/operators';
+
+
 import {
   Mensaje,
   Conversacion,
@@ -51,6 +53,28 @@ export class MensajesService {
       return null;
     }
   }
+  private mapearConversacion(conv: any): Conversacion {
+  return {
+    otro_usuario: {
+      id_usuario: conv.otro_usuario.id_usuario,
+      nombre: conv.otro_usuario.nombre,
+      apellido: conv.otro_usuario.apellido || "",
+      email: conv.otro_usuario.email || "",
+      foto_url: conv.otro_usuario.foto_url || null,
+      rol: conv.otro_usuario.rol || "usuario"
+    },
+    ultimo_mensaje: {
+      id_mensaje: conv.ultimo_mensaje.id_mensaje,
+      id_remitente: conv.ultimo_mensaje.id_remitente,
+      id_destinatario: conv.ultimo_mensaje.id_destinatario,
+      contenido: conv.ultimo_mensaje.contenido,
+      fecha_envio: conv.ultimo_mensaje.fecha_envio,
+      leido: conv.ultimo_mensaje.leido,
+      es_remitente: conv.ultimo_mensaje.es_remitente
+    },
+    mensajes_no_leidos: conv.mensajes_no_leidos || 0
+  };
+}
 
   // ============================
   // 🔁 Polling mensajes no leídos
@@ -135,24 +159,34 @@ export class MensajesService {
   }
 
   obtenerConversacionesCliente(): Observable<Conversacion[]> {
-    const userId = this.getUserId();
-    const params = new HttpParams().set('user_id', userId);
+  const userId = this.getUserId();
+  const params = new HttpParams().set('user_id', userId);
 
-    return this.http.get<Conversacion[]>(
-      `${BASE_URL}/mis-conversaciones/lista`,
-      { params }
-    );
-  }
+  return this.http.get<any[]>(
+    `${BASE_URL}/mis-conversaciones/lista`,
+    { params }
+  ).pipe(
+    map((lista: any[]) => lista.map((c: any) => this.mapearConversacion(c))),
+    catchError(this.handleError)
+  );
+}
+
+
 
   obtenerConversacionesEntrenador(): Observable<Conversacion[]> {
-    const userId = this.getUserId();
-    const params = new HttpParams().set('user_id', userId);
+  const userId = this.getUserId();
+  const params = new HttpParams().set('user_id', userId);
 
-    return this.http.get<Conversacion[]>(
-      `${BASE_URL}/mis-conversaciones-entrenador/lista`,
-      { params }
-    );
-  }
+  return this.http.get<any[]>(
+    `${BASE_URL}/mis-conversaciones-entrenador/lista`,
+    { params }
+  ).pipe(
+    map((lista: any[]) => lista.map((c: any) => this.mapearConversacion(c))),
+    catchError(this.handleError)
+  );
+}
+
+
 
   // ============================
   // 🟩 MARCAR LEÍDO

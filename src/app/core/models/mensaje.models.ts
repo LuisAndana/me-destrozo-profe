@@ -40,10 +40,13 @@ export interface UsuarioConversacion {
 export interface Conversacion {
   otro_usuario: UsuarioConversacion;
   ultimo_mensaje: {
+    id_mensaje: number;
+    id_remitente: number;
+    id_destinatario: number;
     contenido: string;
     fecha_envio: string;
     leido: boolean;
-    es_remitente: boolean;  // true si el usuario actual envió el mensaje
+    es_remitente: boolean;
   };
   mensajes_no_leidos: number;
 }

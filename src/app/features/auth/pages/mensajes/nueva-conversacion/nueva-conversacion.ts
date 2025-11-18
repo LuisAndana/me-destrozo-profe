@@ -102,15 +102,19 @@ export class NuevaConversacionComponent implements OnInit, OnDestroy {
 
     this.cargando = true;
 
+    // Los entrenadores ven a sus clientes
     if (this.rolUsuarioActual === 'entrenador' || this.rolUsuarioActual === 'trainer') {
       this.cargarClientes();
-    } else {
+    } 
+    // Los clientes ven a su entrenador
+    else {
       this.cargarEntrenador();
     }
   }
 
   /**
    * 👥 Cargar clientes del entrenador
+   * Se ejecuta cuando el usuario es ENTRENADOR
    */
   private cargarClientes(): void {
 
@@ -119,10 +123,12 @@ export class NuevaConversacionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (clientes) => {
 
+          console.log('✅ Clientes cargados:', clientes.length);
+
           this.contactosDisponibles = clientes.map(c => ({
             id_usuario: c.cliente.id_usuario,
             nombre: c.cliente.nombre,
-            apellido: c.cliente.apellido ?? '',   // 🔥 FIX
+            apellido: c.cliente.apellido ?? '',
             foto_url: c.cliente.foto_url,
             rol: 'cliente',
             email: c.cliente.email
@@ -130,10 +136,16 @@ export class NuevaConversacionComponent implements OnInit, OnDestroy {
 
           this.contactosFiltrados = [...this.contactosDisponibles];
           this.cargando = false;
+
+          // Si no hay clientes, mostrar mensaje
+          if (this.contactosDisponibles.length === 0) {
+            console.log('⚠️ El entrenador no tiene clientes asignados');
+          }
+
         },
         error: (error) => {
           console.error('❌ Error al cargar clientes:', error);
-          this.error = 'No se pudieron cargar los clientes';
+          this.error = 'No se pudieron cargar los clientes. Intenta nuevamente.';
           this.cargando = false;
         }
       });
@@ -141,6 +153,7 @@ export class NuevaConversacionComponent implements OnInit, OnDestroy {
 
   /**
    * 👤 Cargar entrenador del cliente
+   * Se ejecuta cuando el usuario es CLIENTE
    */
   private cargarEntrenador(): void {
 
@@ -149,32 +162,41 @@ export class NuevaConversacionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (entrenador) => {
 
-          if (entrenador) {
+          // Si el cliente tiene un entrenador, agregarlo a los contactos
+          if (entrenador && entrenador.entrenador) {
+            console.log('✅ Entrenador cargado:', entrenador.entrenador.nombre);
+
             this.contactosDisponibles = [{
               id_usuario: entrenador.entrenador.id_usuario,
               nombre: entrenador.entrenador.nombre,
-              apellido: '',  // no existe en este endpoint
               foto_url: entrenador.entrenador.foto_url,
               rol: 'entrenador',
               email: entrenador.entrenador.email
             }];
           } else {
+            console.log('⚠️ El cliente no tiene un entrenador asignado');
             this.contactosDisponibles = [];
           }
 
           this.contactosFiltrados = [...this.contactosDisponibles];
           this.cargando = false;
+
+          // Si no hay entrenador, mostrar un mensaje útil
+          if (this.contactosDisponibles.length === 0) {
+            this.error = 'No tienes un entrenador asignado aún. Contacta con administración.';
+          }
+
         },
         error: (error) => {
           console.error('❌ Error al cargar entrenador:', error);
-          this.error = 'No se pudo cargar el entrenador';
+          this.error = 'No se pudo cargar tu entrenador. Intenta nuevamente.';
           this.cargando = false;
         }
       });
   }
 
   /**
-   * 🔍 Filtrar contactos
+   * 🔍 Filtrar contactos por nombre o email
    */
   filtrarContactos(): void {
     const q = this.busqueda.toLowerCase().trim();
@@ -192,31 +214,54 @@ export class NuevaConversacionComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * 🗑️ Limpiar búsqueda
+   */
   limpiarBusqueda(): void {
     this.busqueda = '';
     this.filtrarContactos();
   }
 
+  /**
+   * 💬 Iniciar conversación con un contacto
+   */
   iniciarConversacion(contacto: ContactoDisponible): void {
+    console.log('💬 Iniciando conversación con:', contacto.nombre);
     this.router.navigate(['/mensajes/chat', contacto.id_usuario]);
   }
 
+  /**
+   * ⬅️ Volver a la lista de conversaciones
+   */
   volver(): void {
     this.router.navigate(['/mensajes']);
   }
 
+  /**
+   * 🔄 Recargar contactos
+   */
   recargar(): void {
+    console.log('🔄 Recargando contactos...');
     this.cargarContactosDisponibles();
   }
 
+  /**
+   * 📝 Obtener iniciales del contacto
+   */
   obtenerIniciales(contacto: ContactoDisponible): string {
     return this.mensajesService.obtenerIniciales(contacto);
   }
 
+  /**
+   * 👤 Obtener nombre completo del contacto
+   */
   obtenerNombreCompleto(contacto: ContactoDisponible): string {
     return this.mensajesService.obtenerNombreCompleto(contacto);
   }
 
+  /**
+   * 🖼️ Manejar error de carga de imagen
+   */
   onImageError(event: any): void {
     event.target.src = this.defaultAvatar;
   }
