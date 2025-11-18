@@ -1,5 +1,3 @@
-<!-- proceso-pago.page.html -->
-
 <div class="pago-container">
   <!-- Header -->
   <div class="pago-header">
@@ -15,8 +13,15 @@
     </div>
   </div>
 
+  <!-- Stripe Element GLOBAL (nunca se destruye) -->
+  <div id="stripe-global" style="height:0; opacity:0; overflow:hidden; pointer-events:none;">
+    <div id="card-element"></div>
+    <div id="card-errors"></div>
+  </div>
+
   <!-- Contenido Principal -->
   <div class="pago-content">
+    
     <!-- Loading -->
     <div *ngIf="cargandoEntrenador" class="estado-loading">
       <div class="spinner"></div>
@@ -28,262 +33,125 @@
       <div class="error-icon">❌</div>
       <h2>Error</h2>
       <p>{{ errorEntrenador }}</p>
-      <button class="btn-volver-error" (click)="cancelarPago()">Volver a Entrenadores</button>
+      <button class="btn-volver-error" (click)="cancelarPago()">Volver</button>
     </div>
 
     <!-- Contenido del Pago -->
     <div *ngIf="entrenador && !cargandoEntrenador && !errorEntrenador" class="pago-main">
-      <!-- Indicador de Pasos -->
+
+      <!-- Indicador de pasOS -->
       <div class="pasos-container">
         <div class="paso" [class.activo]="pasoPago >= 1" [class.completado]="pasoPago > 1">
-          <div class="numero">1</div>
-          <div class="etiqueta">Datos</div>
+          <div class="numero">1</div><div class="etiqueta">Datos</div>
         </div>
         <div class="linea" [class.activo]="pasoPago > 1"></div>
+
         <div class="paso" [class.activo]="pasoPago >= 2" [class.completado]="pasoPago > 2">
-          <div class="numero">2</div>
-          <div class="etiqueta">Confirmación</div>
+          <div class="numero">2</div><div class="etiqueta">Confirmación</div>
         </div>
         <div class="linea" [class.activo]="pasoPago > 2"></div>
+
         <div class="paso" [class.activo]="pasoPago >= 3" [class.completado]="pasoPago > 3">
-          <div class="numero">3</div>
-          <div class="etiqueta">Pago</div>
+          <div class="numero">3</div><div class="etiqueta">Pago</div>
         </div>
       </div>
 
       <div class="contenido-pago">
-        <!-- PASO 1: DATOS DE PAGO -->
-        <div class="paso-contenido" *ngIf="pasoPago === 1">
+
+        <!-- ============================= -->
+        <!--   PASO 1 — INGRESO DE DATOS   -->
+        <!-- ============================= -->
+        
           <h2>Ingresa los datos de tu tarjeta</h2>
-          
+
           <form class="formulario-pago">
-            <!-- Número de Tarjeta -->
-            <div class="form-group">
-              <label for="numeroTarjeta">Número de Tarjeta</label>
-              <div class="input-wrapper">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                  <path d="M1 8h22"/>
-                </svg>
-                <input 
-                  id="numeroTarjeta"
-                  type="text" 
-                  placeholder="1234 5678 9012 3456"
-                  [(ngModel)]="formPago.numeroTarjeta"
-                  (input)="formatearTarjeta($event)"
-                  maxlength="19"
-                  name="numeroTarjeta"
-                />
-              </div>
-            </div>
 
             <!-- Titular -->
             <div class="form-group">
-              <label for="titular">Nombre del Titular</label>
+              <label>Nombre del Titular</label>
               <div class="input-wrapper">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
-                <input 
-                  id="titular"
-                  type="text" 
-                  placeholder="Juan Pérez"
-                  [(ngModel)]="formPago.titular"
-                  name="titular"
-                />
+                <input type="text" placeholder="Juan Pérez"
+                  [(ngModel)]="formPago.titular" name="titular"/>
               </div>
             </div>
 
-            <!-- Fila: Mes/Año y CVV -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="mesExpiracion">Mes</label>
-                <div class="input-wrapper">
-                  <input 
-                    id="mesExpiracion"
-                    type="text" 
-                    placeholder="MM"
-                    [(ngModel)]="formPago.mesExpiracion"
-                    (input)="soloNumeros($event)"
-                    maxlength="2"
-                    name="mesExpiracion"
-                  />
-                </div>
-              </div>
+            <!-- Stripe Card Element visible -->
+            <div class="form-group">
+              <label>Tarjeta de Crédito / Débito</label>
 
-              <div class="form-group">
-                <label for="anoExpiracion">Año</label>
-                <div class="input-wrapper">
-                  <input 
-                    id="anoExpiracion"
-                    type="text" 
-                    placeholder="YY"
-                    [(ngModel)]="formPago.anoExpiracion"
-                    (input)="soloNumeros($event)"
-                    maxlength="2"
-                    name="anoExpiracion"
-                  />
-                </div>
-              </div>
+              <div id="stripe-visible"></div>
 
-              <div class="form-group">
-                <label for="cvv">CVV</label>
-                <div class="input-wrapper">
-                  <input 
-                    id="cvv"
-                    type="text" 
-                    placeholder="123"
-                    [(ngModel)]="formPago.cvv"
-                    (input)="soloNumeros($event)"
-                    maxlength="3"
-                    name="cvv"
-                  />
-                </div>
+                <!-- Aquí insertamos el card-element que está montado invisible -->
               </div>
-            </div>
+            
 
-            <!-- Información de precio -->
+            <!-- Precio -->
             <div class="precio-info">
               <div class="item">
-                <span>Entrenador:</span>
-                <strong>{{ entrenador.nombre }}</strong>
+                <span>Entrenador:</span><strong>{{ entrenador.nombre }}</strong>
               </div>
               <div class="item">
-                <span>Especialidad:</span>
-                <strong>{{ entrenador.especialidad }}</strong>
+                <span>Especialidad:</span><strong>{{ entrenador.especialidad }}</strong>
               </div>
-              <div class="divisor"></div>
-              <div class="item total">
-                <span>Total a pagar (mensual):</span>
-                <strong>${{ precioFormateado }} MXN</strong>
+              <div class="item">
+                <span>Total (mensual):</span><strong>${{ precioFormateado }} MXN</strong>
               </div>
             </div>
 
-            <!-- Error de formulario -->
-            <div *ngIf="errorFormulario" class="error-msg">
-              ⚠️ {{ errorFormulario }}
-            </div>
+            <div *ngIf="errorFormulario" class="error-msg">⚠️ {{ errorFormulario }}</div>
           </form>
         </div>
 
-        <!-- PASO 2: CONFIRMACIÓN -->
+
+        <!-- ============================= -->
+        <!--     PASO 2 — CONFIRMACIÓN     -->
+        <!-- ============================= -->
         <div class="paso-contenido" *ngIf="pasoPago === 2">
           <h2>Confirma tu pago</h2>
+
+          <p>Tarjeta terminada en: <strong>{{ ultimosDigitos }}</strong></p>
+          <p>Titular: <strong>{{ formPago.titular }}</strong></p>
           
-          <div class="resumen-pago">
-            <div class="seccion">
-              <h3>Detalles de la Tarjeta</h3>
-              <div class="detalle">
-                <span>Tarjeta terminada en:</span>
-                <strong>•••• •••• •••• {{ ultimosDigitos }}</strong>
-              </div>
-              <div class="detalle">
-                <span>Titular:</span>
-                <strong>{{ formPago.titular }}</strong>
-              </div>
-              <div class="detalle">
-                <span>Vencimiento:</span>
-                <strong>{{ formPago.mesExpiracion }}/{{ formPago.anoExpiracion }}</strong>
-              </div>
-            </div>
-
-            <div class="seccion">
-              <h3>Detalles del Entrenador</h3>
-              <div class="detalle-entrenador">
-                <img *ngIf="entrenador.foto_url" 
-                     [src]="entrenador.foto_url" 
-                     [alt]="entrenador.nombre"
-                     class="foto-entrenador" />
-                <div class="info-entrenador">
-                  <div class="nombre">{{ entrenador.nombre }}</div>
-                  <div class="especialidad">{{ entrenador.especialidad }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="seccion">
-              <h3>Monto a Pagar</h3>
-              <div class="monto-total">
-                <strong>${{ precioFormateado }} MXN</strong>
-                <span class="periodo">por mes</span>
-              </div>
-            </div>
-
-            <div class="seccion info">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-              </svg>
-              <span>Este es un pago académico ficticio. No se debitará dinero real.</span>
-            </div>
-          </div>
+          <p>Monto a pagar: <strong>${{ precioFormateado }} MXN</strong></p>
         </div>
 
-        <!-- PASO 3: PROCESANDO/ÉXITO -->
+
+        <!-- ============================= -->
+        <!--      PASO 3 — PROCESANDO      -->
+        <!-- ============================= -->
         <div class="paso-contenido" *ngIf="pasoPago === 3">
-          <div class="procesando-pago">
-            <div *ngIf="!pagoProcesado" class="loader">
-              <div class="spinner"></div>
-              <h2>Procesando pago...</h2>
-              <p>Por favor espera mientras confirmamos tu transacción</p>
-            </div>
 
-            <div *ngIf="pagoProcesado && !errorContratacion" class="exito-pago">
-              <div class="icono-exito">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <h2>¡Pago Exitoso!</h2>
-              <p>Tu contratación se está completando</p>
-              <div class="detalles-exito">
-                <div class="item">
-                  <span>Transacción ID:</span>
-                  <strong>{{ idTransaccion }}</strong>
-                </div>
-                <div class="item">
-                  <span>Monto pagado:</span>
-                  <strong>${{ precioFormateado }} MXN</strong>
-                </div>
-                <div class="item">
-                  <span>Entrenador:</span>
-                  <strong>{{ entrenador.nombre }}</strong>
-                </div>
-              </div>
-              <p class="info-redireccion">Redirigiendo a la página del entrenador...</p>
-            </div>
-
-            <div *ngIf="errorContratacion" class="error-contratacion">
-              <div class="error-icon">❌</div>
-              <h2>Error en la Contratación</h2>
-              <p>{{ errorContratacion }}</p>
-              <button class="btn-reintentar" (click)="volver()">Reintentar</button>
-            </div>
+          <div *ngIf="!pagoProcesado">
+            <div class="spinner"></div>
+            <h2>Procesando pago…</h2>
+            <p>Por favor espera...</p>
           </div>
+
+          <div *ngIf="pagoProcesado && !errorContratacion" class="exito-pago">
+            <h2>¡Pago exitoso!</h2>
+            <p>Transacción: {{ idTransaccion }}</p>
+          </div>
+
+          <div *ngIf="errorContratacion">
+            <h2>Error</h2>
+            <p>{{ errorContratacion }}</p>
+            <button (click)="volver()">Reintentar</button>
+          </div>
+
         </div>
       </div>
 
-      <!-- Botones de Navegación -->
+      <!-- Botones inferiores -->
       <div class="pago-footer">
-        <button 
-          class="btn-secundario" 
-          (click)="pasoPago === 1 ? cancelarPago() : volver()"
-          [disabled]="procesandoPago || contratandoEntrenador"
-          type="button">
-          {{ pasoPago === 1 ? 'Cancelar' : 'Atrás' }}
-        </button>
-
-        <button 
-          class="btn-primario" 
-          (click)="continuarPago()"
-          [disabled]="procesandoPago || pagoProcesado || contratandoEntrenador"
-          type="button">
-          <span *ngIf="pasoPago === 1">Continuar</span>
-          <span *ngIf="pasoPago === 2">Pagar Ahora</span>
-          <span *ngIf="pasoPago === 3 && procesandoPago">Procesando...</span>
-          <span *ngIf="pasoPago === 3 && pagoProcesado && !errorContratacion">Completado</span>
+        <button class="btn-secundario" (click)="pasoPago === 1 ? cancelarPago() : volver()">Atrás</button>
+        <button class="btn-primario" (click)="continuarPago()">
+          {{ pasoPago === 1 ? 'Continuar' : pasoPago === 2 ? 'Pagar Ahora' : 'Procesando...' }}
         </button>
       </div>
     </div>
   </div>
-</div>
+

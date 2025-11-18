@@ -13,6 +13,8 @@
  * ✅ Logging mejorado
  * ✅ TODOS LOS ERRORES TYPESCRIPT CORREGIDOS
  */
+import { loadStripe, Stripe, StripeCardElement } from "@stripe/stripe-js";
+
 
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
@@ -21,6 +23,8 @@ import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { catchError, takeUntil } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+
 
 // ✅ IMPORTACIONES CORREGIDAS
 import { ClienteEntrenadorService } from '../../../../../src/app/core/services/cliente-entrenador.service';
@@ -62,6 +66,10 @@ export class ProcesoPagoPage implements OnInit, OnDestroy {
   private router = inject(Router);
   private clienteEntrenadorSvc = inject(ClienteEntrenadorService);
   private entrenadorSvc = inject(EntrenadorService);
+  private stripe: Stripe | null = null;
+  private cardElement!: StripeCardElement;
+  
+  private elements: any;
 
   private destroy$ = new Subject<void>();
 
@@ -96,21 +104,97 @@ export class ProcesoPagoPage implements OnInit, OnDestroy {
   // Control de envío duplicado
   private yaEnviado = false;
 
-  ngOnInit(): void {
-    console.log('🟦 [PAGO] ProcesoPagoPage inicializado');
-    
-    // Verificar autenticación primero
-    if (!this.cargarUsuarioActual()) {
-      return; // Usuario no autenticado, salir
-    }
+  async ngOnInit(): Promise<void> {
+  console.log('🟦 [PAGO] ProcesoPagoPage inicializado');
+  
+  // Verificar autenticación
+  if (!this.cargarUsuarioActual()) return;
 
-    this.cargarEntrenador();
-  }
+  this.cargarEntrenador();
+
+  // 🔥 AQUÍ AGREGA ESTO
+  await this.inicializarStripe();
+}
+
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    
+
   }
+
+async inicializarStripe() {
+  // Si ya existía, desmontarlo limpio
+  if (this.cardElement) {
+    try {
+      this.cardElement.unmount();
+    } catch {}
+    this.cardElement = null!;
+  }
+
+  // 1️⃣ Cargar Stripe
+  this.stripe = await loadStripe(environment.endpoints.stripePublicKey);
+
+  if (!this.stripe) {
+    console.error("🔴 No se pudo inicializar Stripe");
+    return;
+  }
+
+  console.log("🟢 Stripe inicializado correctamente");
+
+  // 2️⃣ Crear Elements
+  this.elements = this.stripe.elements();
+
+  if (!this.elements) {
+    console.error("🔴 No se pudo crear Stripe Elements");
+    return;
+  }
+
+  // 3️⃣ Crear CardElement con estilos
+  this.cardElement = this.elements.create("card", {
+    hidePostalCode: true,
+    style: {
+      base: {
+        color: "#e9edf5",
+        fontSize: "16px",
+        iconColor: "#1ed760",
+        "::placeholder": {
+          color: "#94a0ad"
+        }
+      },
+      invalid: {
+        color: "#fca5a5",
+        iconColor: "#ef4444"
+      }
+    }
+  });
+
+  // 4️⃣ Montarlo en el contenedor global (no visible)
+  setTimeout(() => {
+    const mountPoint = document.getElementById("card-element");
+
+    if (!mountPoint) {
+      console.error("🔴 No se encontró #card-element para montar Stripe");
+      return;
+    }
+
+    this.cardElement.mount("#card-element");
+    console.log("🟢 CardElement montado en DOM global");
+
+    // 5️⃣ Ahora moverlo al contenedor visible del Paso 1
+    const visibleContainer = document.getElementById("stripe-visible");
+    const realCard = document.getElementById("card-element");
+
+    if (visibleContainer && realCard) {
+      visibleContainer.appendChild(realCard);
+      console.log("🟢 CardElement movido a contenedor visible");
+    } else {
+      console.warn("⚠️ No se pudo mover el CardElement al contenedor visible");
+    }
+  }, 300);
+}
+
 
   /**
    * ✅ CORREGIDO: Valida que usuario esté autenticado
@@ -304,41 +388,17 @@ export class ProcesoPagoPage implements OnInit, OnDestroy {
   /**
    * ✅ CORREGIDO: Validación mejorada del formulario
    */
-  validarFormulario(): boolean {
-    const { numeroTarjeta, titular, mesExpiracion, anoExpiracion, cvv } = this.formPago;
+ validarFormulario(): boolean {
+  const { titular } = this.formPago;
 
-    // Validar tarjeta
-    if (!this.validarTarjeta(numeroTarjeta)) {
-      return false;
-    }
-
-    // ✅ CORREGIDO: Validar titular
-    if (!titular || titular.trim().length < 3) {
-      this.errorFormulario = 'Nombre del titular inválido (mínimo 3 caracteres)';
-      return false;
-    }
-
-    // Solo letras y espacios
-    if (!/^[a-zA-Z\s]+$/.test(titular)) {
-      this.errorFormulario = 'Nombre del titular solo puede contener letras';
-      return false;
-    }
-
-    // Validar fecha de expiración
-    if (!this.validarFechaExpiracion(mesExpiracion, anoExpiracion)) {
-      return false;
-    }
-
-    // ✅ CORREGIDO: Validar CVV (3 o 4 dígitos)
-    const cvvNum = cvv.replace(/[^0-9]/g, '');
-    if (cvvNum.length < 3 || cvvNum.length > 4) {
-      this.errorFormulario = 'CVV inválido (3-4 dígitos)';
-      return false;
-    }
-
-    this.errorFormulario = null;
-    return true;
+  if (!titular || titular.trim().length < 3) {
+    this.errorFormulario = 'Nombre del titular inválido';
+    return false;
   }
+
+  this.errorFormulario = null;
+  return true;
+}
 
   /**
    * Continúa al siguiente paso
@@ -377,32 +437,95 @@ export class ProcesoPagoPage implements OnInit, OnDestroy {
   /**
    * ✅ CORREGIDO: Procesa el pago (ficticio)
    */
-  private procesarPago(): void {
-    console.log('🟦 [PAGO] Procesando pago...');
-    
-    // ✅ NUEVO: Prevenir doble envío
-    if (this.yaEnviado) {
-      console.warn('🟨 [PAGO] Pago ya fue enviado');
-      return;
-    }
-
-    this.yaEnviado = true;
-    this.procesandoPago = true;
-    this.pasoPago = 3;
-
-    // Simular procesamiento de pago (2 segundos)
-    setTimeout(() => {
-      this.procesandoPago = false;
-      this.pagoProcesado = true;
-      console.log('🟢 [PAGO] Pago procesado exitosamente');
-
-      // Después de 2 segundos, contratar el entrenador
-      setTimeout(() => {
-        this.contratarEntrenador();
-      }, 2000);
-    }, 2000);
+  private async procesarPago(): Promise<void> {
+  if (!this.entrenador || !this.entrenador.precio_mensual) {
+    this.errorFormulario = "Entrenador inválido";
+    return;
   }
 
+  console.log("🟦 [PAGO] Creando PaymentIntent en backend...");
+
+  this.yaEnviado = true;
+  this.procesandoPago = true;
+  this.pasoPago = 3;
+
+  // 1️⃣ Llamar backend FASTAPI para crear el PaymentIntent
+  this.clienteEntrenadorSvc.crearPaymentIntent(
+    this.currentUserId!,
+    this.entrenador.id,
+    this.entrenador.precio_mensual * 100
+  )
+  .pipe(
+    takeUntil(this.destroy$),
+    catchError(err => {
+      console.error("🔴 Error creando PaymentIntent:", err);
+      this.errorFormulario = "No se pudo iniciar el pago. Intenta de nuevo.";
+      this.procesandoPago = false;
+      return of(null);
+    })
+  )
+  .subscribe(async (resp: any) => {
+
+  if (!resp || !resp.client_secret || !resp.id_pago) {
+    this.errorFormulario = "Error al crear el pago";
+    this.procesandoPago = false;
+    return;
+  }
+
+  const idPago = resp.id_pago;
+
+  console.log("🟢 PaymentIntent creado - id_pago:", idPago);
+
+  // Confirmación real en Stripe
+const resultado = await this.stripe!.confirmCardPayment(resp.client_secret, {
+  payment_method: {
+    card: this.cardElement,
+    billing_details: { name: this.formPago.titular }
+  }
+});
+
+if (resultado.error) {
+  console.error("🔴 Error Stripe:", resultado.error.message);
+  this.errorFormulario = resultado.error.message!;
+  this.procesandoPago = false;
+  this.yaEnviado = false;
+  return;
+}
+
+const status = resultado.paymentIntent?.status;
+console.log("🟢 Estado del pago en Stripe:", status);
+
+if (status === "requires_action") {
+  this.errorFormulario = "Tu banco requiere autenticación adicional (3D Secure).";
+  this.procesandoPago = false;
+  this.yaEnviado = false;
+  return;
+}
+
+if (status === "processing") {
+  this.errorFormulario = "El pago está procesando. Espera unos segundos…";
+  this.procesandoPago = false;
+  this.yaEnviado = false;
+  return;
+}
+
+if (status !== "succeeded") {
+  this.errorFormulario = "No se pudo confirmar el pago.";
+  this.procesandoPago = false;
+  this.yaEnviado = false;
+  return;
+}
+
+console.log("🟢 Pago confirmado correctamente en Stripe");
+
+// ir a contratación
+this.pasoPago = 3;
+this.pagoProcesado = true;
+
+setTimeout(() => this.contratarEntrenador(), 1500);
+  });
+  }
+    
   /**
    * ✅ CORREGIDO: Contrata el entrenador en el backend
    */
@@ -526,4 +649,7 @@ export class ProcesoPagoPage implements OnInit, OnDestroy {
     const random = Math.floor(Math.random() * 1000000);
     return `#TXN${timestamp}${random}`.substring(0, 20);
   }
+
+
+  
 }

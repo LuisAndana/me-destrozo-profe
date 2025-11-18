@@ -2,16 +2,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
-const API = (window as any).env?.apiUrl || 'http://localhost:8000';
+const API = (window as any).env?.apiUrl || environment.apiBase || 'http://localhost:8000';
 const BASE_URL = `${API}/cliente-entrenador`;
+const PAGOS_URL = `${API}/pagos`;
 
 // ============================================================
 // INTERFACES
 // ============================================================
 
 export interface ClienteEntrenadorCreate {
-  id_cliente: number;     // ⬅️ requerido por el backend
+  id_cliente: number;
   id_entrenador: number;
   notas?: string;
 }
@@ -61,6 +63,11 @@ export interface EntrenadorConRelacionOut {
   notas?: string;
 }
 
+export interface PaymentIntentResponse {
+  client_secret: string;
+  id_pago: number;
+}
+
 // ============================================================
 // SERVICIO
 // ============================================================
@@ -71,17 +78,17 @@ export class ClienteEntrenadorService {
   constructor(private http: HttpClient) {
     console.log('[ClienteEntrenadorService] Inicializado ✅');
     console.log('[ClienteEntrenadorService] API URL:', API);
+    console.log('[ClienteEntrenadorService] BASE_URL:', BASE_URL);
   }
 
   // ============================================================
   // AUTENTICACIÓN Y HEADERS
   // ============================================================
-
+  
   private authHeaders(): HttpHeaders {
     const token = localStorage.getItem('token') || localStorage.getItem('access_token');
 
     if (!token || token.length < 8) {
-      // Backend está sin auth, pero mantenemos cabeceras limpias
       return new HttpHeaders({ 'Content-Type': 'application/json' });
     }
 
@@ -131,10 +138,10 @@ export class ClienteEntrenadorService {
       if (user?.id && (user.rol === 'entrenador' || user.rol === 'trainer')) return Number(user.id);
     } catch {}
     return 0;
-    }
+  }
 
   // ============================================================
-  // MÉTODOS PRINCIPALES (alineados con tu backend)
+  // MÉTODOS PRINCIPALES
   // ============================================================
 
   /** Cliente contrata un entrenador */
@@ -143,10 +150,16 @@ export class ClienteEntrenadorService {
 
     const id_cliente = this.getIdClienteFromStorage();
     if (!id_cliente) {
-      return throwError(() => ({ message: 'id_cliente no disponible en localStorage' }));
+      return throwError(() => ({ 
+        status: 400,
+        message: 'id_cliente no disponible en localStorage' 
+      }));
     }
     if (!id_entrenador) {
-      return throwError(() => ({ message: 'id_entrenador inválido' }));
+      return throwError(() => ({ 
+        status: 400,
+        message: 'id_entrenador inválido' 
+      }));
     }
 
     const payload: ClienteEntrenadorCreate = { id_cliente, id_entrenador, notas };
@@ -161,13 +174,16 @@ export class ClienteEntrenadorService {
     );
   }
 
-  /** Entrenador obtiene sus clientes → GET /mis-clientes/{id_entrenador} */
+  /** Entrenador obtiene sus clientes */
   misClientes(id_entrenador?: number): Observable<ClienteConRelacionOut[]> {
     const id = id_entrenador || this.getIdEntrenadorFromStorage();
     if (!id) {
-      return throwError(() => ({ message: 'id_entrenador requerido' }));
+      return throwError(() => ({ 
+        status: 400,
+        message: 'id_entrenador requerido' 
+      }));
     }
-    const url = `${BASE_URL}/mis-clientes/${id}`; // ⬅️ con ID
+    const url = `${BASE_URL}/mis-clientes/${id}`;
     return this.http.get<ClienteConRelacionOut[]>(url, { headers: this.authHeaders() })
       .pipe(
         tap(r => console.log('[misClientes] ✅ Total:', r.length)),
@@ -175,12 +191,15 @@ export class ClienteEntrenadorService {
       );
   }
 
-  /** Cliente obtiene su entrenador actual → GET /mi-entrenador/{id_cliente} */
+  /** Cliente obtiene su entrenador actual */
   miEntrenador(id_cliente?: number): Observable<EntrenadorConRelacionOut | null> {
     const id = id_cliente || this.getIdClienteFromStorage();
 
     if (!id) {
-      return throwError(() => ({ message: 'id_cliente requerido' }));
+      return throwError(() => ({ 
+        status: 400,
+        message: 'id_cliente requerido' 
+      }));
     }
 
     const url = `${BASE_URL}/mi-entrenador/${id}`;
@@ -196,9 +215,7 @@ export class ClienteEntrenadorService {
     );
   }
 
-  /** Verifica si el cliente tiene contratado a este entrenador
-   *  → GET /relacion?id_cliente=&id_entrenador=
-   */
+  /** Verifica si el cliente tiene contratado a este entrenador */
   tengoEsteEntrenador(id_entrenador: number, id_cliente?: number): Observable<boolean> {
     const cliente = id_cliente || this.getIdClienteFromStorage();
 
@@ -213,21 +230,23 @@ export class ClienteEntrenadorService {
     const url = `${BASE_URL}/relacion?id_cliente=${cliente}&id_entrenador=${id_entrenador}`;
     return this.http.get<boolean>(url, { headers: this.authHeaders() }).pipe(
       map((response) => {
-        // El backend devuelve boolean directo
         return !!response;
       }),
-      tap(resultado => console.log('[tengoEsteEntrenador] ✅ Resultado final:', resultado)),
+      tap(resultado => console.log('[tengoEsteEntrenador] ✅ Resultado:', resultado)),
       catchError((error) => {
         console.error('[tengoEsteEntrenador] ❌ Error:', error);
-        return of(false); // No detiene el flujo
+        return of(false);
       })
     );
   }
 
-  /** Cancela la relación con un entrenador → DELETE /{id_relacion} */
+  /** Cancela la relación con un entrenador */
   cancelarRelacion(id_relacion: number): Observable<void> {
     if (!id_relacion) {
-      return throwError(() => ({ message: 'id_relacion inválido' }));
+      return throwError(() => ({ 
+        status: 400,
+        message: 'id_relacion inválido' 
+      }));
     }
 
     return this.http.delete<void>(
@@ -239,9 +258,122 @@ export class ClienteEntrenadorService {
     );
   }
 
-  // ⛔ Estos endpoints no existen en tu backend actual:
-  // GET /cliente-entrenador/{id_relacion}
-  // PATCH /cliente-entrenador/{id_relacion}
-  // Si en el futuro los agregas, podemos reactivarlos.
+  // ============================================================
+  // MÉTODOS DE PAGO
+  // ============================================================
 
+  /**
+   * ✅ CORREGIDO: Crea un PaymentIntent con Stripe
+   * @param idCliente ID del cliente que realiza el pago
+   * @param idEntrenador ID del entrenador a contratar
+   * @param monto Monto en centavos (ej: 200000 = $2000 MXN)
+   */
+  crearPaymentIntent(
+    idCliente: number,
+    idEntrenador: number,
+    monto: number
+  ): Observable<PaymentIntentResponse> {
+    console.log('[crearPaymentIntent] Iniciando con:', { idCliente, idEntrenador, monto });
+
+    const url = `${PAGOS_URL}/stripe/payment-intent`;
+    
+    return this.http.post<PaymentIntentResponse>(
+      url,
+      {}, // Body vacío
+      {
+        headers: this.authHeaders(),
+        params: {
+          id_cliente: idCliente.toString(),
+          id_entrenador: idEntrenador.toString(),
+          monto: monto.toString()
+        }
+      }
+    ).pipe(
+      tap(resp => {
+        console.log('[crearPaymentIntent] ✅ PaymentIntent creado:', {
+          id_pago: resp.id_pago,
+          hasClientSecret: !!resp.client_secret
+        });
+      }),
+      catchError(err => {
+        console.error('[crearPaymentIntent] ❌ Error:', err);
+        return this.handleError(err);
+      })
+    );
+  }
+
+  /**
+   * ✅ CORREGIDO: Confirma un pago en el backend
+   * Se utiliza después de que Stripe ha procesado el pago
+   */
+  confirmarPago(id_pago: number, referencia_externa?: string): Observable<any> {
+    console.log('[confirmarPago] Confirmando pago:', id_pago);
+
+    const url = `${PAGOS_URL}/${id_pago}/confirmar`;
+    
+    return this.http.post<any>(
+      url,
+      {},
+      {
+        headers: this.authHeaders(),
+        params: referencia_externa ? { referencia_externa } : {}
+      }
+    ).pipe(
+      tap(resp => console.log('[confirmarPago] ✅ Pago confirmado:', resp)),
+      catchError(err => {
+        console.error('[confirmarPago] ❌ Error:', err);
+        return this.handleError(err);
+      })
+    );
+  }
+
+  /**
+   * ✅ Obtiene el historial de pagos del cliente
+   */
+  obtenerHistorialPagos(idCliente: number, idEntrenador?: number): Observable<any> {
+    console.log('[obtenerHistorialPagos] Obteniendo historial:', { idCliente, idEntrenador });
+
+    const url = `${PAGOS_URL}/cliente/historial`;
+    const params: any = { id_cliente: idCliente };
+    
+    if (idEntrenador) {
+      params.id_entrenador = idEntrenador;
+    }
+
+    return this.http.get<any>(url, {
+      headers: this.authHeaders(),
+      params
+    }).pipe(
+      tap(resp => console.log('[obtenerHistorialPagos] ✅ Historial obtenido')),
+      catchError(err => {
+        console.error('[obtenerHistorialPagos] ❌ Error:', err);
+        return this.handleError(err);
+      })
+    );
+  }
+
+  /**
+   * ✅ Obtiene los ingresos del entrenador
+   */
+  obtenerIngresosEntrenador(idEntrenador: number, estado?: string): Observable<any[]> {
+    console.log('[obtenerIngresosEntrenador] Obteniendo ingresos:', { idEntrenador, estado });
+
+    const url = `${PAGOS_URL}/entrenador/ingresos`;
+    const params: any = { id_entrenador: idEntrenador };
+    
+    if (estado) {
+      params.estado = estado;
+    }
+
+    return this.http.get<any[]>(url, {
+      headers: this.authHeaders(),
+      params
+    }).pipe(
+      tap(resp => console.log('[obtenerIngresosEntrenador] ✅ Ingresos obtenidos:', resp.length)),
+      catchError(err => {
+        console.error('[obtenerIngresosEntrenador] ❌ Error:', err);
+        return this.handleError(err);
+      })
+    );
+  }
 }
