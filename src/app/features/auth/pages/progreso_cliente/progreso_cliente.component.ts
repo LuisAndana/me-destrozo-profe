@@ -32,6 +32,9 @@ export interface EjercicioProgreso {
   styleUrls: ['./progreso_cliente.component.css']
 })
 export class ProgresoClienteComponent implements OnInit {
+
+  
+
   // Exponer Math para usarlo en el template
   Math = Math;
 
@@ -107,7 +110,7 @@ export class ProgresoClienteComponent implements OnInit {
     }
   });
 }
-
+  
 
   /**
    * Carga todos los datos del cliente
@@ -257,6 +260,7 @@ this.progresoService.obtenerEjerciciosConProgreso(
   seleccionarRutina(rutina: HistorialRutina): void {
     this.rutinaSeleccionada = rutina;
     this.cargarEjerciciosDeRutina();
+    
   }
 
   /**
@@ -379,6 +383,7 @@ this.progresoService.obtenerEjerciciosConProgreso(
       this.cargarDashboard();
       this.cargarProgresoEjercicio(this.ejercicioSeleccionado?.id_ejercicio!);
       this.cargarEjerciciosDeRutina();
+      this.cargarAlertas();
 
       setTimeout(() => (this.exito = ''), 5000);
     },
@@ -601,6 +606,7 @@ verHistorialDeRutina(rutina: HistorialRutina): void {
     }
   }, 150);
 }
+
 
 
 }

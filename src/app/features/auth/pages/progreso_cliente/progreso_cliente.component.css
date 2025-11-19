@@ -1607,3 +1607,74 @@ textarea.form-control {
   padding: 2rem;
   font-size: 1rem;
 }
+.alert-card {
+  background: #ffffff;
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.alert-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.alert-icon {
+  font-size: 28px;
+}
+
+.alert-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.alert-msg {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.alert-extra {
+  font-size: 13px;
+  margin: 4px 0;
+  color: #444;
+}
+
+.alert-date {
+  font-size: 12px;
+  color: #777;
+}
+
+.alert-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-verde {
+  background: #28a745;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-gris {
+  background: #6c757d;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-verde:hover {
+  background: #218838;
+}
+
+.btn-gris:hover {
+  background: #5a6268;
+}
