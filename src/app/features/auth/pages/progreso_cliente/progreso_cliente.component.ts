@@ -1,4 +1,4 @@
-// progreso_cliente.component.ts - VERSIÓN MEJORADA
+// progreso_cliente.component.ts - VERSIÓN CORREGIDA CON ALERTAS AUTOMÁTICAS
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,20 +9,14 @@ export interface EjercicioProgreso {
   id_ejercicio: number;
   nombre: string;
   grupo_muscular: string;
-
   total_sesiones: number;
-
   peso_inicial: number | null;
   peso_actual: number | null;
   peso_maximo: number | null;
-
   progreso_total: number | null;
   porcentaje_mejora: number | null;
-
-  ultima_sesion: string | null; // 🔥 IMPORTANTE → string|null
+  ultima_sesion: string | null;
 }
-
-
 
 @Component({
   selector: 'app-progreso-cliente',
@@ -32,8 +26,6 @@ export interface EjercicioProgreso {
   styleUrls: ['./progreso_cliente.component.css']
 })
 export class ProgresoClienteComponent implements OnInit {
-
-  
 
   // Exponer Math para usarlo en el template
   Math = Math;
@@ -45,14 +37,14 @@ export class ProgresoClienteComponent implements OnInit {
   // Dashboard
   dashboard: DashboardCliente | null = null;
   
-  // Tabs
-  tabActiva: 'dashboard' | 'historial' | 'alertas' | 'objetivos' | 'ejercicios' = 'dashboard';
+  // ✅ TABS - CAMBIAR A 'alertas' POR DEFECTO
+  tabActiva: 'dashboard' | 'historial' | 'alertas' | 'objetivos' | 'ejercicios' = 'alertas';
   
   // Historial de rutinas
   historialRutinas: HistorialRutina[] = [];
   rutinaSeleccionada: HistorialRutina | null = null;
   
-  // Alertas
+  // ✅ ALERTAS - CAMBIAR A 'pendiente' POR DEFECTO
   alertas: AlertaProgresion[] = [];
   alertasFiltradas: AlertaProgresion[] = [];
   filtroAlerta: 'todas' | 'pendiente' | 'vista' | 'atendida' = 'pendiente';
@@ -96,47 +88,64 @@ export class ProgresoClienteComponent implements OnInit {
     private progresoService: ProgresoService
   ) {}
 
+  /**
+   * ✅ NGOINIT MEJORADO - Generar alertas automáticamente y cargar todo
+   */
   ngOnInit(): void {
-  this.route.params.subscribe(params => {
-    this.idCliente = +params['id'];
+    this.route.params.subscribe(params => {
+      this.idCliente = +params['id'];
 
-    if (this.idCliente) {
-
-      // 🔥 NUEVO: generar alertas automáticamente al entrar
-      this.progresoService.generarAlertasAutomaticas(this.idCliente)
-        .subscribe(() => this.cargarAlertas());
-
-      this.cargarDatos();
-    }
-  });
-}
-  
+      if (this.idCliente) {
+        console.log('🚀 Inicializando componente para cliente:', this.idCliente);
+        
+        this.cargando = true;
+        
+        // ✅ Primero generar alertas, luego cargar todos los datos
+        this.progresoService.generarAlertasAutomaticas(this.idCliente).subscribe({
+          next: () => {
+            console.log('✅ Alertas generadas automáticamente para cliente', this.idCliente);
+            // Ahora cargar todos los datos (incluyendo alertas actualizadas)
+            this.cargarTodosDatos();
+          },
+          error: (err) => {
+            console.error('❌ Error al generar alertas:', err);
+            // De todas formas cargar los datos aunque falle la generación
+            this.cargarTodosDatos();
+          }
+        });
+      }
+    });
+  }
 
   /**
-   * Carga todos los datos del cliente
+   * ✅ CARGAR TODOS LOS DATOS
    */
-  cargarDatos(): void {
+  cargarTodosDatos(): void {
+    console.log('📊 Cargando todos los datos del cliente...');
+    
     this.cargarDashboard();
     this.cargarHistorialRutinas();
-    this.cargarAlertas();
+    this.cargarAlertas();          // ✅ CARGAR ALERTAS AQUÍ
     this.cargarObjetivos();
+    
+    this.cargando = false;
   }
 
   /**
    * Carga el dashboard resumido
    */
   cargarDashboard(): void {
-    this.cargando = true;
+    console.log('📈 Cargando dashboard...');
+    
     this.progresoService.obtenerDashboardCliente(this.idCliente).subscribe({
       next: (data) => {
+        console.log('✅ Dashboard cargado');
         this.dashboard = data;
         this.nombreCliente = data.nombre_cliente;
-        this.cargando = false;
       },
       error: (err) => {
-        console.error('Error al cargar dashboard:', err);
+        console.error('❌ Error al cargar dashboard:', err);
         this.error = 'Error al cargar el dashboard';
-        this.cargando = false;
       }
     });
   }
@@ -145,8 +154,11 @@ export class ProgresoClienteComponent implements OnInit {
    * Carga el historial de rutinas
    */
   cargarHistorialRutinas(): void {
+    console.log('📋 Cargando historial de rutinas...');
+    
     this.progresoService.obtenerHistorialCliente(this.idCliente).subscribe({
       next: (rutinas) => {
+        console.log('✅ Historial cargado:', rutinas.length, 'rutinas');
         this.historialRutinas = rutinas;
         
         // Seleccionar la rutina activa o la más reciente
@@ -158,71 +170,74 @@ export class ProgresoClienteComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error al cargar historial:', err);
+        console.error('❌ Error al cargar historial:', err);
         this.error = 'Error al cargar el historial de rutinas';
       }
     });
   }
 
   /**
-   * ✅ IMPLEMENTACIÓN REAL: Carga ejercicios con progreso de la rutina seleccionada
+   * ✅ Carga ejercicios con progreso de la rutina seleccionada
    */
   cargarEjerciciosDeRutina(): void {
     if (!this.rutinaSeleccionada) {
+      console.warn('⚠️ No hay rutina seleccionada');
       this.ejercicios = [];
       return;
     }
 
-    this.cargando = true;
-    console.log('🔍 Cargando ejercicios de la rutina:', this.rutinaSeleccionada.id_historial);
+    console.log('💪 Cargando ejercicios de la rutina:', this.rutinaSeleccionada.id_historial);
     
-    // ✅ Llamada real al backend usando el nuevo endpoint
-    // ✅ Llamada real al backend usando el nuevo endpoint
-this.progresoService.obtenerEjerciciosConProgreso(
-  this.rutinaSeleccionada.id_historial,
-  this.idCliente
-).subscribe({
-  next: (ejercicios) => {
-    console.log('✅ Ejercicios cargados:', ejercicios);
+    this.progresoService.obtenerEjerciciosConProgreso(
+      this.rutinaSeleccionada.id_historial,
+      this.idCliente
+    ).subscribe({
+      next: (ejercicios) => {
+        console.log('✅ Ejercicios cargados:', ejercicios.length, 'ejercicios');
 
-    this.ejercicios = ejercicios.map(ej => ({
-  id_ejercicio: ej.id_ejercicio,
-  nombre: ej.nombre,
-  grupo_muscular: ej.grupo_muscular,
-  total_sesiones: ej.total_sesiones,
-  peso_inicial: ej.peso_inicial ?? null,
-  peso_actual: ej.peso_actual ?? null,
-  peso_maximo: ej.peso_maximo ?? null,
-  progreso_total: ej.progreso_total ?? null,
-  porcentaje_mejora: ej.porcentaje_mejora ?? null,
-  ultima_sesion: ej.ultima_sesion ?? null
-}));
-
-
-    this.cargando = false;
-  },
-  error: (err) => {
-    console.error('❌ Error al cargar ejercicios:', err);
-    this.error = 'Error al cargar los ejercicios de la rutina';
-    this.ejercicios = [];
-    this.cargando = false;
-  }
-});
-
+        this.ejercicios = ejercicios.map(ej => ({
+          id_ejercicio: ej.id_ejercicio,
+          nombre: ej.nombre,
+          grupo_muscular: ej.grupo_muscular,
+          total_sesiones: ej.total_sesiones,
+          peso_inicial: ej.peso_inicial ?? null,
+          peso_actual: ej.peso_actual ?? null,
+          peso_maximo: ej.peso_maximo ?? null,
+          progreso_total: ej.progreso_total ?? null,
+          porcentaje_mejora: ej.porcentaje_mejora ?? null,
+          ultima_sesion: ej.ultima_sesion ?? null
+        }));
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar ejercicios:', err);
+        this.error = 'Error al cargar los ejercicios de la rutina';
+        this.ejercicios = [];
+      }
+    });
   }
 
   /**
-   * Carga las alertas del cliente
+   * ✅ CARGAR ALERTAS - AHORA SE EJECUTA AUTOMÁTICAMENTE
    */
   cargarAlertas(): void {
+    console.log('📥 Cargando alertas del cliente:', this.idCliente);
+    
     this.progresoService.obtenerAlertasCliente(this.idCliente).subscribe({
       next: (alertas) => {
+        console.log('✅ Alertas cargadas:', alertas.length, 'alertas');
         this.alertas = alertas;
+        
+        // ✅ FILTRAR AUTOMÁTICAMENTE A 'PENDIENTE'
+        this.filtroAlerta = 'pendiente';
         this.filtrarAlertas();
+        
+        console.log('⏳ Alertas PENDIENTES mostradas:', this.alertasFiltradas.length);
       },
       error: (err) => {
-        console.error('Error al cargar alertas:', err);
+        console.error('❌ Error al cargar alertas:', err);
         this.error = 'Error al cargar las alertas';
+        this.alertas = [];
+        this.alertasFiltradas = [];
       }
     });
   }
@@ -231,13 +246,16 @@ this.progresoService.obtenerEjerciciosConProgreso(
    * Carga los objetivos del cliente
    */
   cargarObjetivos(): void {
+    console.log('🎯 Cargando objetivos...');
+    
     this.progresoService.obtenerObjetivosCliente(this.idCliente).subscribe({
       next: (objetivos) => {
+        console.log('✅ Objetivos cargados:', objetivos.length, 'objetivos');
         this.objetivos = objetivos;
         this.filtrarObjetivos();
       },
       error: (err) => {
-        console.error('Error al cargar objetivos:', err);
+        console.error('❌ Error al cargar objetivos:', err);
         this.error = 'Error al cargar los objetivos';
       }
     });
@@ -247,30 +265,48 @@ this.progresoService.obtenerEjerciciosConProgreso(
    * Cambia de tab
    */
   cambiarTab(tab: 'dashboard' | 'historial' | 'alertas' | 'objetivos' | 'ejercicios'): void {
+    console.log('📑 Cambiando a tab:', tab);
     this.tabActiva = tab;
     
     // Limpiar mensajes al cambiar de tab
     this.error = '';
     this.exito = '';
+    
+    // Recargar datos del tab si es necesario
+    if (tab === 'alertas') {
+      this.cargarAlertas();
+    } else if (tab === 'objetivos') {
+      this.cargarObjetivos();
+    }
   }
 
   /**
    * Selecciona una rutina del historial
    */
   seleccionarRutina(rutina: HistorialRutina): void {
+    console.log('📌 Rutina seleccionada:', rutina.nombre_rutina);
     this.rutinaSeleccionada = rutina;
     this.cargarEjerciciosDeRutina();
-    
   }
 
   /**
-   * Filtra alertas según el filtro seleccionado
+   * ✅ FILTRAR ALERTAS - AHORA SE EJECUTA AUTOMÁTICAMENTE
    */
   filtrarAlertas(): void {
+    console.log('🔍 Filtrando alertas - Filtro:', this.filtroAlerta);
+    
+    if (!this.alertas || this.alertas.length === 0) {
+      console.warn('⚠️ No hay alertas para filtrar');
+      this.alertasFiltradas = [];
+      return;
+    }
+
     if (this.filtroAlerta === 'todas') {
-      this.alertasFiltradas = this.alertas;
+      this.alertasFiltradas = [...this.alertas];
+      console.log('✅ Mostrando TODAS las alertas:', this.alertasFiltradas.length);
     } else {
       this.alertasFiltradas = this.alertas.filter(a => a.estado === this.filtroAlerta);
+      console.log(`✅ Mostrando alertas '${this.filtroAlerta}':`, this.alertasFiltradas.length);
     }
   }
 
@@ -289,6 +325,7 @@ this.progresoService.obtenerEjerciciosConProgreso(
    * Selecciona un ejercicio para ver su progreso detallado
    */
   seleccionarEjercicio(ejercicio: EjercicioProgreso): void {
+    console.log('💪 Ejercicio seleccionado:', ejercicio.nombre);
     this.ejercicioSeleccionado = ejercicio;
     this.cargarProgresoEjercicio(ejercicio.id_ejercicio);
   }
@@ -298,13 +335,16 @@ this.progresoService.obtenerEjerciciosConProgreso(
    */
   cargarProgresoEjercicio(idEjercicio: number): void {
     this.cargando = true;
+    console.log('📊 Cargando progreso del ejercicio:', idEjercicio);
+    
     this.progresoService.obtenerProgresoEjercicio(idEjercicio, this.idCliente).subscribe({
       next: (progreso) => {
+        console.log('✅ Progreso cargado:', progreso.length, 'sesiones');
         this.progresoEjercicio = progreso;
         this.cargando = false;
       },
       error: (err) => {
-        console.error('Error al cargar progreso del ejercicio:', err);
+        console.error('❌ Error al cargar progreso del ejercicio:', err);
         this.error = 'Error al cargar el progreso del ejercicio';
         this.cargando = false;
       }
@@ -315,30 +355,33 @@ this.progresoService.obtenerEjerciciosConProgreso(
    * Abre modal para registrar progreso
    */
   abrirModalRegistroProgreso(ejercicio: EjercicioProgreso): void {
-  if (!this.rutinaSeleccionada) {
-    this.error = 'No hay rutina activa seleccionada';
-    return;
+    if (!this.rutinaSeleccionada) {
+      this.error = 'No hay rutina activa seleccionada';
+      return;
+    }
+
+    console.log('📝 Abriendo modal para registrar progreso de:', ejercicio.nombre);
+
+    // ✅ Establecer el ejercicio seleccionado
+    this.ejercicioSeleccionado = ejercicio;
+
+    this.registroForm = {
+      id_historial: this.rutinaSeleccionada.id_historial,
+      id_ejercicio: ejercicio.id_ejercicio,
+      fecha_sesion: new Date().toISOString().slice(0, 16),
+      peso_kg: ejercicio.peso_actual || null,
+      series_completadas: 3,
+      repeticiones_completadas: 10,
+      rpe: 7,
+      calidad_tecnica: 'buena',
+      estado_animo: 'bueno',
+      notas: '',
+      dolor_molestias: ''
+    };
+
+    this.mostrarModalRegistro = true;
   }
 
-  // ✅ IMPORTANTE: Establecer el ejercicio seleccionado
-  this.ejercicioSeleccionado = ejercicio;
-
-  this.registroForm = {
-    id_historial: this.rutinaSeleccionada.id_historial,
-    id_ejercicio: ejercicio.id_ejercicio,
-    fecha_sesion: new Date().toISOString().slice(0, 16),
-    peso_kg: ejercicio.peso_actual || null,
-    series_completadas: 3,
-    repeticiones_completadas: 10,
-    rpe: 7,
-    calidad_tecnica: 'buena',
-    estado_animo: 'bueno',
-    notas: '',
-    dolor_molestias: ''
-  };
-
-  this.mostrarModalRegistro = true;
-}
   /**
    * Cierra el modal de registro
    */
@@ -350,51 +393,80 @@ this.progresoService.obtenerEjerciciosConProgreso(
    * Registra progreso de ejercicio
    */
   registrarProgreso(): void {
-  if (!this.ejercicioSeleccionado) {
-    this.error = 'No hay ejercicio seleccionado';
-    return;
-  }
-
-  if (!this.rutinaSeleccionada) {
-    this.error = 'No hay rutina seleccionada';
-    return;
-  }
-
-  if (!this.registroForm.peso_kg || this.registroForm.peso_kg <= 0) {
-    this.error = 'Ingresa un peso válido';
-    return;
-  }
-
-  this.cargando = true;
-  this.error = '';
-
-  this.progresoService.registrarSesion(
-    this.ejercicioSeleccionado.id_ejercicio,
-    this.idCliente,
-    this.rutinaSeleccionada.id_historial,
-    this.registroForm
-  ).subscribe({
-    next: () => {
-      this.exito = '✓ Sesión registrada exitosamente';
-      this.mostrarModalRegistro = false;
-      this.cargando = false;
-
-      // Recargar datos
-      this.cargarDashboard();
-      this.cargarProgresoEjercicio(this.ejercicioSeleccionado?.id_ejercicio!);
-      this.cargarEjerciciosDeRutina();
-      this.cargarAlertas();
-
-      setTimeout(() => (this.exito = ''), 5000);
-    },
-    error: (err) => {
-      console.error('❌ Error al registrar sesión:', err);
-      this.error = 'Error al registrar sesión';
-      this.cargando = false;
+    if (!this.ejercicioSeleccionado) {
+      this.error = 'No hay ejercicio seleccionado';
+      return;
     }
-  });
-}
 
+    if (!this.rutinaSeleccionada) {
+      this.error = 'No hay rutina seleccionada';
+      return;
+    }
+
+    if (!this.registroForm.peso_kg || this.registroForm.peso_kg <= 0) {
+      this.error = 'Ingresa un peso válido';
+      return;
+    }
+
+    this.cargando = true;
+    this.error = '';
+
+    console.log('💾 Registrando progreso...');
+
+    this.progresoService.registrarSesion(
+      this.ejercicioSeleccionado.id_ejercicio,
+      this.idCliente,
+      this.rutinaSeleccionada.id_historial,
+      this.registroForm
+    ).subscribe({
+      next: () => {
+        console.log('✅ Sesión registrada exitosamente');
+        this.exito = '✓ Sesión registrada exitosamente';
+        this.mostrarModalRegistro = false;
+        this.cargando = false;
+
+        // Recargar datos
+        this.cargarDashboard();
+        this.cargarProgresoEjercicio(this.ejercicioSeleccionado?.id_ejercicio!);
+        this.cargarEjerciciosDeRutina();
+        this.cargarAlertas();
+
+        setTimeout(() => (this.exito = ''), 5000);
+      },
+      error: (err) => {
+        console.error('❌ Error al registrar sesión:', err);
+        this.error = 'Error al registrar sesión';
+        this.cargando = false;
+      }
+    });
+  }
+
+  /**
+   * ✅ GENERAR ALERTAS MANUALMENTE (ahora también disponible como botón)
+   */
+  generarAlertasManual(): void {
+    console.log('🔄 Generando alertas manualmente...');
+    this.cargando = true;
+    this.error = '';
+    
+    this.progresoService.generarAlertasAutomaticas(this.idCliente).subscribe({
+      next: (response) => {
+        console.log('✅ Alertas generadas manualmente:', response);
+        this.exito = `✅ ${response.mensaje || 'Alertas generadas correctamente'}`;
+        
+        // Recargar alertas después de generarlas
+        setTimeout(() => this.cargarAlertas(), 500);
+        
+        setTimeout(() => this.exito = '', 5000);
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('❌ Error al generar alertas:', err);
+        this.error = 'Error al generar alertas. Intenta de nuevo.';
+        this.cargando = false;
+      }
+    });
+  }
 
   /**
    * Analiza la progresión del cliente y genera alertas
@@ -416,6 +488,30 @@ this.progresoService.obtenerEjerciciosConProgreso(
       error: (err) => {
         console.error('Error al analizar progresión:', err);
         this.error = 'Error al analizar la progresión';
+        this.cargando = false;
+      }
+    });
+  }
+
+  /**
+   * ✅ ATENDER ALERTA (Marcar como resuelta/descartada)
+   */
+  atenderAlerta(alerta: AlertaProgresion, accion: string): void {
+    console.log('✓ Atendiendo alerta:', alerta.id_alerta, 'Acción:', accion);
+    this.cargando = true;
+
+    this.progresoService.actualizarEstadoAlerta(alerta.id_alerta, accion).subscribe({
+      next: () => {
+        console.log('✅ Alerta actualizada correctamente');
+        this.exito = '✓ Alerta marcada como ' + accion;
+        alerta.estado = 'atendida';
+        setTimeout(() => this.exito = '', 4000);
+        this.cargarAlertas();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar la alerta:', err);
+        this.error = 'Error al actualizar la alerta';
         this.cargando = false;
       }
     });
@@ -447,6 +543,21 @@ this.progresoService.obtenerEjerciciosConProgreso(
   }
 
   /**
+   * Formatea fecha y hora juntas
+   */
+  formatearFechaHora(fecha: string | Date | null): string {
+    if (!fecha) return '-';
+    const d = new Date(fecha);
+    return d.toLocaleString('es-MX', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  /**
    * Obtiene el color según el estado del objetivo
    */
   getColorObjetivo(estado: string): string {
@@ -460,29 +571,50 @@ this.progresoService.obtenerEjerciciosConProgreso(
   }
 
   /**
-   * Obtiene el color según la prioridad de la alerta
+   * ✅ ACTUALIZADO: Obtiene color según la prioridad de la alerta
    */
-  getColorAlerta(prioridad: string): string {
+  getColorPrioridad(prioridad: string): string {
     const colores: { [key: string]: string } = {
-      'alta': '#dc3545',
-      'media': '#ffc107',
-      'baja': '#17a2b8'
+      'alta': '#dc3545',      // Rojo
+      'media': '#ffc107',     // Amarillo
+      'baja': '#17a2b8'       // Azul
     };
-    return colores[prioridad] || '#6c757d';
+    return colores[prioridad?.toLowerCase()] || '#6c757d';
   }
 
   /**
-   * Obtiene el emoji según el tipo de alerta
+   * ✅ ACTUALIZADO: Obtiene icono según el tipo de alerta
    */
-  getEmojiAlerta(tipo: string): string {
-    const emojis: { [key: string]: string } = {
+  getIconoAlerta(tipo: string): string {
+    const iconos: { [key: string]: string } = {
+      'progresion': '📈',
       'estancamiento': '⚠️',
+      'progresion_retrasada': '⏳',
       'rutina_expira': '⏰',
       'sin_rutina': '📋',
       'record_personal': '🏆',
-      'nuevo_objetivo': '🎯'
+      'nuevo_objetivo': '🎯',
+      'meseta_peso': '📊',
+      'aumento_peso': '📈',
+      'bajo_cumplimiento': '⚠️',
+      'lesion_potencial': '🚑',
+      'sin_progreso': '🔴'
     };
-    return emojis[tipo] || '📢';
+    return iconos[tipo] || '📢';
+  }
+
+  /**
+   * Obtiene emoji según el tipo de alerta (compatibilidad)
+   */
+  getEmojiAlerta(tipo: string): string {
+    return this.getIconoAlerta(tipo);
+  }
+
+  /**
+   * Obtiene color según la prioridad de la alerta (compatibilidad)
+   */
+  getColorAlerta(prioridad: string): string {
+    return this.getColorPrioridad(prioridad);
   }
 
   /**
@@ -518,96 +650,47 @@ this.progresoService.obtenerEjerciciosConProgreso(
     return '#dc3545';
   }
 
-  /** Devuelve un icono según el tipo de alerta */
-getIconoAlerta(tipo: string): string {
-  const iconos: { [key: string]: string } = {
-    'estancamiento': '⚠️',
-    'rutina_expira': '⏰',
-    'sin_rutina': '📋',
-    'record_personal': '🏆',
-    'nuevo_objetivo': '🎯'
-  };
-  return iconos[tipo] || '📢';
+  /**
+   * Calcula cuántos días han pasado desde una fecha dada
+   */
+  calcularDiasDesde(fecha: Date | string | null): number {
+    if (!fecha) return 0;
+    const f = new Date(fecha).getTime();
+    const hoy = new Date().getTime();
+    const diff = hoy - f;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * Texto bonito para calidad técnica
+   */
+  getTextoCalidadTecnica(valor: string): string {
+    const mapa: { [key: string]: string } = {
+      'excelente': '⭐⭐⭐⭐⭐ Excelente',
+      'buena': '⭐⭐⭐⭐ Buena',
+      'regular': '⭐⭐⭐ Regular',
+      'mala': '⭐⭐ Mala'
+    };
+    return mapa[valor] || valor;
+  }
+
+  /**
+   * Ver historial de una rutina específica
+   */
+  verHistorialDeRutina(rutina: HistorialRutina): void {
+    console.log('📊 Ver historial de:', rutina.nombre_rutina);
+    this.rutinaSeleccionada = rutina;
+    this.tabActiva = 'ejercicios';
+
+    // Cargar sus ejercicios
+    this.cargarEjerciciosDeRutina();
+
+    // Scroll suave
+    setTimeout(() => {
+      const elemento = document.getElementById('seccion-ejercicios');
+      if (elemento) {
+        elemento.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 150);
+  }
 }
-
-/** Color por prioridad de alerta */
-getColorPrioridad(prioridad: string): string {
-  const colores: { [key: string]: string } = {
-    'alta': '#dc3545',
-    'media': '#ffc107',
-    'baja': '#17a2b8'
-  };
-  return colores[prioridad] || '#6c757d';
-}
-
-/** Formatear fecha y hora juntas */
-formatearFechaHora(fecha: string | Date | null): string {
-  if (!fecha) return '-';
-  const d = new Date(fecha);
-  return d.toLocaleString('es-MX', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-/** Marcar alerta como atendida/descartada */
-atenderAlerta(alerta: AlertaProgresion, accion: string): void {
-  this.cargando = true;
-
-  this.progresoService.actualizarEstadoAlerta(alerta.id_alerta, accion).subscribe({
-    next: () => {
-      this.exito = '✓ Alerta actualizada correctamente';
-      alerta.estado = 'atendida';
-      setTimeout(() => this.exito = '', 4000);
-      this.cargarAlertas();
-      this.cargando = false;
-    },
-    error: () => {
-      this.error = 'Error al actualizar la alerta';
-      this.cargando = false;
-    }
-  });
-}
-
-/** Calcula cuántos días han pasado desde una fecha dada */
-calcularDiasDesde(fecha: Date | string | null): number {
-  if (!fecha) return 0;
-  const f = new Date(fecha).getTime();
-  const hoy = new Date().getTime();
-  const diff = hoy - f;
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
-}
-
-/** Texto bonito para calidad técnica */
-getTextoCalidadTecnica(valor: string): string {
-  const mapa: { [key: string]: string } = {
-    'excelente': '⭐⭐⭐⭐⭐ Excelente',
-    'buena': '⭐⭐⭐⭐ Buena',
-    'regular': '⭐⭐⭐ Regular',
-    'mala': '⭐⭐ Mala'
-  };
-  return mapa[valor] || valor;
-}
-verHistorialDeRutina(rutina: HistorialRutina): void {
-  this.rutinaSeleccionada = rutina;
-  this.tabActiva = 'ejercicios'; // 👈 Cambiar de tab automáticamente
-
-  // Cargar sus ejercicios
-  this.cargarEjerciciosDeRutina();
-
-  // (Opcional) pequeño delay para que el DOM tenga tiempo de cambiar
-  setTimeout(() => {
-    const elemento = document.getElementById('seccion-ejercicios');
-    if (elemento) {
-      elemento.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, 150);
-}
-
-
-
-}
-

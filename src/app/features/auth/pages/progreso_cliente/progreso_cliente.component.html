@@ -1,4 +1,4 @@
-<!-- progreso-cliente.component.html -->
+<!-- progreso-cliente.component.html - VERSIÓN COMPLETA Y CORREGIDA -->
 <div class="progreso-cliente-container">
   
   <!-- ============================================================ -->
@@ -11,7 +11,7 @@
         <p class="subtitle" *ngIf="nombreCliente">{{ nombreCliente }}</p>
       </div>
       <div class="header-actions">
-        
+        <!-- Espacio para acciones futuras -->
       </div>
     </div>
   </div>
@@ -217,7 +217,10 @@
 
           <!-- Progreso visual -->
           <div class="progress-bar">
-            
+            <div class="progress-fill"
+                 [style.width.%]="rutina.porcentaje_cumplimiento"
+                 [class.complete]="rutina.porcentaje_cumplimiento >= 100">
+            </div>
           </div>
 
           <!-- Datos de peso si están disponibles -->
@@ -227,11 +230,12 @@
               <span *ngIf="rutina.peso_final">Peso final: {{ rutina.peso_final }}kg</span>
             </div>
           </div>
-           <!-- ⭐ NUEVO BOTÓN PARA ABRIR EL HISTORIAL -->
-  <button class="btn btn-primary btn-block"
-          (click)="verHistorialDeRutina(rutina); $event.stopPropagation()">
-    Ver Historial
-  </button>
+
+          <!-- BOTÓN PARA VER HISTORIAL DE RUTINA -->
+          <button class="btn btn-primary btn-block"
+                  (click)="verHistorialDeRutina(rutina); $event.stopPropagation()">
+            Ver Historial
+          </button>
         </div>
       </div>
       
@@ -299,7 +303,6 @@
                     <span class="value success">+{{ formatearNumero(ejercicio.porcentaje_mejora, 1) }}%</span>
                   </div>
                 </div>
-                
               </div>
             </div>
           </div>
@@ -321,6 +324,15 @@
     <div class="alertas-header">
       <h3>🔔 Alertas de Progresión</h3>
       <div class="filtros-alertas">
+        <!-- ✅ BOTÓN GENERAR ALERTAS -->
+        <button class="btn btn-primary" 
+                (click)="generarAlertasManual()" 
+                [disabled]="cargando"
+                style="margin-right: 1rem;">
+          🔄 Generar Alertas Ahora
+        </button>
+
+        <!-- Botones de filtro -->
         <button class="filtro-btn" 
                 [class.active]="filtroAlerta === 'pendiente'"
                 (click)="filtroAlerta = 'pendiente'; filtrarAlertas()">
@@ -350,6 +362,7 @@
         <p>No hay alertas {{ filtroAlerta === 'todas' ? '' : filtroAlerta + 's' }}</p>
       </div>
 
+      <!-- TARJETAS DE ALERTAS -->
       <div class="alerta-card" 
            *ngFor="let alerta of alertasFiltradas"
            [class]="'priority-' + alerta.prioridad">
@@ -472,19 +485,16 @@
               {{ formatearNumero(objetivo.valor_actual || 0) }} / {{ formatearNumero(objetivo.valor_objetivo) }} {{ objetivo.unidad }}
             </span>
             <span class="progreso-porcentaje"
-              [class.success]="objetivo.porcentaje_completado >= 100">
-          {{ objetivo.porcentaje_completado | number:'1.0-0' }}%
-        </span>
-
+                  [class.success]="objetivo.porcentaje_completado >= 100">
+              {{ objetivo.porcentaje_completado | number:'1.0-0' }}%
+            </span>
           </div>
           <div class="progress-bar">
-  <div class="progress-fill"
-       [style.width.%]="objetivo.porcentaje_completado"
-       [class.complete]="objetivo.porcentaje_completado >= 100">
-  </div>
-</div>
-
-
+            <div class="progress-fill"
+                 [style.width.%]="objetivo.porcentaje_completado"
+                 [class.complete]="objetivo.porcentaje_completado >= 100">
+            </div>
+          </div>
         </div>
 
         <div class="objetivo-footer">
@@ -506,294 +516,293 @@
   </div>
 
   <!-- ============================================================ -->
-<!-- TAB: EJERCICIOS CON PROGRESO -->
-<!-- ============================================================ -->
-<!-- ============================================================ -->
-<!-- TAB: EJERCICIOS CON PROGRESO -->
-<!-- ============================================================ -->
-<div *ngIf="tabActiva === 'ejercicios'" class="tab-content">
+  <!-- TAB: EJERCICIOS CON PROGRESO -->
+  <!-- ============================================================ -->
+  <div *ngIf="tabActiva === 'ejercicios'" class="tab-content">
 
-  <!-- LISTA DE EJERCICIOS (cuando NO hay ejercicio seleccionado) -->
-  <div *ngIf="!ejercicioSeleccionado">
-    <h3>💪 Ejercicios del Cliente</h3>
-    
-    <div *ngIf="ejercicios.length === 0" class="empty-state">
-      <p>No hay ejercicios con progreso registrado</p>
-      <p class="hint">Registra progreso de los ejercicios en la rutina activa</p>
+    <!-- LISTA DE EJERCICIOS (cuando NO hay ejercicio seleccionado) -->
+    <div *ngIf="!ejercicioSeleccionado">
+      <h3>💪 Ejercicios del Cliente</h3>
+      
+      <div *ngIf="ejercicios.length === 0" class="empty-state">
+        <p>No hay ejercicios con progreso registrado</p>
+        <p class="hint">Registra progreso de los ejercicios en la rutina activa</p>
+      </div>
+
+      <div class="ejercicios-grid">
+        <div class="ejercicio-card-progreso" 
+             *ngFor="let ejercicio of ejercicios"
+             (click)="seleccionarEjercicio(ejercicio)">
+          
+          <h4>{{ ejercicio.nombre }}</h4>
+          <span class="grupo-badge">{{ ejercicio.grupo_muscular }}</span>
+
+          <div class="ejercicio-stats-grid">
+            <div class="stat">
+              <span class="label">Sesiones</span>
+              <span class="value">{{ ejercicio.total_sesiones }}</span>
+            </div>
+            <div class="stat" *ngIf="ejercicio.peso_actual">
+              <span class="label">Peso Actual</span>
+              <span class="value">{{ formatearNumero(ejercicio.peso_actual) }}kg</span>
+            </div>
+            <div class="stat" *ngIf="ejercicio.porcentaje_mejora">
+              <span class="label">Mejora</span>
+              <span class="value success">+{{ formatearNumero(ejercicio.porcentaje_mejora, 1) }}%</span>
+            </div>
+            <div class="stat" *ngIf="ejercicio.ultima_sesion">
+              <span class="label">Última Sesión</span>
+              <span class="value">{{ calcularDiasDesde(ejercicio.ultima_sesion) }}d</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block"
+                  (click)="abrirModalRegistroProgreso(ejercicio); $event.stopPropagation()">
+            Registrar Sesión
+          </button>
+
+        </div>
+      </div>
     </div>
 
-    <div class="ejercicios-grid">
-      <div class="ejercicio-card-progreso" 
-           *ngFor="let ejercicio of ejercicios"
-           (click)="seleccionarEjercicio(ejercicio)">
-        
-        <h4>{{ ejercicio.nombre }}</h4>
-        <span class="grupo-badge">{{ ejercicio.grupo_muscular }}</span>
-
-        <div class="ejercicio-stats-grid">
-          <div class="stat">
-            <span class="label">Sesiones</span>
-            <span class="value">{{ ejercicio.total_sesiones }}</span>
-          </div>
-          <div class="stat" *ngIf="ejercicio.peso_actual">
-            <span class="label">Peso Actual</span>
-            <span class="value">{{ formatearNumero(ejercicio.peso_actual) }}kg</span>
-          </div>
-          <div class="stat" *ngIf="ejercicio.porcentaje_mejora">
-            <span class="label">Mejora</span>
-            <span class="value success">+{{ formatearNumero(ejercicio.porcentaje_mejora, 1) }}%</span>
-          </div>
-          <div class="stat" *ngIf="ejercicio.ultima_sesion">
-            <span class="label">Última Sesión</span>
-            <span class="value">{{ calcularDiasDesde(ejercicio.ultima_sesion) }}d</span>
-          </div>
-        </div>
-
-        <button class="btn btn-primary btn-block"
-                (click)="abrirModalRegistroProgreso(ejercicio); $event.stopPropagation()">
-          Registrar Sesión
+    <!-- VISTA DETALLADA (cuando SÍ hay ejercicio seleccionado) -->
+    <div *ngIf="ejercicioSeleccionado" class="ejercicio-detalle-view">
+      
+      <div class="detalle-header">
+        <button class="btn btn-secondary" (click)="ejercicioSeleccionado = null">
+          ← Volver
         </button>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- VISTA DETALLADA (cuando SÍ hay ejercicio seleccionado) -->
-  <div *ngIf="ejercicioSeleccionado" class="ejercicio-detalle-view">
-    
-    <div class="detalle-header">
-      <button class="btn btn-secondary" (click)="ejercicioSeleccionado = null">
-        ← Volver
-      </button>
-      <h3>{{ ejercicioSeleccionado.nombre }}</h3>
-    </div>
-
-    <div class="ejercicio-resumen">
-      <div class="stat-box-large">
-        <span class="label">Total Sesiones</span>
-        <span class="value">{{ ejercicioSeleccionado.total_sesiones }}</span>
-      </div>
-      <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_inicial">
-        <span class="label">Peso Inicial</span>
-        <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_inicial) }}kg</span>
-      </div>
-      <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_actual">
-        <span class="label">Peso Actual</span>
-        <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_actual) }}kg</span>
-      </div>
-      <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_maximo">
-        <span class="label">Peso Máximo</span>
-        <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_maximo) }}kg</span>
-      </div>
-      <div class="stat-box-large" *ngIf="ejercicioSeleccionado.progreso_total">
-        <span class="label">Progreso Total</span>
-        <span class="value success">+{{ formatearNumero(ejercicioSeleccionado.progreso_total) }}kg</span>
-      </div>
-      <div class="stat-box-large" *ngIf="ejercicioSeleccionado.porcentaje_mejora">
-        <span class="label">Mejora</span>
-        <span class="value success">+{{ formatearNumero(ejercicioSeleccionado.porcentaje_mejora, 1) }}%</span>
-      </div>
-    </div>
-
-    <!-- Historial de sesiones -->
-    <div class="sesiones-historial">
-      <h4>📊 Historial de Sesiones</h4>
-
-      <div *ngIf="cargando" class="loading-state">
-        <p>Cargando historial...</p>
+        <h3>{{ ejercicioSeleccionado.nombre }}</h3>
       </div>
 
-      <div *ngIf="!cargando && progresoEjercicio.length === 0" class="empty-state">
-        <p>No hay sesiones registradas</p>
-      </div>
-
-      <div class="sesion-item" *ngFor="let sesion of progresoEjercicio">
-        <div class="sesion-header">
-          <div class="sesion-numero">
-            <span class="numero">#{{ sesion.numero_sesion }}</span>
-            <span class="record" *ngIf="sesion.es_record_personal">🏆 PR</span>
-          </div>
-          <span class="sesion-fecha">{{ formatearFechaHora(sesion.fecha_sesion) }}</span>
+      <div class="ejercicio-resumen">
+        <div class="stat-box-large">
+          <span class="label">Total Sesiones</span>
+          <span class="value">{{ ejercicioSeleccionado.total_sesiones }}</span>
         </div>
-
-        <div class="sesion-stats">
-          <div class="sesion-stat" *ngIf="sesion.peso_kg">
-            <span class="label">Peso:</span>
-            <span class="value">{{ formatearNumero(sesion.peso_kg) }}kg</span>
-          </div>
-          <div class="sesion-stat">
-            <span class="label">Series:</span>
-            <span class="value">{{ sesion.series_completadas }}</span>
-          </div>
-          <div class="sesion-stat">
-            <span class="label">Reps:</span>
-            <span class="value">{{ sesion.repeticiones_completadas }}</span>
-          </div>
-          <div class="sesion-stat" *ngIf="sesion.rpe">
-            <span class="label">RPE:</span>
-            <span class="value">{{ sesion.rpe }}/10</span>
-          </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_inicial">
+          <span class="label">Peso Inicial</span>
+          <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_inicial) }}kg</span>
         </div>
-
-        <div class="sesion-calidad" *ngIf="sesion.calidad_tecnica">
-          <span class="label">Calidad Técnica:</span>
-          <span class="estrellas">{{ getTextoCalidadTecnica(sesion.calidad_tecnica) }}</span>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_actual">
+          <span class="label">Peso Actual</span>
+          <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_actual) }}kg</span>
         </div>
-
-        <div class="sesion-progreso" *ngIf="sesion.diferencia_peso || sesion.porcentaje_mejora">
-          <div class="progreso-item" *ngIf="sesion.peso_anterior">
-            <span class="label">Peso anterior:</span>
-            <span class="value">{{ formatearNumero(sesion.peso_anterior) }}kg</span>
-          </div>
-          <div class="progreso-item mejora" *ngIf="sesion.diferencia_peso">
-            <span class="label">Diferencia:</span>
-            <span class="value" [class.positive]="sesion.diferencia_peso > 0">
-              {{ sesion.diferencia_peso > 0 ? '+' : '' }}{{ formatearNumero(sesion.diferencia_peso) }}kg
-            </span>
-          </div>
-          <div class="progreso-item mejora" *ngIf="sesion.porcentaje_mejora">
-            <span class="label">Mejora:</span>
-            <span class="value positive">+{{ formatearNumero(sesion.porcentaje_mejora, 1) }}%</span>
-          </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.peso_maximo">
+          <span class="label">Peso Máximo</span>
+          <span class="value">{{ formatearNumero(ejercicioSeleccionado.peso_maximo) }}kg</span>
         </div>
-
-        <div class="sesion-notas" *ngIf="sesion.notas">
-          <strong>Notas:</strong>
-          <p>{{ sesion.notas }}</p>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.progreso_total">
+          <span class="label">Progreso Total</span>
+          <span class="value success">+{{ formatearNumero(ejercicioSeleccionado.progreso_total) }}kg</span>
+        </div>
+        <div class="stat-box-large" *ngIf="ejercicioSeleccionado.porcentaje_mejora">
+          <span class="label">Mejora</span>
+          <span class="value success">+{{ formatearNumero(ejercicioSeleccionado.porcentaje_mejora, 1) }}%</span>
         </div>
       </div>
+
+      <!-- Historial de sesiones -->
+      <div class="sesiones-historial">
+        <h4>📊 Historial de Sesiones</h4>
+
+        <div *ngIf="cargando" class="loading-state">
+          <p>Cargando historial...</p>
+        </div>
+
+        <div *ngIf="!cargando && progresoEjercicio.length === 0" class="empty-state">
+          <p>No hay sesiones registradas</p>
+        </div>
+
+        <div class="sesion-item" *ngFor="let sesion of progresoEjercicio">
+          <div class="sesion-header">
+            <div class="sesion-numero">
+              <span class="numero">#{{ sesion.numero_sesion }}</span>
+              <span class="record" *ngIf="sesion.es_record_personal">🏆 PR</span>
+            </div>
+            <span class="sesion-fecha">{{ formatearFechaHora(sesion.fecha_sesion) }}</span>
+          </div>
+
+          <div class="sesion-stats">
+            <div class="sesion-stat" *ngIf="sesion.peso_kg">
+              <span class="label">Peso:</span>
+              <span class="value">{{ formatearNumero(sesion.peso_kg) }}kg</span>
+            </div>
+            <div class="sesion-stat">
+              <span class="label">Series:</span>
+              <span class="value">{{ sesion.series_completadas }}</span>
+            </div>
+            <div class="sesion-stat">
+              <span class="label">Reps:</span>
+              <span class="value">{{ sesion.repeticiones_completadas }}</span>
+            </div>
+            <div class="sesion-stat" *ngIf="sesion.rpe">
+              <span class="label">RPE:</span>
+              <span class="value">{{ sesion.rpe }}/10</span>
+            </div>
+          </div>
+
+          <div class="sesion-calidad" *ngIf="sesion.calidad_tecnica">
+            <span class="label">Calidad Técnica:</span>
+            <span class="estrellas">{{ getTextoCalidadTecnica(sesion.calidad_tecnica) }}</span>
+          </div>
+
+          <div class="sesion-progreso" *ngIf="sesion.diferencia_peso || sesion.porcentaje_mejora">
+            <div class="progreso-item" *ngIf="sesion.peso_anterior">
+              <span class="label">Peso anterior:</span>
+              <span class="value">{{ formatearNumero(sesion.peso_anterior) }}kg</span>
+            </div>
+            <div class="progreso-item mejora" *ngIf="sesion.diferencia_peso">
+              <span class="label">Diferencia:</span>
+              <span class="value" [class.positive]="sesion.diferencia_peso > 0">
+                {{ sesion.diferencia_peso > 0 ? '+' : '' }}{{ formatearNumero(sesion.diferencia_peso) }}kg
+              </span>
+            </div>
+            <div class="progreso-item mejora" *ngIf="sesion.porcentaje_mejora">
+              <span class="label">Mejora:</span>
+              <span class="value positive">+{{ formatearNumero(sesion.porcentaje_mejora, 1) }}%</span>
+            </div>
+          </div>
+
+          <div class="sesion-notas" *ngIf="sesion.notas">
+            <strong>Notas:</strong>
+            <p>{{ sesion.notas }}</p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
-</div>
+  <!-- ============================================================ -->
+  <!-- MODAL: REGISTRAR PROGRESO -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" *ngIf="mostrarModalRegistro" (click)="mostrarModalRegistro = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h3>📊 Registrar Progreso</h3>
+        <button class="close-btn" (click)="mostrarModalRegistro = false">✕</button>
+      </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: REGISTRAR PROGRESO -->
-<!-- ============================================================ -->
-<div class="modal-overlay" *ngIf="mostrarModalRegistro" (click)="mostrarModalRegistro = false">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    
-    <div class="modal-header">
-      <h3>📊 Registrar Progreso</h3>
-      <button class="close-btn" (click)="mostrarModalRegistro = false">✕</button>
+      <div class="modal-body">
+        <form (ngSubmit)="registrarProgreso()">
+          
+          <div class="form-group">
+            <label>Fecha y Hora</label>
+            <input type="datetime-local" 
+                   [(ngModel)]="registroForm.fecha_sesion" 
+                   name="fecha_sesion"
+                   class="form-control">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Peso (kg) *</label>
+              <input type="number" 
+                     [(ngModel)]="registroForm.peso_kg" 
+                     name="peso_kg"
+                     step="0.1"
+                     min="0"
+                     required
+                     class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Series *</label>
+              <input type="number" 
+                     [(ngModel)]="registroForm.series_completadas" 
+                     name="series"
+                     min="1"
+                     required
+                     class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Repeticiones *</label>
+              <input type="number" 
+                     [(ngModel)]="registroForm.repeticiones_completadas" 
+                     name="repeticiones"
+                     min="1"
+                     required
+                     class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>RPE (1-10)</label>
+              <input type="number" 
+                     [(ngModel)]="registroForm.rpe" 
+                     name="rpe"
+                     min="1"
+                     max="10"
+                     class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Calidad Técnica</label>
+              <select [(ngModel)]="registroForm.calidad_tecnica" 
+                      name="calidad_tecnica"
+                      class="form-control">
+                <option value="excelente">⭐⭐⭐⭐⭐ Excelente</option>
+                <option value="buena">⭐⭐⭐⭐ Buena</option>
+                <option value="regular">⭐⭐⭐ Regular</option>
+                <option value="mala">⭐⭐ Mala</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Estado de Ánimo</label>
+              <select [(ngModel)]="registroForm.estado_animo" 
+                      name="estado_animo"
+                      class="form-control">
+                <option [ngValue]="null">Seleccionar...</option>
+                <option value="excelente">😁 Excelente</option>
+                <option value="bueno">😊 Bueno</option>
+                <option value="regular">😐 Regular</option>
+                <option value="malo">😞 Malo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Notas</label>
+            <textarea [(ngModel)]="registroForm.notas" 
+                      name="notas"
+                      rows="3"
+                      placeholder="Comentarios adicionales sobre la sesión..."
+                      class="form-control"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Dolor o Molestias</label>
+            <textarea [(ngModel)]="registroForm.dolor_molestias" 
+                      name="dolor_molestias"
+                      rows="2"
+                      placeholder="Describir cualquier dolor o molestia..."
+                      class="form-control"></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" 
+                    class="btn btn-secondary" 
+                    (click)="mostrarModalRegistro = false">
+              Cancelar
+            </button>
+            <button type="submit" 
+                    class="btn btn-primary" 
+                    [disabled]="cargando">
+              <span *ngIf="!cargando">✓ Registrar</span>
+              <span *ngIf="cargando">Guardando...</span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+
     </div>
-
-    <div class="modal-body">
-      <form (ngSubmit)="registrarProgreso()">
-        
-        <div class="form-group">
-          <label>Fecha y Hora</label>
-          <input type="datetime-local" 
-                 [(ngModel)]="registroForm.fecha_sesion" 
-                 name="fecha_sesion"
-                 class="form-control">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Peso (kg) *</label>
-            <input type="number" 
-                   [(ngModel)]="registroForm.peso_kg" 
-                   name="peso_kg"
-                   step="0.1"
-                   min="0"
-                   required
-                   class="form-control">
-          </div>
-
-          <div class="form-group">
-            <label>Series *</label>
-            <input type="number" 
-                   [(ngModel)]="registroForm.series_completadas" 
-                   name="series"
-                   min="1"
-                   required
-                   class="form-control">
-          </div>
-
-          <div class="form-group">
-            <label>Repeticiones *</label>
-            <input type="number" 
-                   [(ngModel)]="registroForm.repeticiones_completadas" 
-                   name="repeticiones"
-                   min="1"
-                   required
-                   class="form-control">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>RPE (1-10)</label>
-            <input type="number" 
-                   [(ngModel)]="registroForm.rpe" 
-                   name="rpe"
-                   min="1"
-                   max="10"
-                   class="form-control">
-          </div>
-
-          <div class="form-group">
-            <label>Calidad Técnica</label>
-            <select [(ngModel)]="registroForm.calidad_tecnica" 
-                    name="calidad_tecnica"
-                    class="form-control">
-              <option value="excelente">⭐⭐⭐⭐⭐ Excelente</option>
-              <option value="buena">⭐⭐⭐⭐ Buena</option>
-              <option value="regular">⭐⭐⭐ Regular</option>
-              <option value="mala">⭐⭐ Mala</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Estado de Ánimo</label>
-            <select [(ngModel)]="registroForm.estado_animo" 
-                    name="estado_animo"
-                    class="form-control">
-              <option [ngValue]="null">Seleccionar...</option>
-              <option value="excelente">😁 Excelente</option>
-              <option value="bueno">😊 Bueno</option>
-              <option value="regular">😐 Regular</option>
-              <option value="malo">😞 Malo</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Notas</label>
-          <textarea [(ngModel)]="registroForm.notas" 
-                    name="notas"
-                    rows="3"
-                    placeholder="Comentarios adicionales sobre la sesión..."
-                    class="form-control"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Dolor o Molestias</label>
-          <textarea [(ngModel)]="registroForm.dolor_molestias" 
-                    name="dolor_molestias"
-                    rows="2"
-                    placeholder="Describir cualquier dolor o molestia..."
-                    class="form-control"></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" 
-                  class="btn btn-secondary" 
-                  (click)="mostrarModalRegistro = false">
-            Cancelar
-          </button>
-          <button type="submit" 
-                  class="btn btn-primary" 
-                  [disabled]="cargando">
-            <span *ngIf="!cargando">✓ Registrar</span>
-            <span *ngIf="cargando">Guardando...</span>
-          </button>
-        </div>
-
-      </form>
-    </div>
-
   </div>
+
 </div>

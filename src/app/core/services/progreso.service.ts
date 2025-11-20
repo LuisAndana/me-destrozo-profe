@@ -385,10 +385,13 @@ export class ProgresoService {
     return this.http.patch(`${this.apiUrl}/objetivos/${idObjetivo}/alcanzado`, {});
   }
 
-  actualizarEstadoAlerta(idAlerta: number, accion: string) {
-  return this.http.put(
+  actualizarEstadoAlerta(idAlerta: number, accion: string): Observable<AtenderAlertaResponse> {
+  const params = new HttpParams().set('accion', accion);
+  
+  return this.http.put<AtenderAlertaResponse>(
     `${this.apiUrl}/alertas/${idAlerta}/actualizar-estado`,
-    { accion }
+    {},
+    { params }
   );
 }
 
