@@ -1,0 +1,87 @@
+/* resenas-entrenador.component.css */
+
+.resenas-entrenador-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Sección de Acción */
+.accion-section {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-accion {
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-accion:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+.btn-accion:active {
+  transform: translateY(0);
+}
+
+.btn-accion.activo {
+  background: linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%);
+}
+
+/* Sección del Formulario */
+.formulario-section {
+  animation: slideDown 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sección de Reseñas */
+.resenas-section {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .resenas-entrenador-container {
+    gap: 1.5rem;
+  }
+
+  .btn-accion {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+  }
+}

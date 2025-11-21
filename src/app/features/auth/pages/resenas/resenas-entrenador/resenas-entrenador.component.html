@@ -1,0 +1,41 @@
+<!-- src/app/features/auth/pages/resenas/resenas-entrenador/resenas-entrenador.component.html -->
+<!-- Con control de acceso: Clientes pueden calificar, Entrenadores solo ven sus reseñas -->
+
+<div class="resenas-entrenador-container">
+  <!-- ✅ SECCIÓN PARA CLIENTES: Botón para calificar -->
+  <div *ngIf="mostrarSeccionCrear && puedeCalificar" class="accion-section">
+    <button
+      class="btn-accion"
+      (click)="toggleFormulario()"
+      [class.activo]="mostrarFormulario"
+    >
+      {{ textoBotonAccion }}
+    </button>
+  </div>
+
+  <!-- ✅ SECCIÓN PARA CLIENTES: Formulario de crear/editar -->
+  <div *ngIf="mostrarFormulario && mostrarSeccionCrear" class="formulario-section">
+    <app-crear-editar-resena
+      [idEntrenador]="idEntrenador"
+      [nombreEntrenador]="nombreEntrenador"
+      [resenaExistente]="miResena"
+      (resenaGuardada)="onResenaGuardada($event)"
+      (cancelado)="onCancelado()"
+    ></app-crear-editar-resena>
+  </div>
+
+  <!-- ✅ SECCIÓN PARA CLIENTES Y ENTRENADORES: Lista de reseñas -->
+  <div *ngIf="mostrarSeccionResenas" class="resenas-section">
+    <h2 class="seccion-titulo">{{ tituloSeccion }}</h2>
+    <app-listar-resenas
+      [idEntrenador]="idEntrenador"
+      [limit]="10"
+    ></app-listar-resenas>
+  </div>
+
+  <!-- ✅ MENSAJE PARA USUARIOS NO AUTORIZADOS -->
+  <div *ngIf="!mostrarSeccionResenas" class="acceso-denegado">
+    <div class="mensaje-icon">🔒</div>
+    <p>No tienes acceso a esta sección</p>
+  </div>
+</div>

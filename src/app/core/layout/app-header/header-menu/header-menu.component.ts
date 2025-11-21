@@ -180,7 +180,6 @@ export class HeaderMenuComponent implements OnInit, OnDestroy {
   }
 
   goToNuevaConversacion(): void {
-  this.router.navigate(['/mensajes/nueva']);
-}
-
+    this.router.navigate(['/mensajes/nueva']);
+  }
 }

@@ -1,0 +1,525 @@
+<!-- src/app/components/resenas/listar-resenas/listar-resenas.component.html -->
+<div class="resenas-container">
+  <!-- Estado de Carga -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando reseñas y estadísticas...</p>
+  </div>
+
+  <!-- Estado de Error -->
+  <div *ngIf="error && !cargando" class="error-state">
+    <span class="error-icon">⚠️</span>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div *ngIf="!cargando && !error" class="resenas-content">
+    <!-- Tarjeta de Estadísticas -->
+    <div *ngIf="estadisticas" class="stats-card">
+      <div class="stat-item">
+        <div class="stat-value">{{ estadisticas.promedio_calificacion.toFixed(1) }}</div>
+        <div class="stat-label">Calificación Promedio</div>
+        <div class="stat-stars">
+          {{ getStars(estadisticas.promedio_calificacion) }}
+        </div>
+      </div>
+
+      <div class="stat-divider"></div>
+
+      <div class="stat-item">
+        <div class="stat-value">{{ estadisticas.total_resenas }}</div>
+        <div class="stat-label">
+          {{ estadisticas.total_resenas === 1 ? 'Reseña' : 'Reseñas' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista Vacía -->
+    <div *ngIf="resenas.length === 0" class="empty-state">
+      <div class="empty-icon">⭐</div>
+      <h3>Sin reseñas aún</h3>
+      <p>Sé el primero en calificar a este entrenador</p>
+    </div>
+
+    <!-- Lista de Reseñas -->
+    <div *ngIf="resenas.length > 0" class="resenas-list">
+      <div class="resenas-header">
+        <h2>Reseñas de Clientes</h2>
+        <span class="resenas-count">{{ resenas.length }} reseña(s)</span>
+      </div>
+
+      <!-- Reseñas Paginadas -->
+      <div *ngFor="let resena of resenasPaginadas" class="resena-item">
+        <div class="resena-header">
+          <div class="resena-author">
+            <div class="avatar">
+              {{ (resena.nombreAlumno?.charAt(0) || '?').toUpperCase() }}
+            </div>
+            <div class="author-info">
+              <!-- ✅ NOMBRE DEL CLIENTE QUE HIZO LA RESEÑA -->
+              <h4 class="author-name">
+                {{ resena.nombreAlumno || 'Cliente Anónimo' }}
+              </h4>
+              <p class="resena-date">
+                {{ formatearFecha(resena.fecha_resena) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="resena-rating">
+            <div class="rating-stars">
+              {{ getStars(resena.calificacion) }}
+            </div>
+            <span class="rating-value">{{ resena.calificacion }}/5</span>
+          </div>
+        </div>
+
+        <p class="resena-comment">
+          {{ resena.comentario }}
+        </p>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="totalPaginas > 1" class="pagination">
+        <button
+          class="pagination-btn"
+          (click)="paginaAnterior()"
+          [disabled]="paginaActual === 1"
+        >
+          ← Anterior
+        </button>
+
+        <div class="pagination-info">
+          Página {{ paginaActual }} de {{ totalPaginas }}
+        </div>
+
+        <button
+          class="pagination-btn"
+          (click)="paginaSiguiente()"
+          [disabled]="paginaActual === totalPaginas"
+        >
+          Siguiente →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Variables de color del proyecto */
+:host {
+  --color-primary: #7c3aed;
+  --color-secondary: #3b82f6;
+  --color-tertiary: #14b8a6;
+  --color-accent: #fbbf24;
+  --color-bg-dark: #0f172a;
+  --color-bg-card: #1e293b;
+  --color-bg-card-light: rgba(30, 41, 59, 0.4);
+  --color-border: rgba(75, 85, 99, 0.2);
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+}
+
+.resenas-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ============================================================
+   ESTADOS DE CARGA Y ERROR
+   ============================================================ */
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  background: var(--color-bg-card-light);
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border);
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid rgba(124, 58, 237, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  color: #fca5a5;
+}
+
+.error-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ============================================================
+   CONTENIDO PRINCIPAL
+   ============================================================ */
+.resenas-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* ============================================================
+   TARJETA DE ESTADÍSTICAS
+   ============================================================ */
+.stats-card {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.15) 0%,
+    rgba(59, 130, 246, 0.15) 100%
+  );
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.stat-stars {
+  font-size: 1.3rem;
+  color: var(--color-accent);
+  margin-top: 0.75rem;
+  letter-spacing: 0.3em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 5rem;
+  background: rgba(124, 58, 237, 0.2);
+}
+
+/* ============================================================
+   ESTADO VACÍO
+   ============================================================ */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg-card-light);
+  border-radius: 1.25rem;
+  border: 1px dashed var(--color-border);
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   LISTA DE RESEÑAS
+   ============================================================ */
+.resenas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resenas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.resenas-header h2 {
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+
+.resenas-count {
+  background: rgba(124, 58, 237, 0.2);
+  color: #c4b5fd;
+  padding: 0.4rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+/* ============================================================
+   ELEMENTO INDIVIDUAL DE RESEÑA
+   ============================================================ */
+.resena-item {
+  background: var(--color-bg-card-light);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.resena-item:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(124, 58, 237, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(124, 58, 237, 0.15);
+}
+
+/* ============================================================
+   ENCABEZADO DE RESEÑA
+   ============================================================ */
+.resena-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1.5rem;
+}
+
+.resena-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.author-info {
+  flex: 1;
+}
+
+.author-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.resena-date {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ============================================================
+   CALIFICACIÓN EN RESEÑA
+   ============================================================ */
+.resena-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.rating-stars {
+  font-size: 1.1rem;
+  color: var(--color-accent);
+  letter-spacing: 0.15em;
+}
+
+.rating-value {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-secondary);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================================
+   COMENTARIO
+   ============================================================ */
+.resena-comment {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+  word-break: break-word;
+  padding-top: 0.5rem;
+}
+
+/* ============================================================
+   PAGINACIÓN
+   ============================================================ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.pagination-btn {
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #c4b5fd;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.25);
+  border-color: var(--color-primary);
+  color: #e9d5ff;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
+  transform: translateY(-2px);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .stats-card {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .stat-divider {
+    width: 4rem;
+    height: 1px;
+  }
+
+  .stat-value {
+    font-size: 2.5rem;
+  }
+
+  .resena-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .resena-rating {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .pagination-btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .resena-item {
+    padding: 1rem;
+  }
+
+  .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .resenas-container {
+    padding: 0 0.5rem;
+  }
+
+  .stats-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .resenas-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .resena-comment {
+    font-size: 0.9rem;
+  }
+}
+</style>

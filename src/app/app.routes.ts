@@ -81,6 +81,14 @@ export const routes: Routes = [
           import('./components/mis-clientes/generar-rutina/generar-rutina.component')
             .then(m => m.GenerarRutinaComponent),
       },
+
+      // ⭐⭐⭐ RUTA CORRECTA PARA RESEÑAS DEL ENTRENADOR
+      {
+        path: 'resenas',
+        loadComponent: () =>
+          import('./features/auth/pages/resenas/resenas-entrenador/resenas-entrenador.component')
+            .then(m => m.ResenasEntrenadorComponent),
+      },
     ],
   },
 
@@ -119,18 +127,14 @@ export const routes: Routes = [
   },
 
   // ================== MENSAJES ==================
-  // Lista de conversaciones
-  
   {
-  path: 'mensajes',
-  canActivate: [authGuard],
-  loadComponent: () =>
-    import('./features/auth/pages/mensajes/conversaciones/conversaciones.component')
-      .then(m => m.ConversacionesComponent),
-},
+    path: 'mensajes',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/pages/mensajes/conversaciones/conversaciones.component')
+        .then(m => m.ConversacionesComponent),
+  },
 
-
-  // Chat con un usuario
   {
     path: 'mensajes/chat/:id',
     canActivate: [authGuard],
@@ -139,15 +143,13 @@ export const routes: Routes = [
         .then(m => m.ChatComponent),
   },
 
-  // Nueva conversación
   {
-  path: 'mensajes/nueva',
-  canActivate: [authGuard],
-  loadComponent: () =>
-    import('./features/auth/pages/mensajes/nueva-conversacion/nueva-conversacion')
-      .then(m => m.NuevaConversacionComponent),
-},
-
+    path: 'mensajes/nueva',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/pages/mensajes/nueva-conversacion/nueva-conversacion')
+        .then(m => m.NuevaConversacionComponent),
+  },
 
   // ================== WILDCARD ==================
   { path: '**', redirectTo: 'login' },

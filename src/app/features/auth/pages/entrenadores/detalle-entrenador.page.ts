@@ -15,11 +15,11 @@ import { EntrenadorService } from '../../../../core/services/entrenador.service'
 import { ClienteEntrenadorService } from '../../../../core/services/cliente-entrenador.service';
 import { TrainerDetail } from '../../../../core/models/trainer.model';
 import { Observable, of, Subject, BehaviorSubject } from 'rxjs';
-
+import { ResenasEntrenadorComponent } from '../resenas/resenas-entrenador/resenas-entrenador.component';
 @Component({
   selector: 'app-detalle-entrenador-page',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, ResenasEntrenadorComponent, RouterModule],
   templateUrl: './detalle-entrenador.page.html',
   styleUrls: ['./detalle-entrenador.page.css'],
 })

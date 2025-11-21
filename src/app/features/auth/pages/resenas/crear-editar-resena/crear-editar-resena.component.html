@@ -1,0 +1,124 @@
+<!-- crear-editar-resena.component.html -->
+<div class="resena-container">
+  <!-- Encabezado -->
+  <div class="resena-header">
+    <h2 class="resena-titulo">
+      {{ modo === 'crear' ? '✍️ Califica a ' : '✏️ Edita tu reseña de ' }}{{ nombreEntrenador }}
+    </h2>
+    <p class="resena-subtitulo">
+      {{ modo === 'crear' 
+        ? 'Comparte tu experiencia con otros clientes' 
+        : 'Actualiza tu calificación y comentario' }}
+    </p>
+  </div>
+
+  <!-- Alertas -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="alert-icon">⚠️</span>
+    <span class="alert-text">{{ error }}</span>
+  </div>
+
+  <div *ngIf="exito" class="alert alert-success">
+    <span class="alert-icon">✅</span>
+    <span class="alert-text">{{ exito }}</span>
+  </div>
+
+  <!-- Formulario -->
+  <form [formGroup]="formulario" class="resena-form">
+    <!-- Sección de Calificación -->
+    <div class="form-section">
+      <label class="form-label">
+        Calificación
+        <span class="required">*</span>
+      </label>
+      
+      <div class="rating-container">
+        <div class="stars-wrapper">
+          <button
+            *ngFor="let star of estrellas"
+            type="button"
+            class="star-button"
+            [class.active]="formulario.get('calificacion')?.value >= star"
+            [class.hover]="calificacionHover >= star"
+            (click)="selectCalificacion(star)"
+            (mouseenter)="onStarHover(star)"
+            (mouseleave)="onStarLeave()"
+          >
+            ★
+          </button>
+        </div>
+
+        <div class="rating-display">
+          <span class="rating-number">{{ formulario.get('calificacion')?.value }}/5</span>
+          <span class="rating-text">
+            {{ getDescripcionCalificacion(formulario.get('calificacion')?.value) }}
+          </span>
+        </div>
+      </div>
+
+      <p *ngIf="calificacionInvalida" class="field-error">
+        La calificación es requerida
+      </p>
+    </div>
+
+    <!-- Sección de Comentario -->
+    <div class="form-section">
+      <label class="form-label">
+        Comentario
+        <span class="required">*</span>
+      </label>
+
+      <textarea
+        formControlName="comentario"
+        class="form-textarea"
+        [class.input-error]="comentarioInvalido"
+        placeholder="Comparte tu experiencia con este entrenador... (mínimo 10 caracteres)"
+        rows="6"
+      ></textarea>
+
+      <div class="textarea-info">
+        <span class="char-count" [class.warning]="caracteresRestantes < 50">
+          {{ caracteresRestantes }} caracteres disponibles
+        </span>
+      </div>
+
+      <p *ngIf="comentarioInvalido" class="field-error">
+        <span *ngIf="formulario.get('comentario')?.errors?.['required']">
+          El comentario es requerido
+        </span>
+        <span *ngIf="formulario.get('comentario')?.errors?.['minlength']">
+          Mínimo 10 caracteres
+        </span>
+        <span *ngIf="formulario.get('comentario')?.errors?.['maxlength']">
+          Máximo 500 caracteres
+        </span>
+      </p>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="cancelar()"
+        [disabled]="cargando"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="enviar()"
+        [disabled]="cargando"
+      >
+        <span *ngIf="!cargando">
+          {{ modo === 'crear' ? '📤 Enviar Reseña' : '💾 Actualizar Reseña' }}
+        </span>
+        <span *ngIf="cargando" class="loading-text">
+          Guardando...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
