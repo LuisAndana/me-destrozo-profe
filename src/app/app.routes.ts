@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, roleGuard, perfilRoleGuard } from './core/guards/auth.guards';
-
+import { VerifyEmailComponent } from './features/auth/pages/verify-email/verify-email.component';
 export const routes: Routes = [
 
   { path: '', pathMatch: 'full', redirectTo: 'bienvenida' },
@@ -22,6 +22,12 @@ export const routes: Routes = [
       import('./features/auth/pages/register/register').then(m => m.RegisterComponent),
   },
 
+  {
+  path: 'verify-email',
+  loadComponent: () =>
+    import('./features/auth/pages/verify-email/verify-email.component')
+      .then(m => m.VerifyEmailComponent),
+},
   // ================== PERFIL GENERAL ==================
   {
     path: 'perfil',
@@ -150,6 +156,8 @@ export const routes: Routes = [
       import('./features/auth/pages/mensajes/nueva-conversacion/nueva-conversacion')
         .then(m => m.NuevaConversacionComponent),
   },
+
+  
 
   // ================== WILDCARD ==================
   { path: '**', redirectTo: 'login' },

@@ -11,7 +11,7 @@
   --bg: #0d0f12;
   --panel: #12151a;
   --panel-2: #171b21;
-  --primary: #22c55e;
+  --primary: #365d98;
   --primary-700: #16a34a;
   --text: #e7e9ee;
   --muted: #9aa3af;
@@ -461,7 +461,7 @@ html {
   position: absolute;
   inset: 0;
   z-index: -2;
-  background: var(--hero-bg) center / cover no-repeat;
+  background: url('/assets/img/fitman-logo.png') center / cover no-repeat;
   transform: scale(1.04);
   pointer-events:none;
 }

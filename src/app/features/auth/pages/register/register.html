@@ -65,27 +65,44 @@
         </div>
       </div>
 
-      <!-- EMAIL -->
+      <!-- EMAIL CON VALIDACIÓN EN TIEMPO REAL (ACTUALIZADO) ⭐ -->
       <div class="field"
            [ngClass]="{
-             'invalid': ((emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors?.email),
-             'valid':   (emailCtrl.valid   && (emailCtrl.touched || submitted))
+             'invalid': ((emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors?.email || (!emailIsAvailable && emailCtrl.touched)),
+             'valid':   (emailCtrl.valid && emailIsValid && emailIsAvailable && (emailCtrl.touched || submitted))
            }">
-        <input class="control"
-               type="email"
-               name="email"
-               [(ngModel)]="email"
-               placeholder="E-Mail"
-               required
-               email
-               autocomplete="email"
-               #emailCtrl="ngModel" />
+        <div class="email-input-wrapper">
+          <input class="control"
+                 type="email"
+                 name="email"
+                 [(ngModel)]="email"
+                 placeholder="E-Mail"
+                 required
+                 email
+                 autocomplete="email"
+                 (blur)="checkEmail()"
+                 (change)="checkEmail()"
+                 #emailCtrl="ngModel" />
+          
+          <!-- Spinner mientras se valida -->
+          <span class="email-validating" *ngIf="isCheckingEmail">
+            ⏳
+          </span>
+        </div>
+
+        <!-- Mensaje de validación exitosa -->
+        <div class="email-check-success" *ngIf="emailIsValid && emailIsAvailable && !isCheckingEmail && email">
+          ✓ {{ emailCheckMessage }}
+        </div>
+
+        <!-- Mensaje de error en validación -->
         <div class="error-msg"
-             *ngIf="(emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors?.email">
+             *ngIf="(emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors?.email || (!emailIsAvailable && emailCtrl.touched)">
           <span *ngIf="formErrors?.email; else emailAuto">{{ formErrors.email }}</span>
           <ng-template #emailAuto>
             <span *ngIf="emailCtrl.errors?.['required']">Ingresa tu email.</span>
             <span *ngIf="emailCtrl.errors?.['email']">Formato de email inválido.</span>
+            <span *ngIf="emailCheckMessage && !emailIsValid">{{ emailCheckMessage }}</span>
           </ng-template>
         </div>
       </div>
@@ -193,7 +210,7 @@
         <button
           type="submit"
           class="continue-btn"
-          [disabled]="!nombre || !apellido || !email || !rol || !isPasswordValid() || password !== confirmPassword">
+          [disabled]="!nombre || !apellido || !email || !emailIsValid || !emailIsAvailable || !rol || !isPasswordValid() || password !== confirmPassword">
           Continuar
         </button>
       </div>

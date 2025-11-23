@@ -28,10 +28,10 @@ export class App {
   private router = inject(Router);
   protected readonly title = signal('me-destrozo-profe');
 
-  /** Rutas sin layout (login/registro/bienvenida) */
-  private readonly authRegex = /^\/(login|registro|register|bienvenida)(\/)?$/i;
+  /** Rutas sin layout (login/registro/bienvenida/verify-email) */
+  private readonly authRegex = /^\/(login|registro|register|bienvenida|verify-email)(\/)?$/i;
 
-  /** Rutas donde NO queremos “recentrado” al abrir el menú */
+  /** Rutas donde NO queremos "recentrado" al abrir el menú */
   private readonly noRecenterRegex =
     /^\/((entrenadores)(\/[\w-]+)?|(entrenador)(\/[\w-]+)?)\/?$/i; // plural y singular
 
@@ -51,7 +51,7 @@ export class App {
     document.body.classList.toggle('layout-auth', isAuth);
     document.body.classList.toggle('layout-default', !isAuth);
 
-    // 👇 Si estamos en lista/detalle de entrenadores, desactiva el “recentrado”
+    // 👇 Si estamos en lista/detalle de entrenadores, desactiva el "recentrado"
     document.body.classList.toggle('no-recenter', noRecenter);
   }
 

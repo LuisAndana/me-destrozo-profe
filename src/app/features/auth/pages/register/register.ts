@@ -34,6 +34,14 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   confirmTouched = false;
   roleTouched = false;
 
+  // ============================================================
+  // VALIDACIÓN DE EMAIL (NUEVO) ⭐
+  // ============================================================
+  isCheckingEmail = false;
+  emailCheckMessage = '';
+  emailIsValid = false;
+  emailIsAvailable = false;
+
   formErrors: Record<'nombre' | 'apellido' | 'email' | 'password' | 'confirmPassword' | 'rol' | 'general', string> = {
     nombre: '', apellido: '', email: '', password: '', confirmPassword: '', rol: '', general: ''
   };
@@ -45,10 +53,8 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     @Inject(DOCUMENT) private doc: Document
   ) {}
 
-  // Asegura que los overrides globales apliquen (clase en <body>)
   ngOnInit(): void {
     this.renderer.addClass(this.doc.body, 'register-page');
-    // Marca de depuración: si ves esto en consola, este componente es el que se monta.
     console.log('[Register] componente activo');
   }
   ngOnDestroy(): void {
@@ -78,6 +84,23 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     else (window as any).onGoogleLibraryLoad = init;
   }
 
+  private scrollToFirstError(scrollToTopIfGeneral = false): void {
+  // Busca el primer campo con error visual
+  const el = document.querySelector('.field.invalid .control') as HTMLElement | null;
+
+  if (el) {
+    // Enfocar y hacer scroll suave
+    el.focus({ preventScroll: false });
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  if (scrollToTopIfGeneral) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+
   private onGoogleCredential(response: any): void {
     this.clearErrors();
     const credential = response?.credential;
@@ -100,6 +123,51 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     ).subscribe({
       next: () => this.router.navigate(['/login']),
       error: (err: any) => this.handleBackendErrors(err)
+    });
+  }
+
+  // ============================================================
+  // VALIDACIÓN DE EMAIL (NUEVO) ⭐
+  // ============================================================
+  checkEmail(): void {
+    if (!this.email || this.email.trim() === '') {
+      this.emailIsValid = false;
+      this.emailIsAvailable = false;
+      this.emailCheckMessage = '';
+      return;
+    }
+
+    this.isCheckingEmail = true;
+    this.emailCheckMessage = '';
+
+    this.http.post(
+      `${environment.apiBase}${environment.endpoints.checkEmail}`,
+      { email: this.email.trim().toLowerCase() }
+    ).subscribe({
+      next: (response: any) => {
+        this.isCheckingEmail = false;
+        this.emailIsValid = response.is_valid;
+        this.emailIsAvailable = response.is_available;
+
+        if (response.is_valid && response.is_available) {
+          this.emailCheckMessage = '✓ Email válido y disponible';
+          this.formErrors.email = '';
+        } else if (!response.is_valid) {
+          this.emailCheckMessage = response.message || 'Email inválido';
+          this.formErrors.email = response.message || 'Email inválido';
+        } else if (!response.is_available) {
+          this.emailCheckMessage = response.message || 'Email ya registrado';
+          this.formErrors.email = response.message || 'Email ya registrado';
+        }
+      },
+      error: (err: any) => {
+        this.isCheckingEmail = false;
+        this.emailIsValid = false;
+        this.emailIsAvailable = false;
+        const errorMsg = err?.error?.detail || 'Error al validar email';
+        this.emailCheckMessage = errorMsg;
+        this.formErrors.email = errorMsg;
+      }
     });
   }
 
@@ -189,59 +257,58 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     return 'general';
   }
 
-  private handleBackendErrors(err: any): void {
-    this.clearErrors();
+ private handleBackendErrors(err: any): void {
+  this.clearErrors();
 
-    if (err?.status === 0) {
-      this.formErrors.general = 'No se pudo conectar al servidor.';
-      this.scrollToFirstError(true);
-      return;
-    }
-    if (err?.status === 409) {
-      this.formErrors.email = err?.error?.detail || 'El email ya está registrado.';
-      this.scrollToFirstError();
-      return;
-    }
-
-    if (err?.status === 422) {
-      const detail = err?.error?.detail;
-      if (Array.isArray(detail)) {
-        for (const d of detail) {
-          const field = this.mapDetailToFieldName(d?.loc);
-          const message = this.translatePydanticMsg(d?.msg || d?.detail || '');
-          if (!this.formErrors[field]) this.formErrors[field] = message;
-        }
-      } else {
-        const msg: string = (detail || err?.error?.mensaje || 'Datos inválidos.');
-        const lower = msg.toLowerCase();
-        if (lower.includes('rol')) this.formErrors.rol = msg;
-        else if (lower.includes('email') || lower.includes('correo')) this.formErrors.email = msg;
-        else if (lower.includes('contraseña') || lower.includes('password')) this.formErrors.password = msg;
-        else this.formErrors.general = msg;
-      }
-      this.passwordTouched = true;
-      this.confirmTouched = true;
-      this.roleTouched = true;
-      this.scrollToFirstError();
-      return;
-    }
-
-    const msg = err?.error?.detail || err?.error?.mensaje || err?.message || 'Ocurrió un error.';
-    this.formErrors.general = msg;
+  // Sin conexión
+  if (err?.status === 0) {
+    this.formErrors.general = 'No se pudo conectar al servidor.';
     this.scrollToFirstError(true);
+    return;
   }
 
-  private scrollToFirstError(scrollToTopIfGeneral = false): void {
-    const el = document.querySelector('.field.invalid .control') as HTMLElement | null;
-    if (el) {
-      el.focus({ preventScroll: false });
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
-    if (scrollToTopIfGeneral) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+  // ⭐ CASO NUEVO: Usuario ya existe pero NO verificado
+  if (err?.status === 409 && err?.error?.needs_verification) {
+    console.warn('[Register] Usuario existe pero NO verificado → Enviando a verify-email');
+
+    sessionStorage.setItem('registerEmail', this.email.trim().toLowerCase());
+
+    alert('Este email ya estaba registrado pero no había sido verificado. Se reenvió el código de verificación.');
+
+    this.router.navigate(['/verify-email']);
+    return;
   }
+
+  // Email en uso (usuario verificado)
+  if (err?.status === 409) {
+    this.formErrors.email = err?.error?.detail || 'El email ya está registrado.';
+    this.scrollToFirstError();
+    return;
+  }
+
+  // Errores de validación
+  if (err?.status === 422) {
+    const detail = err?.error?.detail;
+    if (Array.isArray(detail)) {
+      for (const d of detail) {
+        const field = this.mapDetailToFieldName(d?.loc);
+        const message = this.translatePydanticMsg(d?.msg || d?.detail || '');
+        if (!this.formErrors[field]) this.formErrors[field] = message;
+      }
+    }
+    this.passwordTouched = true;
+    this.confirmTouched = true;
+    this.roleTouched = true;
+    this.scrollToFirstError();
+    return;
+  }
+
+  // Error genérico
+  const msg = err?.error?.detail || err?.error?.mensaje || err?.message || 'Ocurrió un error.';
+  this.formErrors.general = msg;
+  this.scrollToFirstError(true);
+}
+
 
   // === Submit ===
   register(): void {
@@ -258,6 +325,14 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     if (!apellido) this.formErrors.apellido = 'Ingresa tus apellidos.';
     if (!email) this.formErrors.email = 'Ingresa tu email.';
     if (!rolFront) this.formErrors.rol = 'Selecciona un tipo de usuario.';
+
+    // ============================================================
+    // VALIDACIÓN DE EMAIL (NUEVO) ⭐
+    // ============================================================
+    if (!this.emailIsValid || !this.emailIsAvailable) {
+      this.formErrors.email = this.formErrors.email || 'Por favor, verifica primero que el email sea válido.';
+    }
+
     if (password !== this.confirmPassword) this.formErrors.confirmPassword = 'Las contraseñas no coinciden.';
     if (!this.isPasswordValid()) this.formErrors.password = this.firstPasswordError() || 'Contraseña inválida.';
 
@@ -276,19 +351,72 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     const bodyB = { nombres: nombre, apellidos: apellido, email, password, rol: rolFront };
 
     this.http.post(url, bodyA).subscribe({
-      next: () => this.router.navigate(['/login']),
+      next: () => {
+        // ============================================================
+        // ENVIAR VERIFICACIÓN DE EMAIL (NUEVO) ⭐
+        // ============================================================
+        this.sendEmailVerification(email, nombre);
+      },
       error: (errA: any) => {
-        const msg = (errA?.error?.detail || '').toString().toLowerCase();
-        const shouldRetry = [400, 422, 500].includes(errA?.status) &&
-          (msg.includes('faltan') || msg.includes('obligatori') || msg.includes('rol') || msg.includes('nombre'));
-        if (shouldRetry) {
-          this.http.post(url, bodyB).subscribe({
-            next: () => this.router.navigate(['/login']),
-            error: (errB: any) => this.handleBackendErrors(errB)
-          });
-        } else {
-          this.handleBackendErrors(errA);
-        }
+
+  // ⭐ Si el backend responde que el usuario ya existe pero NO está verificado
+ if (errA?.status === 409 && errA?.error?.needs_verification) {
+  console.warn('[Register] Email existente NO verificado → reenviando correo');
+
+  // reenviar token
+  this.sendEmailVerification(email, nombre);
+
+  // guardar email
+  sessionStorage.setItem('registerEmail', email);
+
+  alert('El email ya estaba registrado pero no verificado. Se envió un nuevo código.');
+
+  // ir a verify-email
+  this.router.navigate(['/verify-email']);
+  return;
+}
+
+
+  // ⭐ Si el error requiere fallback bodyB (tu lógica ya existente)
+  const msg = (errA?.error?.detail || '').toString().toLowerCase();
+  const shouldRetry = [400, 422, 500].includes(errA?.status) &&
+    (msg.includes('faltan') || msg.includes('obligatori') || msg.includes('rol') || msg.includes('nombre'));
+
+  if (shouldRetry) {
+    this.http.post(url, bodyB).subscribe({
+      next: () => this.sendEmailVerification(email, nombre),
+      error: (errB: any) => this.handleBackendErrors(errB)
+    });
+  } else {
+    this.handleBackendErrors(errA);
+  }
+}
+
+
+    });
+  }
+
+  // ============================================================
+  // ENVIAR EMAIL DE VERIFICACIÓN (NUEVO) ⭐
+  // ============================================================
+  private sendEmailVerification(email: string, nombre: string): void {
+     sessionStorage.setItem('registerEmail', email);
+    this.http.post(
+      `${environment.apiBase}${environment.endpoints.sendVerification}`,
+      { email, nombre }
+    ).subscribe({
+      next: () => {
+        // Email enviado exitosamente
+        alert(`✓ Se envió un email de verificación a ${email}\nPor favor, revisa tu bandeja de entrada.`);
+        this.router.navigate(['/verify-email']);
+      },
+      error: (err: any) => {
+        // Si hay error al enviar email, aún así permite ir a verify-email
+        console.warn('[Register] Error enviando email de verificación:', err);
+        const errorMsg = err?.error?.detail || 'Error al enviar email de verificación';
+        this.formErrors.general = `Usuario registrado, pero hubo un problema al enviar el email: ${errorMsg}. Puedes intentar reenviar desde la página de verificación.`;
+        alert(this.formErrors.general);
+        this.router.navigate(['/verify-email']);
       }
     });
   }

@@ -1,19 +1,22 @@
+// src/app/core/components/header-menu/header-menu.component.ts
 import { Component, HostListener, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ConfirmLogoutModalComponent } from '../../../confirm-logout-modal/confirm-logout-modal.component';
 
 @Component({
   selector: 'app-header-menu',
   standalone: true,
   templateUrl: './header-menu.component.html',
   styleUrls: ['./header-menu.component.css'],
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, ConfirmLogoutModalComponent]
 })
 export class HeaderMenuComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   // Sidebar
   collapsed = signal<boolean>(false);
+  showLogoutModal = signal<boolean>(false);
 
   // Usuario
   userNombre: string = 'Usuario';
@@ -147,6 +150,27 @@ export class HeaderMenuComponent implements OnInit, OnDestroy {
     let path = '/cliente';
     if (rolLower.includes('entrenador')) path = '/entrenador/home';
     this.router.navigate([path]);
+  }
+
+  // ===== Logout con Modal =====
+  openLogoutModal(): void {
+    console.log('🟦 [Modal] Abriendo modal de logout...');
+    this.showLogoutModal.set(true);
+  }
+
+  confirmLogout(): void {
+    console.log('🟦 [LOGOUT] Cerrando sesión...');
+    localStorage.removeItem('token');
+    localStorage.removeItem('gym_token');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('gym_user');
+    this.showLogoutModal.set(false);
+    this.router.navigate(['/bienvenida'], { replaceUrl: true });
+  }
+
+  cancelLogout(): void {
+    console.log('🟦 [Modal] Cerrando modal de logout...');
+    this.showLogoutModal.set(false);
   }
 
   // ===== Swipe =====

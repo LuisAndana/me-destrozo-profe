@@ -1,5 +1,5 @@
-// pagina-principal-cliente.component.ts
-import { Component, ChangeDetectorRef, OnInit, inject } from '@angular/core';
+// features/auth/pages/pagina-principal-cliente/pagina-principal-cliente.component.ts
+import { Component, ChangeDetectorRef, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   Router,
@@ -8,6 +8,7 @@ import {
   RouterLink,
   RouterLinkActive
 } from '@angular/router';
+import { ConfirmLogoutModalComponent } from '../../../../core/confirm-logout-modal/confirm-logout-modal.component';
 
 @Component({
   standalone: true,
@@ -19,7 +20,8 @@ import {
     RouterModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    ConfirmLogoutModalComponent
   ],
 })
 export class PaginaPrincipalCliente implements OnInit {
@@ -29,10 +31,11 @@ export class PaginaPrincipalCliente implements OnInit {
   nombre = 'Usuario';
   inicial = 'U';
   fotoUrl = '';
+  showLogoutModal = signal(false);
 
   // Propiedades para el template (sin inventar datos)
-  tieneRutinaActiva = false;   // Se actualizará cuando se implemente el servicio
-  mensajesNuevos = 0;           // Se actualizará cuando se implemente el servicio
+  tieneRutinaActiva = false;
+  mensajesNuevos = 0;
 
   // Inyección de dependencias
   private router = inject(Router);
@@ -43,9 +46,6 @@ export class PaginaPrincipalCliente implements OnInit {
   // ============================================================
   ngOnInit(): void {
     this.cargarDatosUsuario();
-    // TODO: Implementar carga de datos reales cuando estén disponibles los servicios
-    // this.cargarRutinaActiva();
-    // this.cargarMensajes();
   }
 
   // ============================================================
@@ -105,43 +105,40 @@ export class PaginaPrincipalCliente implements OnInit {
   }
 
   // ============================================================
-  // MÉTODOS PÚBLICOS (para uso futuro)
+  // MÉTODOS DE LOGOUT
   // ============================================================
 
   /**
-   * TODO: Implementar cuando esté disponible el servicio de rutinas
-   * Verifica si el cliente tiene una rutina activa
+   * Abre el modal de confirmación de logout
    */
-  private cargarRutinaActiva(): void {
-    // Implementar llamada al servicio
-    // this.rutinaService.obtenerRutinaActiva(this.idCliente).subscribe({
-    //   next: (rutina) => {
-    //     this.tieneRutinaActiva = !!rutina;
-    //   },
-    //   error: (err) => {
-    //     console.error('Error al cargar rutina:', err);
-    //   }
-    // });
+  openLogoutModal(): void {
+    console.log('🟦 [Modal] Abriendo modal de logout...');
+    this.showLogoutModal.set(true);
   }
 
   /**
-   * TODO: Implementar cuando esté disponible el servicio de mensajes
-   * Carga el número de mensajes no leídos
+   * Confirma el logout y redirige a bienvenida
    */
-  private cargarMensajes(): void {
-    // Implementar llamada al servicio
-    // this.mensajesService.obtenerNoLeidos(this.idCliente).subscribe({
-    //   next: (mensajes) => {
-    //     this.mensajesNuevos = mensajes.length;
-    //   },
-    //   error: (err) => {
-    //     console.error('Error al cargar mensajes:', err);
-    //   }
-    // });
+  confirmLogout(): void {
+    console.log('🟦 [LOGOUT] Cerrando sesión...');
+    localStorage.removeItem('token');
+    localStorage.removeItem('gym_token');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('gym_user');
+    this.showLogoutModal.set(false);
+    this.router.navigate(['/bienvenida'], { replaceUrl: true });
+  }
+
+  /**
+   * Cancela el logout y cierra el modal
+   */
+  cancelLogout(): void {
+    console.log('🟦 [Modal] Cerrando modal de logout...');
+    this.showLogoutModal.set(false);
   }
 
   // ============================================================
-  // MÉTODOS DE NAVEGACIÓN (si son necesarios desde el TypeScript)
+  // MÉTODOS DE NAVEGACIÓN
   // ============================================================
 
   /**

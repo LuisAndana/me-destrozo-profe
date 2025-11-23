@@ -77,7 +77,7 @@
   border: 1px solid #2a2f37;
   border-radius: 14px;
   padding: 20px 16px 20px;
-  box-shadow: none; /* ✅ sombra eliminada */
+  box-shadow: none;
   flex-grow: 1;
   overflow: visible;
   position: relative;
@@ -92,6 +92,55 @@
   flex-direction: column;
   gap: 0.4rem;
 }
+
+/* ===== Email input wrapper (NUEVO) ===== */
+.email-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.email-input-wrapper .control {
+  flex: 1;
+}
+
+/* ===== Spinner de validación (NUEVO) ===== */
+.email-validating {
+  position: absolute;
+  right: 12px;
+  font-size: 1.2rem;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== Mensaje de éxito en email (NUEVO) ===== */
+.email-check-success {
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  background: rgba(46, 204, 113, 0.08);
+  border-left: 3px solid #2ecc71;
+  color: #7ee787;
+  font-size: 0.95rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Control input base ===== */
 .control {
   background: #181a1f;
   border: 1px solid #3b414b;
@@ -106,8 +155,14 @@
   border-color: #4d90fe;
   box-shadow: 0 0 0 3px rgba(77, 144, 254, 0.18);
 }
-.field.valid .control { border-color: #2ecc71; }
-.field.invalid .control { border-color: #e74c3c; }
+.field.valid .control { 
+  border-color: #2ecc71;
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+}
+.field.invalid .control { 
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
 
 /* ===== Mensajes de error mejorados ===== */
 .error-msg {
@@ -121,7 +176,7 @@
   line-height: 1.4;
 }
 
-/* ===== Botón “Continuar” limpio y compacto ===== */
+/* ===== Botón "Continuar" limpio y compacto ===== */
 .continue-btn {
   background: #4d90fe;
   color: #fff;
@@ -137,17 +192,18 @@
   max-width: 340px;
   display: block;
   margin: 0.8rem auto 0;
-  box-shadow: none; /* ✅ sin sombra */
+  box-shadow: none;
 }
-.continue-btn:hover {
+.continue-btn:hover:not(:disabled) {
   background: #357ae8;
 }
-.continue-btn:active {
+.continue-btn:active:not(:disabled) {
   transform: translateY(1px);
 }
 .continue-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  background: #4d90fe;
 }
 
 /* ===== Google ===== */
@@ -186,10 +242,10 @@
   bottom: 0;
   z-index: 5;
   padding: 12px 0;
-  background: #1c1f24; /* ✅ igual al fondo del formulario */
+  background: #1c1f24;
   display: flex;
   justify-content: center;
-  border-top: 1px solid #2a2f37; /* línea sutil para separar */
+  border-top: 1px solid #2a2f37;
 }
 
 /* ===== Indicador de fuerza de contraseña ===== */
@@ -210,8 +266,14 @@
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
-.strength-label { color: #fff; font-weight: 600; }
-.strength-min { color: #999; font-size: 0.85rem; }
+.strength-label { 
+  color: #fff; 
+  font-weight: 600; 
+}
+.strength-min { 
+  color: #999; 
+  font-size: 0.85rem; 
+}
 .meter {
   height: 8px;
   background: #2a2f37;

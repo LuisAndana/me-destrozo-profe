@@ -1,0 +1,104 @@
+<div class="verify-email-container">
+  <!-- Columna izquierda: Decoración -->
+  <div class="verify-banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+      <div class="check-icon">✓</div>
+      <h3>Verificación de Email</h3>
+    </div>
+  </div>
+
+  <!-- Columna derecha: Formulario -->
+  <div class="verify-form-section">
+    <!-- Mensaje de éxito con animación -->
+    <div class="success-message" *ngIf="showSuccessAnimation">
+      {{ successMessage }}
+    </div>
+
+    <!-- Título -->
+    <h2 class="verify-title">Verifica tu Email</h2>
+    
+    <!-- Subtítulo -->
+    <p class="verify-subtitle">
+      Hemos enviado un código a tu email. Ingresa el código a continuación para completar tu registro.
+    </p>
+
+    <!-- Formulario -->
+    <form class="verify-form" (ngSubmit)="verifyCode()" novalidate>
+      <!-- Error general -->
+      <div class="error-msg general-error" *ngIf="formErrors?.general">
+        {{ formErrors.general }}
+      </div>
+
+      <!-- Mensaje de éxito (reenvío) -->
+      <div class="success-msg" *ngIf="successMessage && !showSuccessAnimation">
+        {{ successMessage }}
+      </div>
+
+      <!-- CÓDIGO DE VERIFICACIÓN -->
+      <div class="field" [ngClass]="{'invalid': (submitted && !verificationCode) || formErrors?.code, 'valid': (verificationCode && (submitted || false))}">
+        <label class="label">Código de Verificación</label>
+        <div class="code-input-wrapper">
+          <input class="control code-input"
+                 type="text"
+                 name="verificationCode"
+                 [(ngModel)]="verificationCode"
+                 placeholder="Ingresa el código recibido"
+                 required
+                 maxlength="32"
+                 [disabled]="isVerifying" />
+          
+          <!-- Spinner de verificación -->
+          <span class="verifying-spinner" *ngIf="isVerifying">
+            ⏳
+          </span>
+        </div>
+        
+        <!-- Mensaje de error -->
+        <div class="error-msg" *ngIf="(submitted && !verificationCode) || formErrors?.code">
+          {{ formErrors?.code || 'Ingresa el código de verificación.' }}
+        </div>
+      </div>
+
+      <!-- Información de ayuda -->
+      <div class="help-text">
+        <p>📧 Revisa tu bandeja de entrada o spam para encontrar el email con el código.</p>
+        <p>El código expira en 24 horas.</p>
+      </div>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button type="submit"
+                class="verify-btn"
+                [disabled]="!verificationCode || isVerifying">
+          {{ isVerifying ? 'Verificando...' : 'Verificar Email' }}
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Reenviar código -->
+      <div class="resend-section">
+        <p class="resend-label">¿No recibiste el código?</p>
+        
+        <button type="button"
+                class="resend-btn"
+                (click)="resendCode()"
+                [disabled]="!canResend || isVerifying">
+          <span *ngIf="canResend">Reenviar Código</span>
+          <span *ngIf="!canResend">Reenviar en {{ resendCountdown }}s</span>
+        </button>
+      </div>
+
+      <!-- Volver al registro -->
+      <div class="back-section">
+        <button type="button"
+                class="back-btn"
+                (click)="goBackToRegister()">
+          Volver al Registro
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
