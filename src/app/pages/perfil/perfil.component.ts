@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators
@@ -16,13 +16,13 @@ import { Router } from '@angular/router';
 })
 export class PerfilComponent implements OnInit {
   form!: FormGroup;
-  loading = true;
-  saving = false;
+  loading = signal<boolean>(true);
+  saving = signal<boolean>(false);
+  uploading = signal<boolean>(false);
   estado = '';
 
   inicial = '';
   avatarUrl: string | null = null;
-  uploading = false;
   private readonly maxAvatarMB = 4;
 
   idUsuario: number | null = null;
@@ -32,11 +32,10 @@ export class PerfilComponent implements OnInit {
     'Hipertensión', 'Asma', 'Cardiopatía', 'Colesterol alto'
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private api: PerfilService,
-    private router: Router
-  ) {}
+  private fb = inject(FormBuilder);
+  private api = inject(PerfilService);
+  private router = inject(Router);
+  private cd = inject(ChangeDetectorRef);
 
   get enfArray(): FormArray<FormControl<boolean>> {
     return this.form.get('enfermedades') as FormArray<FormControl<boolean>>;
@@ -82,6 +81,15 @@ export class PerfilComponent implements OnInit {
     }
   }
 
+  calcularIMC(): number {
+    const kg = Number(this.form.get('peso_kg')?.value);
+    const cm = Number(this.form.get('estatura_cm')?.value);
+    if (kg > 0 && cm > 0) {
+      return kg / Math.pow(cm / 100, 2);
+    }
+    return 0;
+  }
+
   private refreshInicial() {
     const nombre = String(this.form.get('nombre_completo')?.value || '').trim();
     const email  = String(this.form.get('email')?.value || '').trim();
@@ -99,11 +107,11 @@ export class PerfilComponent implements OnInit {
   cargar() {
     if (!this.idUsuario) return;
 
-    this.loading = true;
+    this.loading.set(true);
     this.estado = 'Cargando perfil…';
 
     this.api.getPerfil(this.idUsuario)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (p: PerfilVM) => {
           this.form.patchValue({
@@ -126,6 +134,7 @@ export class PerfilComponent implements OnInit {
           this.calcIMC();
           this.refreshInicial();
           this.estado = '';
+          this.cd.detectChanges();
         },
         error: () => (this.estado = 'No se pudo cargar el perfil')
       });
@@ -148,10 +157,10 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
-    this.uploading = true;
+    this.uploading.set(true);
     this.estado = 'Subiendo foto…';
     this.api.uploadAvatar(file, this.idUsuario)
-      .pipe(finalize(() => (this.uploading = false)))
+      .pipe(finalize(() => this.uploading.set(false)))
       .subscribe({
         next: (r: any) => {
           this.avatarUrl = r.foto_url;
@@ -165,10 +174,10 @@ export class PerfilComponent implements OnInit {
 
   removeAvatar() {
     if (!this.avatarUrl || !this.idUsuario) return;
-    this.uploading = true;
+    this.uploading.set(true);
     this.estado = 'Quitando foto…';
     this.api.deleteAvatar(this.idUsuario)
-      .pipe(finalize(() => (this.uploading = false)))
+      .pipe(finalize(() => this.uploading.set(false)))
       .subscribe({
         next: (r: any) => {
           this.avatarUrl = r.foto_url;
@@ -194,10 +203,10 @@ export class PerfilComponent implements OnInit {
       enfermedades
     };
 
-    this.saving = true;
+    this.saving.set(true);
     this.estado = 'Guardando cambios…';
     this.api.savePerfil(payload, this.idUsuario)
-      .pipe(finalize(() => (this.saving = false)))
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
           this.estado = 'Cambios guardados correctamente';

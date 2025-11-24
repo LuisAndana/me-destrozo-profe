@@ -1,192 +1,225 @@
-<section class="perfil">
-  <!-- 🌈 Encabezado del perfil -->
-  <div class="cover">
-    <div class="cover-gradient"></div>
+<!-- perfil.component.html - DISEÑO PREMIUM CLIENTE (CORREGIDO) -->
+<section class="wrap">
+  <!-- 🌈 Encabezado Premium del Perfil -->
+  <header class="topbar container">
+    <div class="title">
+      <h1 class="upper">{{ form.get('nombre_completo')?.value || 'Tu Nombre' }}</h1>
+      <span class="chip">
+        <span class="dot"></span>
+        Cliente FitCoach
+      </span>
+    </div>
 
-    <div class="cover-inner container">
-      <div class="avatar-wrap">
-        <!-- Imagen del avatar o foto cargada -->
-        <img
-          *ngIf="(previewUrl() || perfil()?.fotoUrl) as img"
-          class="avatar"
-          [ngSrc]="img"
-          width="120"
-          height="120"
-          alt="Avatar"
-        />
+    <div class="avatar-stack">
+      <div class="avatar">
+        <img *ngIf="avatarUrl; else inic" [src]="avatarUrl" alt="Foto de perfil" (error)="avatarUrl = null" />
+        <ng-template #inic>
+          <div class="letters">{{ inicial }}</div>
+        </ng-template>
+      </div>
 
-        <!-- Fallback con inicial si no hay foto -->
-        <div *ngIf="!(previewUrl() || perfil()?.fotoUrl)" class="avatar avatar-fallback">
-          {{ (perfil()?.nombre || 'U').slice(0, 1) }}
-        </div>
-
-        <button class="btn btn-outline btn-sm" type="button" (click)="seleccionarAvatar(fileInput)">
-          Cambiar foto
-        </button>
+      <div class="avatar-actions">
         <input
-          #fileInput
+          #avatarInput
+          id="avatarInput"
           type="file"
           accept="image/*"
-          class="hide"
-          (change)="onFileSelected($event)"
+          class="hidden-file"
+          (change)="onAvatarChange($event)"
         />
-      </div>
-
-      <div class="title-wrap">
-        <h1>{{ form.value.nombre || perfil()?.nombre || 'Tu perfil' }}</h1>
-        <p class="muted">{{ perfil()?.email }}</p>
-
-        <div class="chips">
-          <span class="chip" *ngIf="form.value.edad">Edad: {{ form.value.edad }}</span>
-          <span class="chip" *ngIf="form.value.pesoKg">Peso: {{ form.value.pesoKg }} kg</span>
-          <span class="chip" *ngIf="form.value.estaturaCm">Estatura: {{ form.value.estaturaCm }} cm</span>
-          <span class="chip attention" *ngIf="imc() !== null">IMC: {{ imc() }}</span>
-        </div>
-      </div>
-
-      <div class="actions-top">
-        <button class="btn btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
-          Guardar cambios
+        <button 
+          class="btn btn-ghost btn-sm" 
+          type="button" 
+          [disabled]="uploading()"
+          (click)="avatarInput.click()"
+        >
+          <span class="material-icons-outlined">photo_camera</span>
+          {{ uploading() ? 'Subiendo…' : 'Cambiar' }}
         </button>
-        <button class="btn btn-ghost" type="button" (click)="cambiosOpen.set(true)">
-          Ver cambios
+        <button 
+          class="btn btn-danger-ghost btn-sm" 
+          type="button"
+          [disabled]="uploading()"
+          (click)="removeAvatar()"
+        >
+          <span class="material-icons-outlined">close</span> Quitar
         </button>
-        <a class="btn btn-secondary" routerLink="/progreso">Ver progreso</a>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- 🌿 Contenedor principal -->
-  <div class="container layout">
-    <!-- Panel lateral -->
-    <aside class="aside">
-      <div class="card sticky">
-        <h3>Resumen</h3>
-        <ul class="summary">
-          <li><span>Nombre</span><strong>{{ form.value.nombre || perfil()?.nombre || '—' }}</strong></li>
-          <li><span>Sexo</span><strong>{{ form.value.sexo || '—' }}</strong></li>
-          <li><span>Edad</span><strong>{{ form.value.edad || '—' }}</strong></li>
-          <li><span>Peso</span><strong>{{ form.value.pesoKg || '—' }} kg</strong></li>
-          <li><span>Estatura</span><strong>{{ form.value.estaturaCm || '—' }} cm</strong></li>
-          <li><span>IMC</span><strong>{{ imc() ?? '—' }}</strong></li>
-        </ul>
-        <div class="aside-actions">
-          <button class="btn btn-primary btn-block" type="button" [disabled]="guardando()" (click)="guardar()">
-            Guardar
-          </button>
-          <button class="btn btn-outline btn-block" type="button" (click)="cambiosOpen.set(true)">
-            Cambios
-          </button>
+  <main class="container" [formGroup]="form">
+    
+    <!-- SECCIÓN 1: DATOS PERSONALES -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">person</span> Datos Personales</h3>
+      </header>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="label">Nombre Completo</label>
+          <input 
+            type="text" 
+            class="input"
+            [value]="form.get('nombre_completo')?.value || ''"
+            disabled
+            placeholder="Tu nombre completo" 
+          />
         </div>
-      </div>
 
-      <div class="card">
-        <h3>Tips</h3>
-        <p class="muted">
-          Mantén tus datos actualizados para mejorar tus rutinas y el seguimiento personalizado.
-        </p>
-      </div>
-    </aside>
+        <div class="form-group">
+          <label class="label">Email</label>
+          <input 
+            type="email" 
+            class="input"
+            [value]="form.get('email')?.value || ''"
+            disabled
+            placeholder="Tu email" 
+          />
+        </div>
 
-    <!-- 📝 Formulario principal -->
-    <form class="grid" [formGroup]="form" (ngSubmit)="guardar()">
-      <!-- Datos personales -->
-      <div class="card glass">
-        <h3>Datos personales</h3>
-        <label>Nombre
-          <input type="text" formControlName="nombre" placeholder="Tu nombre" />
-        </label>
-        <label>Sexo
-          <select formControlName="sexo">
+        <div class="form-group">
+          <label class="label"><span class="material-icons-outlined">wc</span> Sexo</label>
+          <select class="input" formControlName="sexo">
             <option value="">Seleccionar</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
-            <option value="Otro">Otro</option>
+            <option value="Otro">Otro / Prefiero no decir</option>
           </select>
-        </label>
-        <label>Edad
-          <input type="number" min="0" formControlName="edad" placeholder="Años" />
-        </label>
-      </div>
+        </div>
 
-      <!-- Medidas -->
-      <div class="card glass">
-        <h3>Medidas</h3>
-        <label>Peso (kg)
-          <input type="number" formControlName="pesoKg" step="0.1" min="0" placeholder="Ej. 64.5" />
-        </label>
-        <label>Estatura (cm)
-          <input type="number" formControlName="estaturaCm" step="0.1" min="0" placeholder="Ej. 172" />
-        </label>
-        <div class="imc">
-          <span>IMC estimado:</span>
-          <strong *ngIf="imc() !== null; else imcNulo">{{ imc() }}</strong>
-          <ng-template #imcNulo><span class="muted">—</span></ng-template>
+        <div class="form-group">
+          <label class="label"><span class="material-icons-outlined">calendar_today</span> Edad</label>
+          <input 
+            type="number" 
+            class="input"
+            min="0" 
+            max="120"
+            formControlName="edad" 
+            placeholder="Años" 
+          />
+        </div>
+      </div>
+    </article>
+
+    <!-- SECCIÓN 2: MEDIDAS CORPORALES Y IMC -->
+    <div class="grid-single">
+      <article class="card card-secondary">
+        <header class="card-head-compact">
+          <h3><span class="material-icons-outlined">straighten</span> Medidas Corporales</h3>
+        </header>
+
+        <div class="form-grid">
+          <div class="form-group span-full">
+            <label class="label"><span class="material-icons-outlined">scale</span> Peso (kg)</label>
+            <input 
+              type="number" 
+              class="input"
+              step="0.1" 
+              min="0"
+              formControlName="peso_kg" 
+              placeholder="Ej. 64.5" 
+            />
+          </div>
+
+          <div class="form-group span-full">
+            <label class="label"><span class="material-icons-outlined">height</span> Estatura (cm)</label>
+            <input 
+              type="number" 
+              class="input"
+              step="0.1" 
+              min="0"
+              formControlName="estatura_cm" 
+              placeholder="Ej. 172" 
+            />
+          </div>
+        </div>
+      </article>
+
+      <article class="card card-price">
+        <header class="card-head-compact">
+          <h3><span class="material-icons-outlined">info</span> IMC Estimado</h3>
+        </header>
+
+        <div class="imc-display">
+          <div class="imc-value" *ngIf="form.get('peso_kg')?.value && form.get('estatura_cm')?.value; else imcNulo">
+            {{ calcularIMC() | number:'1.1-1' }}
+          </div>
+          <ng-template #imcNulo>
+            <div class="imc-value">—</div>
+          </ng-template>
+          <p class="imc-label">Índice de Masa Corporal</p>
+          <p class="imc-hint">Completa peso y estatura para calcular</p>
+        </div>
+      </article>
+    </div>
+
+    <!-- SECCIÓN 3: INFORMACIÓN DE SALUD -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">health_and_safety</span> Información de Salud</h3>
+      </header>
+
+      <div class="form-grid">
+        <div class="form-group span-full">
+          <label class="label"><span class="material-icons-outlined">notes</span> Problemas / Observaciones</label>
+          <textarea 
+            class="input textarea"
+            rows="4"
+            formControlName="problemas" 
+            placeholder="Describe lesiones, dificultades, limitaciones, etc."
+          ></textarea>
+        </div>
+
+        <div class="form-group span-full">
+          <label class="label"><span class="material-icons-outlined">vaccines</span> Enfermedades o Condiciones</label>
+          <input 
+            type="text" 
+            class="input"
+            placeholder="Ninguna seleccionada" 
+            disabled
+            [value]="enfermedadesSeleccionadas"
+          />
         </div>
       </div>
 
-      <!-- Salud -->
-      <div class="card glass">
-        <h3>Salud</h3>
-        <label>Problemas / Observaciones
-          <textarea rows="5" formControlName="problemas" placeholder="Describe lesiones, dificultades, etc."></textarea>
-        </label>
-        <label>Enfermedades
-          <input type="text" formControlName="enfermedades" placeholder="Diabetes, Hipertensión, ..." />
-        </label>
+      <!-- Lista de enfermedades comunes -->
+      <div class="enfermedades-section">
+        <label class="label">Selecciona condiciones conocidas:</label>
+        <div class="enfermedades-grid">
+          <label *ngFor="let enf of enfermedadesCatalogo; let i = index" class="checkbox-item">
+            <input 
+              type="checkbox" 
+              [formControl]="getEnfermedadControl(i)"
+              class="checkbox-input"
+            />
+            <span class="checkbox-label">{{ enf }}</span>
+          </label>
+        </div>
       </div>
+    </article>
 
-      <!-- Botones principales -->
-      <div class="full actions-bottom">
-        <button class="btn btn-primary" type="submit" [disabled]="guardando()">Guardar cambios</button>
-        <button class="btn btn-ghost" type="button" (click)="cambiosOpen.set(true)">Ver cambios</button>
-        <a class="btn btn-secondary" routerLink="/progreso">Ver progreso</a>
-      </div>
+  </main>
 
-      <!-- 🕓 Cambios -->
-      <div class="card full">
-        <h3>Últimos cambios</h3>
-        <ul class="timeline" *ngIf="cambios().length; else noCambios">
-          <li *ngFor="let c of cambios()">
-            <div class="dot"></div>
-            <div class="row">
-              <div class="when">{{ c.fecha | date: 'medium' }}</div>
-              <div class="what">{{ c.campo }}</div>
-              <div class="fromto">
-                <span class="from">{{ c.antes ?? '—' }}</span>
-                <span class="arrow">→</span>
-                <span class="to">{{ c.despues ?? '—' }}</span>
-              </div>
-            </div>
-          </li>
-        </ul>
-        <ng-template #noCambios>
-          <p class="muted">No hay cambios registrados.</p>
-        </ng-template>
-      </div>
-    </form>
-  </div>
-
-  <!-- 🪟 Modal -->
-  <div class="modal" *ngIf="cambiosOpen()">
-    <div class="modal-card">
-      <header>
-        <h3>Historial de cambios</h3>
-        <button class="icon" type="button" (click)="cambiosOpen.set(false)">✕</button>
-      </header>
-      <ul class="changes">
-        <li *ngFor="let c of cambios()">
-          <div class="when">{{ c.fecha | date: 'medium' }}</div>
-          <div class="field">{{ c.campo }}</div>
-          <div class="fromto">
-            <span class="from">{{ c.antes ?? '—' }}</span>
-            <span class="arrow">→</span>
-            <span class="to">{{ c.despues ?? '—' }}</span>
-          </div>
-        </li>
-        <li *ngIf="!cambios().length" class="muted">Sin cambios aún.</li>
-      </ul>
-    </div>
-    <div class="backdrop" (click)="cambiosOpen.set(false)"></div>
-  </div>
+  <!-- FOOTER CON ACCIONES FIJAS -->
+  <footer class="actions container">
+    <button 
+      class="btn btn-ghost" 
+      type="button"
+      (click)="cancelar()"
+      [disabled]="saving()"
+    >
+      <span class="material-icons-outlined">cancel</span> Cancelar
+    </button>
+    <button 
+      class="btn btn-accent" 
+      type="button"
+      [disabled]="saving()"
+      (click)="guardar()"
+    >
+      <span class="material-icons-outlined">{{ saving() ? 'hourglass_top' : 'check' }}</span>
+      {{ saving() ? 'Guardando...' : 'Guardar Cambios' }}
+    </button>
+  </footer>
 </section>

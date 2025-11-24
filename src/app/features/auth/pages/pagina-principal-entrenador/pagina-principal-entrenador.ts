@@ -6,14 +6,13 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { inject } from '@angular/core';
 import { ClienteEntrenadorService } from '../../../../core/services/cliente-entrenador.service';
-
-// ✨ IMPORTACIÓN CORRECTA DEL MODAL (VERIFICA LA RUTA)
+import { MensajesService } from '../../../../core/services/mensajes.service';
+import { ResenaService } from '../../../../core/services/resena.service';
 import { ConfirmLogoutModalComponent } from '../../../../core/confirm-logout-modal/confirm-logout-modal.component';
 
 @Component({
   selector: 'app-pagina-principal-entrenador',
   standalone: true,
-  // ✨ IMPORTANTE: Agregar el modal al array de imports
   imports: [CommonModule, RouterModule, ConfirmLogoutModalComponent],
   templateUrl: './pagina-principal-entrenador.html',
   styleUrls: ['./pagina-principal-entrenador.css'],
@@ -21,6 +20,8 @@ import { ConfirmLogoutModalComponent } from '../../../../core/confirm-logout-mod
 })
 export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   private clienteEntrenadorSvc = inject(ClienteEntrenadorService);
+  private mensajesSvc = inject(MensajesService);
+  private resenasSvc = inject(ResenaService);
   private router = inject(Router);
   private destroy$ = new Subject<void>();
 
@@ -29,8 +30,6 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   // ============================================================
   menuOpen = false;
   collapsed = false;
-  
-  // ✨ SIGNAL PARA CONTROLAR SI EL MODAL ESTÁ ABIERTO
   showLogoutModal = signal(false);
 
   // ============================================================
@@ -39,14 +38,17 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   nombre = 'Entrenador';
   inicial = 'E';
   fotoUrl = '';
+  idUsuario = 0;
 
   // ============================================================
-  // TRAINER DATA
+  // DATOS REALES - DINÁMICOS
   // ============================================================
-  sesionesHoy = 0;
   clientesActivos = 0;
+  rating = '0.0';
+  ratingStars = '⭐☆☆☆☆';
   mensajesNuevos = 0;
-  rating = 4.8;
+  totalResenas = 0;
+  loading = signal(true);
 
   // ============================================================
   // LIFECYCLE
@@ -54,8 +56,8 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🟢 [INIT] PaginaPrincipalEntrenador inicializado');
     this.cargarDatosUsuario();
-    this.cargarClientesActivos();
-    this.cargarEstadisticas();
+    this.cargarDatos();
+    this.suscribirMensajesNoLeidos();
   }
 
   ngOnDestroy(): void {
@@ -75,12 +77,12 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
       const rawUser = localStorage.getItem('usuario');
       if (rawUser) {
         const usuario = JSON.parse(rawUser);
+        this.idUsuario = usuario.id || usuario.id_usuario || 0;
         this.nombre = usuario.nombre || 'Entrenador';
         this.inicial = (usuario.nombre?.charAt(0) || 'E').toUpperCase();
         this.fotoUrl = usuario.foto_url || usuario.fotoUrl || '';
         
-        console.log('✅ [Usuario] Cargado:', this.nombre);
-        console.log('📸 [Foto] URL:', this.fotoUrl);
+        console.log('✅ [Usuario] Cargado:', this.nombre, 'ID:', this.idUsuario);
       } else {
         console.warn('⚠️ [Usuario] No encontrado en localStorage');
       }
@@ -92,7 +94,23 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga la cantidad de clientes activos
+   * Carga todos los datos reales
+   */
+  private cargarDatos(): void {
+    this.loading.set(true);
+    
+    // Cargar clientes activos
+    this.cargarClientesActivos();
+    
+    // Cargar calificación
+    this.cargarCalificacion();
+    
+    // Cargar mensajes nuevos
+    this.cargarMensajesNuevos();
+  }
+
+  /**
+   * Carga la cantidad de clientes activos desde la API
    */
   private cargarClientesActivos(): void {
     console.log('🟦 [CARGA] Obteniendo clientes activos...');
@@ -112,38 +130,88 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga estadísticas generales
+   * Carga la calificación del entrenador desde la API
    */
-  private cargarEstadisticas(): void {
-    console.log('🟦 [CARGA] Cargando estadísticas...');
+  private cargarCalificacion(): void {
+    console.log('🟦 [CARGA] Obteniendo calificación del entrenador...');
     
-    // Sesiones de hoy
-    this.sesionesHoy = 0;
-    
-    // Mensajes nuevos
-    this.mensajesNuevos = 0;
-    
-    // Calificación
-    this.rating = 4.8;
+    if (!this.idUsuario) {
+      console.warn('⚠️ ID de usuario no disponible');
+      return;
+    }
+
+    this.resenasSvc.obtenerEstadisticasEntrenador(this.idUsuario)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (estadisticas) => {
+          // Obtener promedio de calificación
+          this.rating = (estadisticas.promedio_calificacion || 0).toFixed(1);
+          this.totalResenas = estadisticas.total_resenas || 0;
+          
+          // Convertir a estrellas
+          this.ratingStars = this.generarEstrellas(parseFloat(this.rating));
+          
+          console.log('✅ [Calificación] Rating:', this.rating, 'Reseñas:', this.totalResenas);
+        },
+        error: (err) => {
+          console.error('❌ [Error] Al cargar calificación:', err);
+          this.rating = '0.0';
+          this.ratingStars = '⭐☆☆☆☆';
+          this.totalResenas = 0;
+        }
+      });
   }
 
-  // ============================================================
-  // PUBLIC METHODS - UI CONTROL
-  // ============================================================
-
   /**
-   * Alterna el colapso del menú
+   * Carga mensajes nuevos desde la API
    */
-  toggleCollapse(): void {
-    this.collapsed = !this.collapsed;
-    console.log('🟦 [Sidebar] Colapsado:', this.collapsed);
+  private cargarMensajesNuevos(): void {
+    console.log('🟦 [CARGA] Obteniendo mensajes nuevos...');
+    
+    if (!this.idUsuario) {
+      console.warn('⚠️ ID de usuario no disponible');
+      this.loading.set(false);
+      return;
+    }
+
+    this.mensajesSvc.contarMensajesNoLeidos(this.idUsuario)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (resultado) => {
+          this.mensajesNuevos = resultado.no_leidos || 0;
+          console.log('✅ [Mensajes] Nuevos:', this.mensajesNuevos);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('❌ [Error] Al cargar mensajes:', err);
+          this.mensajesNuevos = 0;
+          this.loading.set(false);
+        }
+      });
   }
 
   /**
-   * Abre/cierra el menú móvil
+   * Se suscribe al observable de mensajes no leídos para actualizaciones en tiempo real
    */
-  toggleMenu(): void {
-    this.menuOpen = !this.menuOpen;
+  private suscribirMensajesNoLeidos(): void {
+    this.mensajesSvc.mensajesNoLeidos$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cantidad) => {
+          this.mensajesNuevos = cantidad;
+          console.log('📬 [Mensajes] Actualizado a:', cantidad);
+        },
+        error: (err) => console.error('❌ Error en suscripción mensajes:', err)
+      });
+  }
+
+  /**
+   * Convierte un número a estrellas
+   */
+  private generarEstrellas(rating: number): string {
+    const llenas = Math.round(rating);
+    const vacías = 5 - llenas;
+    return '⭐'.repeat(Math.min(llenas, 5)) + '☆'.repeat(Math.max(vacías, 0));
   }
 
   // ============================================================
@@ -151,8 +219,7 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   // ============================================================
 
   /**
-   * ✨ ABRE EL MODAL DE CONFIRMACIÓN DE LOGOUT
-   * Se ejecuta cuando el usuario hace click en "Salir"
+   * Abre el modal de confirmación de logout
    */
   openLogoutModal(): void {
     console.log('🟦 [Modal] Abriendo modal de logout...');
@@ -160,26 +227,20 @@ export class PaginaPrincipalEntrenador implements OnInit, OnDestroy {
   }
 
   /**
-   * ✨ CONFIRMA EL LOGOUT Y REDIRIGE A BIENVENIDA
-   * Se ejecuta cuando el usuario hace click en "Sí, cerrar sesión"
+   * Confirma el logout y redirige a bienvenida
    */
   confirmLogout(): void {
     console.log('🟦 [LOGOUT] Cerrando sesión...');
-    
-    // Limpiar todos los datos del usuario
     localStorage.removeItem('token');
     localStorage.removeItem('gym_token');
     localStorage.removeItem('usuario');
     localStorage.removeItem('gym_user');
-    
-    // Cerrar modal y redirigir
     this.showLogoutModal.set(false);
     this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 
   /**
-   * ✨ CANCELA EL LOGOUT Y CIERRA EL MODAL
-   * Se ejecuta cuando el usuario hace click en "Cancelar"
+   * Cancela el logout y cierra el modal
    */
   cancelLogout(): void {
     console.log('🟦 [Modal] Cerrando modal de logout...');

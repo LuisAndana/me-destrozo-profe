@@ -143,29 +143,37 @@ export class PaginaPrincipalCliente implements OnInit {
 
   /**
    * Navega a la página de rutina del cliente
+   * Ruta correcta: /rutina
    */
   verRutina(): void {
-    this.router.navigate(['/cliente/rutina']);
+    console.log('✅ Navegando a /rutina');
+    this.router.navigate(['/rutina']);
   }
 
   /**
-   * Navega a la página de calificación
+   * Navega a la página de entrenadores para calificar
+   * Ruta correcta: /entrenadores
    */
   calificar(): void {
-    this.router.navigate(['/cliente/calificar']);
+    console.log('✅ Navegando a /entrenadores');
+    this.router.navigate(['/entrenadores']);
   }
 
   /**
    * Navega a la página de mensajes
+   * Ruta correcta: /mensajes
    */
   verMensajes(): void {
-    this.router.navigate(['/cliente/mensajes']);
+    console.log('✅ Navegando a /mensajes');
+    this.router.navigate(['/mensajes']);
   }
 
   /**
    * Navega al perfil del cliente
+   * Ruta correcta: /perfil
    */
   irAPerfil(): void {
-    this.router.navigate(['/cliente/perfil']);
+    console.log('✅ Navegando a /perfil');
+    this.router.navigate(['/perfil']);
   }
 }

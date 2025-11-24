@@ -1,122 +1,85 @@
 <!-- features/auth/pages/pagina-principal-entrenador/pagina-principal-entrenador.html -->
-<!-- ASEGÚRATE QUE EL MODAL ESTÉ AL FINAL (LÍNEA POR LÍNEA) -->
+<div class="page-wrap">
 
-<!-- Hero con imagen de fondo -->
-<section class="hero" style="--hero-bg: url('https://images.unsplash.com/photo-1517963628607-8e2e9a9da4d6?auto=format&fit=crop&w=1600&q=80')">
-  <div class="container hero-inner edge-left">
-    <div class="hero-content">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="container hero-inner">
       <h1>Impulsa a tus clientes al siguiente nivel</h1>
       <p class="sub">Gestiona rutinas, sigue su progreso y mantén la motivación constante.</p>
       <div class="hero-actions">
         <a routerLink="/entrenador/mis-clientes" class="btn btn-accent btn-lg btn-glow">
-          <span>👥 Gestionar clientes</span>
+          <span> Gestionar clientes</span>
         </a>
         <a routerLink="/entrenador/resenas" class="btn btn-outline-light btn-lg">
           <span>⭐ Ver reseñas</span>
         </a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- Cards Grid -->
-<section class="container grid edge-left">
-  
-  <!-- Card: Mis Clientes -->
-  <article class="card">
-    <header>
-      <h3>👥 Mis Clientes</h3>
-      <span class="badge">{{ clientesActivos }}</span>
-    </header>
-    <ul class="list">
-      <li *ngIf="clientesActivos === 0">No tienes clientes asignados aún.</li>
-      <li *ngIf="clientesActivos > 0">Tienes <strong>{{ clientesActivos }} clientes</strong> activos.</li>
-    </ul>
-    <a routerLink="/entrenador/mis-clientes" class="btn btn-secondary btn-block">
-      Ver detalles
-    </a>
-  </article>
+  <!-- Cards Grid -->
+  <section class="container grid" *ngIf="!loading()">
+    
+    <!-- Card: Mis Clientes -->
+    <article class="card">
+      <header>
+        <h3>Mis Clientes</h3>
+        <span class="badge">{{ clientesActivos }}</span>
+      </header>
+      <p class="card-description">Gestiona tus clientes y sus rutinas personalizadas</p>
+      <ul class="list">
+        <li *ngIf="clientesActivos === 0">No tienes clientes asignados aún.</li>
+        <li *ngIf="clientesActivos === 1">Tienes <strong>1 cliente</strong> activo.</li>
+        <li *ngIf="clientesActivos > 1">Tienes <strong>{{ clientesActivos }} clientes</strong> activos.</li>
+      </ul>
+      <button routerLink="/entrenador/mis-clientes" class="btn btn-primary btn-block">Ver detalles</button>
+    </article>
 
-  <!-- Card: Tu Calificación -->
-  <article class="card">
-    <header>
-      <h3>⭐ Tu Calificación</h3>
-      <span class="badge">4.8/5</span>
-    </header>
-    <div class="stat">
-      <div class="rating-display">
-        <span class="rating-number">4.8</span>
-        <span class="rating-label">de 5 estrellas</span>
+    <!-- Card: Tu Calificación -->
+    <article class="card">
+      <header>
+        <h3>⭐ Tu Calificación</h3>
+        <span class="badge badge-info">{{ rating }}/5</span>
+      </header>
+      <p class="card-description">Tu reputación según tus clientes</p>
+      <div class="stat">
+        <div class="rating-display">
+          <span class="rating-stars">{{ ratingStars }}</span>
+          <span class="rating-number">{{ rating }}</span>
+          <span class="rating-label">de 5 estrellas</span>
+        </div>
       </div>
-    </div>
-    <p class="muted">Basado en las reseñas de tus clientes</p>
-    <a routerLink="/entrenador/resenas" class="btn btn-secondary btn-block">
-      Ver reseñas
-    </a>
-  </article>
+      <p class="muted">Basado en las reseñas de tus clientes</p>
+      <button routerLink="/entrenador/resenas" class="btn btn-primary btn-block">Ver reseñas</button>
+    </article>
 
-  <!-- Card: Mensajes -->
-  <article class="card">
-    <header>
-      <h3>💬 Mensajes</h3>
-      <span class="badge badge-info" *ngIf="mensajesNuevos > 0">{{ mensajesNuevos }} nuevos</span>
-      <span class="badge" *ngIf="mensajesNuevos === 0">Actualizados</span>
-    </header>
-    <p class="muted" *ngIf="mensajesNuevos === 0">No tienes mensajes nuevos.</p>
-    <p class="muted" *ngIf="mensajesNuevos > 0">
-      Tienes <strong>{{ mensajesNuevos }} mensajes nuevos</strong> de tus clientes.
-    </p>
-    <a routerLink="/mensajes" class="btn btn-secondary btn-block">
-      Ver mensajes
-    </a>
-  </article>
+    <!-- Card: Mensajes -->
+    <article class="card">
+      <header>
+        <h3>💬 Mensajes</h3>
+        <span class="badge badge-info" *ngIf="mensajesNuevos > 0">{{ mensajesNuevos }} nuevos</span>
+        <span class="badge badge-muted" *ngIf="mensajesNuevos === 0">Actualizados</span>
+      </header>
+      <p class="card-description">Comunícate con tus clientes</p>
+      <p class="muted" *ngIf="mensajesNuevos === 0">No tienes mensajes nuevos.</p>
+      <p class="highlight" *ngIf="mensajesNuevos === 1">Tienes <strong>1 mensaje</strong> sin leer.</p>
+      <p class="highlight" *ngIf="mensajesNuevos > 1">Tienes <strong>{{ mensajesNuevos }} mensajes</strong> sin leer.</p>
+      <button routerLink="/mensajes" class="btn btn-primary btn-block">Ver mensajes</button>
+    </article>
 
-  <!-- Card: Rutinas -->
-  <article class="card">
-    <header>
-      <h3>💪 Rutinas</h3>
-      <span class="badge badge-info">Gestionar</span>
-    </header>
-    <p class="muted">Crea y personaliza rutinas de entrenamiento para tus clientes.</p>
-    <a routerLink="/entrenador/mis-clientes" class="btn btn-secondary btn-block">
-      Crear rutina
-    </a>
-  </article>
+  </section>
 
-  <!-- Card: Próximas Sesiones -->
-  <article class="card">
-    <header>
-      <h3>📅 Sesiones</h3>
-      <span class="badge">Hoy: {{ sesionesHoy }}</span>
-    </header>
-    <p class="muted" *ngIf="sesionesHoy === 0">No tienes sesiones programadas hoy.</p>
-    <p class="muted" *ngIf="sesionesHoy > 0">
-      Tienes <strong>{{ sesionesHoy }} sesiones</strong> programadas para hoy.
-    </p>
-    <a routerLink="/calendario" class="btn btn-secondary btn-block">
-      Ver calendario
-    </a>
-  </article>
+  <!-- Loading State -->
+  <section class="container grid" *ngIf="loading()">
+    <div class="card loading-card"></div>
+    <div class="card loading-card"></div>
+    <div class="card loading-card"></div>
+  </section>
 
-  <!-- Card: Perfil -->
-  <article class="card">
-    <header>
-      <h3>👤 Tu Perfil</h3>
-      <span class="badge">{{ nombre }}</span>
-    </header>
-    <p class="muted">Mantén tu perfil actualizado para que tus clientes te encuentren fácilmente.</p>
-    <a routerLink="/entrenador/perfil" class="btn btn-secondary btn-block">
-      Editar perfil
-    </a>
-  </article>
+</div>
 
-</section>
-
-<!-- 
-  ✨✨✨ MODAL DE LOGOUT ✨✨✨ 
-  ⚠️ IMPORTANTE: DEBE ESTAR AQUÍ AL FINAL, AFUERA DE TODAS LAS <section>
-  NO lo muevas de aquí, o no funcionará correctamente
--->
+<!-- MODAL DE LOGOUT -->
 <app-confirm-logout-modal
   [isOpen]="showLogoutModal()"
   (confirmed)="confirmLogout()"

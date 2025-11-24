@@ -616,22 +616,18 @@
 }
 
 /* ===========================
-   TIMELINE (Educación, Cursos, etc)
+   EVIDENCIA / IMÁGENES
    =========================== */
-.timeline-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
 
-.timeline-item {
+/* Timeline item con imagen */
+.timeline-item-with-image {
   position: relative;
   padding-left: 2rem;
   padding-bottom: 1.5rem;
   border-left: 2px solid #334155;
 }
 
-.timeline-item:last-child {
+.timeline-item-with-image:last-child {
   padding-bottom: 0;
   border-left-color: transparent;
 }
@@ -649,7 +645,7 @@
   transition: all 250ms ease;
 }
 
-.timeline-item:hover .timeline-marker {
+.timeline-item-with-image:hover .timeline-marker {
   background: #818cf8;
   transform: scale(1.2);
 }
@@ -668,34 +664,144 @@
 }
 
 .timeline-date {
-  margin: 0;
+  margin: 0 0 0.75rem;
   font-size: 0.8rem;
   color: #94a3b8;
 }
 
-/* ===========================
-   LOGROS (Diseño especial)
-   =========================== */
-.achievements-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.timeline-description {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+/* Galería de evidencia */
+.evidence-gallery {
+  margin-top: 1rem;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
-.achievement-item {
+/* ✅ TAMAÑO UNIFORME PARA TODAS LAS IMÁGENES */
+.evidence-item {
+  position: relative;
+  flex: 0 0 auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 2px solid #334155;
+  background: #0f1419;
+  transition: all 250ms ease;
+  group: "evidence";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.evidence-item:hover {
+  border-color: #6366f1;
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+.evidence-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 250ms ease;
+  cursor: zoom-in;
+  display: block;
+}
+
+.evidence-item:hover .evidence-image {
+  filter: brightness(0.8);
+}
+
+.evidence-link {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  text-decoration: none;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 250ms ease;
+  backdrop-filter: blur(4px);
+  padding: 0.5rem;
+  text-align: center;
+  flex-direction: column;
+}
+
+.evidence-item:hover .evidence-link {
+  opacity: 1;
+}
+
+.evidence-link:hover {
+  color: #818cf8;
+}
+
+/* ✅ CERTIFICADOS CON MISMO TAMAÑO UNIFORME */
+.evidence-item.certificate {
+  width: 180px;
+  height: 180px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.evidence-item.certificate:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.3);
+}
+
+.certificate-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  padding: 0;
+  background: linear-gradient(135deg, #1e293b 0%, #1a2537 100%);
+}
+
+.certificate-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  z-index: 10;
+}
+
+.certificate-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Logros con evidencia */
+.achievement-item-with-image {
   display: flex;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.5rem;
   background: rgba(51, 65, 85, 0.3);
   border: 1px solid #334155;
   border-radius: 0.75rem;
   transition: all 250ms ease;
 }
 
-.achievement-item:hover {
+.achievement-item-with-image:hover {
   background: rgba(51, 65, 85, 0.5);
   border-color: #475569;
   transform: translateY(-2px);
@@ -733,10 +839,75 @@
 }
 
 .achievement-desc {
-  margin: 0;
+  margin: 0 0 0.75rem;
   font-size: 0.9rem;
   color: #cbd5e1;
   line-height: 1.5;
+}
+
+.achievement-evidence {
+  margin-top: 0.75rem;
+}
+
+/* ✅ TAMAÑO UNIFORME PARA LOGROS */
+.achievement-evidence-item {
+  width: 150px;
+  height: 150px;
+  flex: 0 0 auto;
+  border: 2px solid #334155;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #0f1419;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 250ms ease;
+  position: relative;
+}
+
+.achievement-evidence-item:hover {
+  border-color: #fbbf24;
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
+}
+
+.achievement-evidence-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.achievement-evidence-item:hover .achievement-evidence-image {
+  filter: brightness(0.8);
+}
+
+.achievement-evidence-link {
+  font-size: 0.75rem;
+  padding: 0.25rem;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 250ms ease;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.achievement-evidence-item:hover .achievement-evidence-link {
+  opacity: 1;
+}
+
+/* ===========================
+   SECCIÓN DE RESEÑAS
+   =========================== */
+.section-resenas {
+  margin-top: 3rem;
+}
+
+.resenas-card {
+  background: linear-gradient(135deg, #1e293b 0%, #1a2537 100%);
 }
 
 /* ===========================
@@ -837,6 +1008,17 @@
   }
 }
 
+@keyframes imageLoadIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .hero-section,
 .main-content > * {
   animation: fadeIn 0.6s ease-out;
@@ -851,6 +1033,14 @@
 .card:nth-child(2) { animation-delay: 0.2s; }
 .card:nth-child(3) { animation-delay: 0.3s; }
 .card:nth-child(4) { animation-delay: 0.4s; }
+
+.evidence-item {
+  animation: imageLoadIn 0.4s ease-out;
+}
+
+.evidence-item:nth-child(1) { animation-delay: 0.1s; }
+.evidence-item:nth-child(2) { animation-delay: 0.2s; }
+.evidence-item:nth-child(3) { animation-delay: 0.3s; }
 
 /* ===========================
    RESPONSIVE
@@ -913,6 +1103,26 @@
     font-size: 0.95rem;
     padding: 0.875rem 1rem;
   }
+
+  /* ✅ Tamaño consistente en tablet */
+  .evidence-item {
+    width: 150px;
+    height: 150px;
+  }
+
+  .evidence-item.certificate {
+    width: 150px;
+    height: 150px;
+  }
+
+  .achievement-evidence-item {
+    width: 130px;
+    height: 130px;
+  }
+
+  .evidence-gallery {
+    gap: 0.75rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -944,11 +1154,54 @@
   .estado-contrato {
     padding: 0 1rem;
   }
+
+  /* ✅ Tamaño consistente en mobile */
+  .evidence-item {
+    width: 120px;
+    height: 120px;
+  }
+
+  .evidence-item.certificate {
+    width: 120px;
+    height: 120px;
+  }
+
+  .achievement-evidence-item {
+    width: 110px;
+    height: 110px;
+  }
+
+  .evidence-link {
+    font-size: 0.7rem;
+  }
 }
 
 .center-frame.hero-content,
-.center-frame.main-content{
+.center-frame.main-content {
   max-width: min(1200px, 100% - clamp(24px, 6vw, 64px));
   margin-inline: auto !important;
   width: 100%;
+}
+
+/* ===========================
+   INFO SECTION
+   =========================== */
+.info-section {
+  animation: fadeIn 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.info-section:nth-child(1) { animation-delay: 0.2s; }
+.info-section:nth-child(2) { animation-delay: 0.3s; }
+.info-section:nth-child(3) { animation-delay: 0.4s; }
+.info-section:nth-child(4) { animation-delay: 0.5s; }
+
+/* Achievements List */
+.achievements-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }

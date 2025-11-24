@@ -214,7 +214,7 @@
         </div>
       </section>
 
-      <!-- EDUCACIÓN -->
+      <!-- ===== EDUCACIÓN CON IMÁGENES ===== -->
       <section class="info-section">
         <div class="section-header">
           <div class="icon-wrapper">
@@ -228,12 +228,27 @@
         </div>
         <div class="card">
           <ul class="timeline-list" *ngIf="t.perfil?.educacion?.length; else noEdu">
-            <li *ngFor="let e of t.perfil?.educacion" class="timeline-item">
+            <li *ngFor="let e of t.perfil?.educacion" class="timeline-item-with-image">
               <div class="timeline-marker"></div>
               <div class="timeline-content">
                 <h3 class="timeline-title">{{ e.titulo }}</h3>
                 <p class="timeline-subtitle">{{ e.institucion }}</p>
                 <p class="timeline-date">{{ e.inicio || '—' }} – {{ e.fin || '—' }}</p>
+                <p class="timeline-description" *ngIf="e.descripcion">{{ e.descripcion }}</p>
+                
+                <!-- Mostrar evidencia/imagen -->
+                <div class="evidence-gallery" *ngIf="e.evidenciaUrl">
+                  <div class="evidence-item">
+                    <img [src]="e.evidenciaUrl" [alt]="e.titulo" class="evidence-image" />
+                    <a [href]="e.evidenciaUrl" target="_blank" class="evidence-link">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 21H3V3h9V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-9h-2v9z"/>
+                        <path d="M17 1h6v6m-13 5l8.5-8.5"/>
+                      </svg>
+                      Ver en grande
+                    </a>
+                  </div>
+                </div>
               </div>
             </li>
           </ul>
@@ -248,7 +263,7 @@
         </div>
       </section>
 
-      <!-- CURSOS -->
+      <!-- ===== CURSOS CON IMÁGENES ===== -->
       <section class="info-section">
         <div class="section-header">
           <div class="icon-wrapper">
@@ -260,12 +275,26 @@
         </div>
         <div class="card">
           <ul class="timeline-list" *ngIf="t.perfil?.cursos?.length; else noCur">
-            <li *ngFor="let c of t.perfil?.cursos" class="timeline-item">
+            <li *ngFor="let c of t.perfil?.cursos" class="timeline-item-with-image">
               <div class="timeline-marker"></div>
               <div class="timeline-content">
                 <h3 class="timeline-title">{{ c.titulo }}</h3>
                 <p class="timeline-subtitle">{{ c.institucion }}</p>
                 <p class="timeline-date" *ngIf="c.fecha">{{ c.fecha }}</p>
+                
+                <!-- Mostrar evidencia/imagen -->
+                <div class="evidence-gallery" *ngIf="c.evidenciaUrl">
+                  <div class="evidence-item">
+                    <img [src]="c.evidenciaUrl" [alt]="c.titulo" class="evidence-image" />
+                    <a [href]="c.evidenciaUrl" target="_blank" class="evidence-link">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 21H3V3h9V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-9h-2v9z"/>
+                        <path d="M17 1h6v6m-13 5l8.5-8.5"/>
+                      </svg>
+                      Ver en grande
+                    </a>
+                  </div>
+                </div>
               </div>
             </li>
           </ul>
@@ -284,7 +313,7 @@
     <!-- COLUMNA DERECHA -->
     <div class="right-column">
       
-      <!-- DIPLOMAS -->
+      <!-- ===== CERTIFICACIONES/DIPLOMAS CON IMÁGENES ===== -->
       <section class="info-section">
         <div class="section-header">
           <div class="icon-wrapper">
@@ -296,12 +325,32 @@
         </div>
         <div class="card">
           <ul class="timeline-list" *ngIf="t.perfil?.diplomas?.length; else noDip">
-            <li *ngFor="let d of t.perfil?.diplomas" class="timeline-item">
+            <li *ngFor="let d of t.perfil?.diplomas" class="timeline-item-with-image">
               <div class="timeline-marker"></div>
               <div class="timeline-content">
                 <h3 class="timeline-title">{{ d.titulo }}</h3>
                 <p class="timeline-subtitle">{{ d.institucion }}</p>
                 <p class="timeline-date" *ngIf="d.fecha">{{ d.fecha }}</p>
+                
+                <!-- Mostrar evidencia/imagen (CERTIFICADO) -->
+                <div class="evidence-gallery" *ngIf="d.evidenciaUrl">
+                  <div class="evidence-item certificate">
+                    <img [src]="d.evidenciaUrl" [alt]="d.titulo" class="evidence-image certificate-image" />
+                    <div class="certificate-badge">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      Verificado
+                    </div>
+                    <a [href]="d.evidenciaUrl" target="_blank" class="evidence-link">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 21H3V3h9V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-9h-2v9z"/>
+                        <path d="M17 1h6v6m-13 5l8.5-8.5"/>
+                      </svg>
+                      Ver certificado
+                    </a>
+                  </div>
+                </div>
               </div>
             </li>
           </ul>
@@ -316,7 +365,7 @@
         </div>
       </section>
 
-      <!-- LOGROS -->
+      <!-- ===== LOGROS Y RECONOCIMIENTOS CON IMÁGENES ===== -->
       <section class="info-section">
         <div class="section-header">
           <div class="icon-wrapper">
@@ -327,8 +376,8 @@
           <h2>Logros y Reconocimientos</h2>
         </div>
         <div class="card">
-          <ul class="achievements-list" *ngIf="t.perfil?.logros?.length; else noLog">
-            <li *ngFor="let l of t.perfil?.logros" class="achievement-item">
+          <div class="achievements-list" *ngIf="t.perfil?.logros?.length; else noLog">
+            <div *ngFor="let l of t.perfil?.logros" class="achievement-item-with-image">
               <div class="achievement-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -338,9 +387,22 @@
                 <h3 class="achievement-title">{{ l.titulo }}</h3>
                 <p class="achievement-year" *ngIf="l.anio">{{ l.anio }}</p>
                 <p class="achievement-desc" *ngIf="l.descripcion">{{ l.descripcion }}</p>
+                
+                <!-- Mostrar evidencia/imagen (PREMIO/TROFEO) -->
+                <div class="evidence-gallery achievement-evidence" *ngIf="l.evidenciaUrl">
+                  <div class="evidence-item achievement-evidence-item">
+                    <img [src]="l.evidenciaUrl" [alt]="l.titulo" class="evidence-image achievement-evidence-image" />
+                    <a [href]="l.evidenciaUrl" target="_blank" class="evidence-link achievement-evidence-link">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 21H3V3h9V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-9h-2v9z"/>
+                        <path d="M17 1h6v6m-13 5l8.5-8.5"/>
+                      </svg>
+                    </a>
+                  </div>
+                </div>
               </div>
-            </li>
-          </ul>
+            </div>
+          </div>
           <ng-template #noLog>
             <p class="empty-state-small">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -353,7 +415,8 @@
       </section>
     </div>
   </div>
-   <!-- ✅ SECCIÓN DE RESEÑAS -->
+
+  <!-- ✅ SECCIÓN DE RESEÑAS -->
   <section class="section-resenas">
     <div class="section-header">
       <div class="icon-wrapper">
@@ -381,7 +444,5 @@
       <div class="skeleton-card"></div>
       <div class="skeleton-card"></div>
     </div>
-    
   </div>
 </ng-template>
-

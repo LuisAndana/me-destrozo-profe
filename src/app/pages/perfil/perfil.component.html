@@ -1,147 +1,231 @@
-<form class="perfil ui-pro" [formGroup]="form" (ngSubmit)="guardar()">
-  <!-- HERO / encabezado -->
-  <section class="card profile-hero">
-    <!-- Columna del avatar -->
-    <div class="avatar-col">
-      <div class="avatar-lg ring">
-        <ng-container *ngIf="avatarUrl; else inicialTpl">
-          <img
-            [src]="avatarUrl"
-            alt="Foto de perfil"
-            class="avatar-img"
-            (error)="avatarUrl = null" />
-        </ng-container>
-        <ng-template #inicialTpl>
-          <span class="avatar-inicial">{{ inicial || '👤' }}</span>
-        </ng-template>
-      </div>
+<!-- perfil.component.html - DISEÑO PREMIUM -->
+<section class="wrap" *ngIf="!loading()">
+  <!-- 🌈 TOPBAR PREMIUM -->
+  <header class="topbar container">
+    <div class="title">
+      <h1 class="upper">{{ form.get('nombre_completo')?.value || 'Tu Nombre' }}</h1>
+      <span class="chip">
+        <span class="dot"></span>
+        Cliente FitCoach
+      </span>
     </div>
 
-    <!-- Columna de datos + acciones -->
-    <div class="hero-meta">
-      <h2 class="name">{{ form.get('nombre_completo')?.value || 'Tu nombre' }}</h2>
-      <p class="email muted">{{ form.get('email')?.value || '' }}</p>
+    <div class="avatar-stack">
+      <div class="avatar">
+        <img *ngIf="avatarUrl; else inic" [src]="avatarUrl" alt="Foto de perfil" (error)="avatarUrl = null" />
+        <ng-template #inic>
+          <div class="letters">{{ inicial }}</div>
+        </ng-template>
+      </div>
 
       <div class="avatar-actions">
-        <!-- input oculto accesible -->
         <input
           #avatarInput
           id="avatarInput"
           type="file"
           accept="image/*"
+          class="hidden-file"
           (change)="onAvatarChange($event)"
-          class="visually-hidden" />
-
-        <button
-          type="button"
-          class="btn primary tiny"
+        />
+        <button 
+          class="btn btn-ghost btn-sm" 
+          type="button" 
+          [disabled]="uploading()"
           (click)="avatarInput.click()"
-          [disabled]="uploading">
-          {{ uploading ? 'Subiendo…' : 'Cambiar foto' }}
+        >
+          <span class="material-icons-outlined">photo_camera</span>
+          {{ uploading() ? 'Subiendo…' : 'Cambiar' }}
         </button>
-
-        <button
-          *ngIf="avatarUrl"
+        <button 
+          class="btn btn-danger-ghost btn-sm" 
           type="button"
-          class="btn ghost tiny"
+          [disabled]="uploading()"
           (click)="removeAvatar()"
-          [disabled]="uploading">
-          Quitar foto
+        >
+          <span class="material-icons-outlined">close</span> Quitar
         </button>
       </div>
     </div>
-  </section>
+  </header>
 
-  <!-- GRID principal -->
-  <div class="grid-2">
-    <!-- Problemas -->
-    <section class="card block">
-      <h3 class="card-title">Problemas / antecedentes</h3>
-      <label class="field full">
-        <span class="sr-only">Problemas / antecedentes</span>
-        <textarea
-          class="textarea large"
-          formControlName="problemas"
-          placeholder="Describe lesiones, limitaciones o antecedentes médicos"></textarea>
-        <span class="help muted">
-          Mientras más contexto nos des, mejor se ajustarán tus rutinas.
-        </span>
-      </label>
-    </section>
+  <main class="container" [formGroup]="form">
+    
+    <!-- SECCIÓN 1: DATOS PERSONALES -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">person</span> Datos Personales</h3>
+      </header>
 
-    <!-- Datos físicos -->
-    <section class="card block">
-      <h3 class="card-title">Datos físicos</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="label">Nombre Completo</label>
+          <input 
+            type="text" 
+            class="input"
+            [value]="form.get('nombre_completo')?.value || ''"
+            disabled
+            placeholder="Tu nombre completo" 
+          />
+        </div>
 
-      <div class="fields compact micro">
-        <label class="field">
-          <span class="label">Peso (kg)</span>
-          <input type="number" inputmode="decimal" formControlName="peso_kg" />
-        </label>
+        <div class="form-group">
+          <label class="label">Email</label>
+          <input 
+            type="email" 
+            class="input"
+            [value]="form.get('email')?.value || ''"
+            disabled
+            placeholder="Tu email" 
+          />
+        </div>
 
-        <label class="field">
-          <span class="label">Estatura (cm)</span>
-          <input type="number" formControlName="estatura_cm" />
-        </label>
-
-        <label class="field">
-          <span class="label">Edad</span>
-          <input type="number" formControlName="edad" />
-        </label>
-
-        <label class="field">
-          <span class="label">Sexo</span>
-          <select formControlName="sexo">
-            <option value="">Seleccionar…</option>
+        <div class="form-group">
+          <label class="label"><span class="material-icons-outlined">wc</span> Sexo</label>
+          <select class="input" formControlName="sexo">
+            <option value="">Seleccionar</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro / Prefiero no decir</option>
           </select>
-        </label>
+        </div>
 
-        <label class="field full">
-          <span class="label">IMC</span>
-          <input type="text" formControlName="imc" readonly />
-          <span class="help muted">
-            Se calcula automáticamente a partir de tu peso y estatura.
-          </span>
-        </label>
+        <div class="form-group">
+          <label class="label"><span class="material-icons-outlined">calendar_today</span> Edad</label>
+          <input 
+            type="number" 
+            class="input"
+            min="0" 
+            max="120"
+            formControlName="edad" 
+            placeholder="Años" 
+          />
+        </div>
       </div>
-    </section>
-  </div>
+    </article>
 
-  <!-- Enfermedades -->
-  <section class="card">
-    <div class="card-title-row">
-      <h3 class="card-title">Enfermedades</h3>
-      <p class="muted small">Selecciona las que apliquen</p>
+    <!-- SECCIÓN 2: MEDIDAS CORPORALES Y IMC -->
+    <div class="grid-single">
+      <article class="card card-secondary">
+        <header class="card-head-compact">
+          <h3><span class="material-icons-outlined">straighten</span> Medidas Corporales</h3>
+        </header>
+
+        <div class="form-grid">
+          <div class="form-group span-full">
+            <label class="label"><span class="material-icons-outlined">scale</span> Peso (kg)</label>
+            <input 
+              type="number" 
+              class="input"
+              step="0.1" 
+              min="0"
+              formControlName="peso_kg" 
+              placeholder="Ej. 64.5" 
+            />
+          </div>
+
+          <div class="form-group span-full">
+            <label class="label"><span class="material-icons-outlined">height</span> Estatura (cm)</label>
+            <input 
+              type="number" 
+              class="input"
+              step="0.1" 
+              min="0"
+              formControlName="estatura_cm" 
+              placeholder="Ej. 172" 
+            />
+          </div>
+        </div>
+      </article>
+
+      <article class="card card-price">
+        <header class="card-head-compact">
+          <h3><span class="material-icons-outlined">info</span> IMC Estimado</h3>
+        </header>
+
+        <div class="imc-display">
+          <div class="imc-value" *ngIf="form.get('peso_kg')?.value && form.get('estatura_cm')?.value; else imcNulo">
+            {{ calcularIMC() | number:'1.1-1' }}
+          </div>
+          <ng-template #imcNulo>
+            <div class="imc-value">—</div>
+          </ng-template>
+          <p class="imc-label">Índice de Masa Corporal</p>
+          <p class="imc-hint">Completa peso y estatura para calcular</p>
+        </div>
+      </article>
     </div>
 
-    <div class="diseases-grid" formArrayName="enfermedades">
-      <label class="disease" *ngFor="let c of enfArray.controls; let i = index">
-        <input type="checkbox" [formControlName]="i" />
-        <span class="box" aria-hidden="true"></span>
-        <span class="name">{{ enfermedadesCatalogo[i] }}</span>
-      </label>
-    </div>
-  </section>
+    <!-- SECCIÓN 3: INFORMACIÓN DE SALUD -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">health_and_safety</span> Problemas / Antecedentes</h3>
+      </header>
 
-  <!-- Acciones -->
-  <div class="actions sticky">
-    <span class="status muted">{{ estado }}</span>
-    <div class="spacer"></div>
-    <button
+      <div class="form-grid">
+        <div class="form-group span-full">
+          <label class="label"><span class="material-icons-outlined">notes</span> Describe tus condiciones</label>
+          <textarea 
+            class="input textarea"
+            rows="4"
+            formControlName="problemas" 
+            placeholder="Describe lesiones, dificultades, limitaciones, etc."
+          ></textarea>
+          <p class="help-text">Mientras más contexto nos des, mejor se ajustarán tus rutinas.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- SECCIÓN 4: ENFERMEDADES -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">vaccines</span> Condiciones Médicas</h3>
+      </header>
+
+      <!-- Lista de enfermedades -->
+      <div class="enfermedades-section">
+        <label class="label">Selecciona las que apliquen:</label>
+        <div class="enfermedades-grid" formArrayName="enfermedades">
+          <label *ngFor="let enf of enfermedadesCatalogo; let i = index" class="checkbox-item">
+            <input 
+              type="checkbox" 
+              [formControlName]="i"
+              class="checkbox-input"
+            />
+            <span class="checkbox-label">{{ enf }}</span>
+          </label>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- FOOTER CON ACCIONES FIJAS -->
+  <footer class="actions container">
+    <span class="status" *ngIf="estado">{{ estado }}</span>
+    <button 
+      class="btn btn-ghost" 
       type="button"
-      class="btn ghost"
       (click)="cancelar()"
-      [disabled]="saving || loading">
-      Cancelar
+      [disabled]="saving()"
+    >
+      <span class="material-icons-outlined">cancel</span> Cancelar
     </button>
-    <button
-      type="submit"
-      class="btn primary"
-      [disabled]="saving || loading">
-      Guardar cambios
+    <button 
+      class="btn btn-accent" 
+      type="button"
+      [disabled]="saving()"
+      (click)="guardar()"
+    >
+      <span class="material-icons-outlined">{{ saving() ? 'hourglass_top' : 'check' }}</span>
+      {{ saving() ? 'Guardando...' : 'Guardar Cambios' }}
     </button>
+  </footer>
+</section>
+
+<!-- Loading state -->
+<section class="wrap" *ngIf="loading()">
+  <div class="loading-skeleton">
+    <div class="skeleton-avatar"></div>
+    <div class="skeleton-text"></div>
   </div>
-</form>
+</section>

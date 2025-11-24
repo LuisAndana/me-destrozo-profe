@@ -8,11 +8,11 @@
       <h1>Transforma Tu Cuerpo, Transforma Tu Vida</h1>
       <p class="sub">Sigue tu rutina personalizada y alcanza tus objetivos fitness</p>
       <div class="hero-actions">
-        <a routerLink="/cliente/rutina" class="btn btn-accent btn-lg btn-glow">
+        <a routerLink="/rutina" class="btn btn-accent btn-lg btn-glow">
           <i class="lucide-dumbbell"></i> Ver Mi Rutina
         </a>
-        <a routerLink="/cliente/progreso" class="btn btn-outline-light btn-lg">
-          <i class="lucide-trending-up"></i> Ver Progreso
+        <a routerLink="/entrenadores" class="btn btn-outline-light btn-lg">
+          <i class="lucide-users"></i> Ver Entrenadores
         </a>
       </div>
     </div>
@@ -32,7 +32,7 @@
         <li *ngIf="!tieneRutinaActiva">No tienes rutina asignada aún.</li>
         <li *ngIf="tieneRutinaActiva">Tu rutina actual está lista para comenzar</li>
       </ul>
-      <a routerLink="/cliente/rutina" class="btn btn-primary btn-block">Ver Rutina</a>
+      <button (click)="verRutina()" class="btn btn-primary btn-block">Ver Rutina</button>
     </article>
 
     <!-- Card: Calificar -->
@@ -48,7 +48,7 @@
           <span class="rating-label">¿Cómo ha sido tu experiencia?</span>
         </div>
       </div>
-      <a routerLink="/cliente/calificar" class="btn btn-primary btn-block">Dejar Calificación</a>
+      <button (click)="calificar()" class="btn btn-primary btn-block">Dejar Calificación</button>
     </article>
 
     <!-- Card: Mensajes -->
@@ -61,7 +61,7 @@
       <p class="card-description">Comunícate con tu entrenador</p>
       <p class="muted" *ngIf="mensajesNuevos === 0">No tienes mensajes nuevos.</p>
       <p class="highlight" *ngIf="mensajesNuevos > 0">Tienes <strong>{{ mensajesNuevos }} mensajes</strong> sin leer.</p>
-      <a routerLink="/cliente/mensajes" class="btn btn-primary btn-block">Ver Mensajes</a>
+      <button (click)="verMensajes()" class="btn btn-primary btn-block">Ver Mensajes</button>
     </article>
 
   </section>

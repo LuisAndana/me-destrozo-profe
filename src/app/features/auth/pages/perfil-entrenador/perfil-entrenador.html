@@ -192,6 +192,230 @@
         </div>
       </div>
     </article>
+
+    <!-- SECCIÓN 4: EDUCACIÓN ✅ NUEVA -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">school</span> Educación Formal</h3>
+        <button type="button" class="btn btn-accent btn-sm" (click)="addEdu()">
+          <span class="material-icons-outlined">add</span> Agregar Educación
+        </button>
+      </header>
+
+      <ul class="list" *ngIf="data.educacion?.length; else noEducacion">
+        <li *ngFor="let edu of data.educacion; let i = index" class="item">
+          <div class="item-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="label">Título</label>
+                <input type="text" class="input input-sm" [(ngModel)]="edu.titulo" placeholder="Ej: Licenciatura en Educación Física" />
+              </div>
+              <div class="form-group">
+                <label class="label">Institución</label>
+                <input type="text" class="input input-sm" [(ngModel)]="edu.institucion" placeholder="Ej: Universidad Autónoma" />
+              </div>
+              <div class="form-group">
+                <label class="label">Año de inicio</label>
+                <input type="text" class="input input-sm" [(ngModel)]="edu.inicio" placeholder="Ej: 2015" />
+              </div>
+              <div class="form-group">
+                <label class="label">Año de finalización</label>
+                <input type="text" class="input input-sm" [(ngModel)]="edu.fin" placeholder="Ej: 2019" />
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Descripción</label>
+                <textarea class="input textarea-sm" rows="2" [(ngModel)]="edu.descripcion" placeholder="Detalles de tus estudios..."></textarea>
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Evidencia (Certificado, Diploma)</label>
+                <input 
+                  type="file" 
+                  class="input input-sm" 
+                  accept="image/*,application/pdf"
+                  (change)="onPickFileFor('educacion', i, $event)"
+                />
+                <small *ngIf="edu.evidenciaUrl" class="text-success">✅ Archivo subido</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button type="button" class="link" (click)="delEdu(i)">
+              <span class="material-icons-outlined">delete</span> Eliminar
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <ng-template #noEducacion>
+        <p class="empty">
+          <span class="material-icons-outlined">school</span>
+          No has agregado educación formal aún. ¡Agrega tu información educativa!
+        </p>
+      </ng-template>
+    </article>
+
+    <!-- SECCIÓN 5: DIPLOMAS ✅ NUEVA -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">card_membership</span> Diplomas y Certificaciones</h3>
+        <button type="button" class="btn btn-accent btn-sm" (click)="addDiploma()">
+          <span class="material-icons-outlined">add</span> Agregar Diploma
+        </button>
+      </header>
+
+      <ul class="list" *ngIf="data.diplomas?.length; else noDiplomas">
+        <li *ngFor="let dip of data.diplomas; let i = index" class="item">
+          <div class="item-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="label">Nombre del Diploma/Certificado</label>
+                <input type="text" class="input input-sm" [(ngModel)]="dip.titulo" placeholder="Ej: Certificación ISSA" />
+              </div>
+              <div class="form-group">
+                <label class="label">Institución Emisora</label>
+                <input type="text" class="input input-sm" [(ngModel)]="dip.institucion" placeholder="Ej: ISSA, NASM, ACE" />
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Fecha de Obtención</label>
+                <input type="text" class="input input-sm" [(ngModel)]="dip.fecha" placeholder="Ej: 2020" />
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Evidencia (Certificado, Diploma)</label>
+                <input 
+                  type="file" 
+                  class="input input-sm" 
+                  accept="image/*,application/pdf"
+                  (change)="onPickFileFor('diplomas', i, $event)"
+                />
+                <small *ngIf="dip.evidenciaUrl" class="text-success">✅ Archivo subido</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button type="button" class="link" (click)="delDiploma(i)">
+              <span class="material-icons-outlined">delete</span> Eliminar
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <ng-template #noDiplomas>
+        <p class="empty">
+          <span class="material-icons-outlined">card_membership</span>
+          No has agregado diplomas o certificaciones aún. ¡Comparte tus logros!
+        </p>
+      </ng-template>
+    </article>
+
+    <!-- SECCIÓN 6: CURSOS ✅ NUEVA -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">library_books</span> Cursos y Capacitaciones</h3>
+        <button type="button" class="btn btn-accent btn-sm" (click)="addCurso()">
+          <span class="material-icons-outlined">add</span> Agregar Curso
+        </button>
+      </header>
+
+      <ul class="list" *ngIf="data.cursos?.length; else noCursos">
+        <li *ngFor="let cur of data.cursos; let i = index" class="item">
+          <div class="item-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="label">Nombre del Curso</label>
+                <input type="text" class="input input-sm" [(ngModel)]="cur.titulo" placeholder="Ej: Nutrición Deportiva Avanzada" />
+              </div>
+              <div class="form-group">
+                <label class="label">Institución/Plataforma</label>
+                <input type="text" class="input input-sm" [(ngModel)]="cur.institucion" placeholder="Ej: Coursera, Udemy, etc." />
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Fecha de Finalización</label>
+                <input type="text" class="input input-sm" [(ngModel)]="cur.fecha" placeholder="Ej: 2021" />
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Evidencia (Certificado, Comprobante)</label>
+                <input 
+                  type="file" 
+                  class="input input-sm" 
+                  accept="image/*,application/pdf"
+                  (change)="onPickFileFor('cursos', i, $event)"
+                />
+                <small *ngIf="cur.evidenciaUrl" class="text-success">✅ Archivo subido</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button type="button" class="link" (click)="delCurso(i)">
+              <span class="material-icons-outlined">delete</span> Eliminar
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <ng-template #noCursos>
+        <p class="empty">
+          <span class="material-icons-outlined">library_books</span>
+          No has agregado cursos aún. ¡Comparte tu aprendizaje continuo!
+        </p>
+      </ng-template>
+    </article>
+
+    <!-- SECCIÓN 7: LOGROS ✅ NUEVA -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h3><span class="material-icons-outlined">emoji_events</span> Logros y Reconocimientos</h3>
+        <button type="button" class="btn btn-accent btn-sm" (click)="addLogro()">
+          <span class="material-icons-outlined">add</span> Agregar Logro
+        </button>
+      </header>
+
+      <ul class="list" *ngIf="data.logros?.length; else noLogros">
+        <li *ngFor="let log of data.logros; let i = index" class="item">
+          <div class="item-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="label">Título del Logro</label>
+                <input type="text" class="input input-sm" [(ngModel)]="log.titulo" placeholder="Ej: Mejor Entrenador del Año" />
+              </div>
+              <div class="form-group">
+                <label class="label">Año</label>
+                <input type="text" class="input input-sm" [(ngModel)]="log.anio" placeholder="Ej: 2023" />
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Descripción</label>
+                <textarea class="input textarea-sm" rows="2" [(ngModel)]="log.descripcion" placeholder="Detalla tu logro o reconocimiento..."></textarea>
+              </div>
+              <div class="form-group span-full">
+                <label class="label">Evidencia (Foto, Certificado)</label>
+                <input 
+                  type="file" 
+                  class="input input-sm" 
+                  accept="image/*,application/pdf"
+                  (change)="onPickFileFor('logros', i, $event)"
+                />
+                <small *ngIf="log.evidenciaUrl" class="text-success">✅ Archivo subido</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button type="button" class="link" (click)="delLogro(i)">
+              <span class="material-icons-outlined">delete</span> Eliminar
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <ng-template #noLogros>
+        <p class="empty">
+          <span class="material-icons-outlined">emoji_events</span>
+          No has agregado logros aún. ¡Destaca tus reconocimientos y logros!
+        </p>
+      </ng-template>
+    </article>
   </main>
 
   <footer class="actions container">
