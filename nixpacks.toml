@@ -1,11 +1,15 @@
+# Selecciona Node 22 correctamente
 [phases.setup]
-nixPkgs = ["nodejs_22-22.12.0", "npm-10_x"]
+nodejs_version = "22"
 
+# Instalación
 [phases.install]
 cmds = ["npm ci"]
 
+# Compilación Angular
 [phases.build]
 cmds = ["npm run build"]
 
+# Servidor de producción
 [start]
 cmd = "npx http-server dist/me-destrozo-profe --port $PORT --silent"
