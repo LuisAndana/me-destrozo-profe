@@ -13,24 +13,23 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-              "browser": "src/main.ts",
-              "polyfills": [
-                "zone.js"
-              ],
-              "tsConfig": "tsconfig.app.json",
-              "assets": [
-                "src/assets",
-                "src/favicon.ico",
-                {
-                  "glob": "**/*",
-                  "input": "public"
-                }
-              ],
-              "styles": [
-                "src/styles.css"
-              ]
-            },
-
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              "src/assets",
+              "src/favicon.ico",
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
+          },
           "configurations": {
             "production": {
               "budgets": [
@@ -45,11 +44,8 @@
                   "maximumError": "64kB"
                 }
               ],
-              "optimization": {
-                "fonts": {
-                  "inline": false
-                }
-              },
+              "optimization": true,
+              "sourceMap": false,
               "outputHashing": "all"
             },
             "development": {

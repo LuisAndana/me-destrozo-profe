@@ -1,10 +1,11 @@
-[build]
-builder = "nixpacks"
-buildCommand = "npm run build"
+[phases.setup]
+nodejs_version = "22"
 
-[deploy]
-start = "npx http-server dist/me-destrozo-profe --port $PORT --silent"
+[phases.install]
+cmds = ["npm ci"]
 
-[nixpacks]
-# Desactiva la detección automática de Angular
-noStaticAnalysis = true
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npx http-server dist/me-destrozo-profe --port $PORT --silent"
