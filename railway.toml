@@ -1,0 +1,5 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+start = "npx http-server dist/me-destrozo-profe --port $PORT --silent"
