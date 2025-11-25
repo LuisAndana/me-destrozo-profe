@@ -1,4 +1,4 @@
-/* progreso-cliente.component.css */
+/* progreso-cliente.component.css - COMPLETO CON CORRECCIÓN DE BARRAS EN 0% */
 
 /* ============================================================ */
 /* VARIABLES Y RESET */
@@ -252,6 +252,8 @@
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .stats-row:last-child {
@@ -264,11 +266,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
+  min-width: 150px;
 }
 
 .stat-label {
   font-size: 0.875rem;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .stat-value {
@@ -297,6 +302,141 @@
 .big-label {
   font-size: 1rem;
   color: var(--text-secondary);
+}
+
+/* ============================================================ */
+/* PROGRESS BARS - CORREGIDO PARA 0% */
+/* ============================================================ */
+
+.progress-bar-wrapper {
+  width: 100%;
+  margin: 1rem 0;
+  padding: 0;
+  display: block;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(58, 64, 80, 0.5);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(58, 64, 80, 0.7);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  display: block;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 10px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+  min-width: 0;
+  position: relative;
+  display: block;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  border-radius: 10px;
+}
+
+/* ✅ CORRECCIÓN: Mostrar barra incluso cuando width: 0% */
+.progress-fill[style*="width: 0"] {
+  background: rgba(58, 64, 80, 0.2);
+  box-shadow: none;
+}
+
+.progress-fill.complete {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}
+
+/* ============================================================ */
+/* OBJETIVO PROGRESO */
+/* ============================================================ */
+
+.objetivo-progreso {
+  margin: 1rem 0;
+  padding: 1rem 0;
+}
+
+.progreso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.progreso-actual {
+  font-size: 0.9rem;
+  color: #cbd5e0;
+  font-weight: 500;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.progreso-actual strong {
+  color: #a0a0a0;
+  font-weight: 400;
+}
+
+.progreso-porcentaje {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #a0a0a0;
+  min-width: 50px;
+  text-align: right;
+}
+
+.progreso-porcentaje.success {
+  color: #10b981;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+/* Barra dentro de objetivo-progreso */
+.objetivo-progreso .progress-bar-wrapper {
+  margin: 0.75rem 0 0 0;
+}
+
+.objetivo-progreso .progress-bar {
+  height: 10px;
+  background: rgba(58, 64, 80, 0.6);
+  border: 1px solid rgba(58, 64, 80, 0.8);
+  display: block;
+  position: relative;
+}
+
+.objetivo-progreso .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 10px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+}
+
+/* ✅ CORRECCIÓN: Mostrar barra en objetivos incluso en 0% */
+.objetivo-progreso .progress-fill[style*="width: 0"] {
+  background: rgba(58, 64, 80, 0.2);
+  box-shadow: none;
+}
+
+.objetivo-progreso .progress-fill.complete {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
 }
 
 /* ============================================================ */
@@ -404,25 +544,6 @@
 
 .info-item .icon {
   font-size: 1rem;
-}
-
-.progress-bar {
-  height: 8px;
-  background: rgba(58, 64, 80, 0.5);
-  border-radius: 1rem;
-  overflow: hidden;
-  margin-top: 1rem;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--gradient-primary);
-  border-radius: 1rem;
-  transition: width 0.3s;
-}
-
-.progress-fill.complete {
-  background: linear-gradient(90deg, var(--success), #059669);
 }
 
 .rutina-footer {
@@ -819,76 +940,6 @@
   color: var(--text-primary);
   font-size: 1.8rem;
 }
-.alertas-objetivos {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.alertas-objetivos h4 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1.2rem;
-}
-
-.alerta-objetivo-card {
-  display: flex;
-  gap: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 0.85rem;
-  padding: 1rem;
-  background: rgba(26, 29, 36, 0.6);
-}
-
-.alerta-objetivo-icon {
-  font-size: 1.8rem;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-}
-
-.alerta-objetivo-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.alerta-objetivo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  color: var(--text-primary);
-}
-
-.badge-prioridad {
-  border: 1px solid var(--primary);
-  border-radius: 999px;
-  padding: 0.15rem 0.75rem;
-  font-size: 0.75rem;
-  text-transform: capitalize;
-}
-
-.alerta-objetivo-mensaje {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
-.alerta-objetivo-fecha {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
 
 .objetivos-list {
   display: grid;
@@ -931,6 +982,7 @@
   font-weight: 600;
   text-transform: capitalize;
   color: white;
+  white-space: nowrap;
 }
 
 .objetivo-descripcion {
@@ -938,30 +990,6 @@
   font-size: 0.9rem;
   line-height: 1.6;
   margin-bottom: 1rem;
-}
-
-.objetivo-progreso {
-  margin-bottom: 1rem;
-}
-
-.progreso-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.progreso-actual {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.progreso-porcentaje {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.progreso-porcentaje.success {
-  color: var(--success);
 }
 
 .objetivo-footer {
@@ -1506,6 +1534,22 @@ textarea.form-control {
   }
 }
 
+@keyframes progressPulse {
+  0% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.progress-fill:not(.complete):not([style*="width: 0"]) {
+  animation: progressPulse 2s ease-in-out infinite;
+}
+
 /* ============================================================ */
 /* RESPONSIVE */
 /* ============================================================ */
@@ -1573,6 +1617,37 @@ textarea.form-control {
   .modal-content {
     max-width: 95%;
   }
+
+  .progress-bar {
+    height: 6px;
+  }
+
+  .objetivo-progreso .progress-bar {
+    height: 8px;
+  }
+
+  .progreso-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .progreso-porcentaje {
+    text-align: left;
+  }
+
+  .stats-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stat-item {
+    min-width: 100%;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1598,6 +1673,30 @@ textarea.form-control {
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .progress-bar {
+    height: 5px;
+  }
+
+  .objetivo-progreso .progress-bar {
+    height: 6px;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .progreso-actual {
+    font-size: 0.85rem;
+  }
+
+  .progreso-porcentaje {
+    font-size: 1rem;
   }
 }
 
@@ -1650,101 +1749,9 @@ textarea.form-control {
   color: var(--text-muted) !important;
 }
 
-.btn-progreso {
-  margin-top: 1rem;
-  background: var(--gradient-primary) !important;
-  border: none !important;
-  color: white !important;
-  padding: 0.7rem 1.2rem !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.btn-progreso:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(59, 130, 246, 0.35) !important;
-}
-
 .empty-message {
   text-align: center;
   color: var(--text-muted);
   padding: 2rem;
   font-size: 1rem;
-}
-.alert-card {
-  background: #ffffff;
-  margin: 12px 0;
-  padding: 16px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.alert-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.alert-icon {
-  font-size: 28px;
-}
-
-.alert-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.alert-msg {
-  margin: 6px 0;
-  font-size: 14px;
-}
-
-.alert-extra {
-  font-size: 13px;
-  margin: 4px 0;
-  color: #444;
-}
-
-.alert-date {
-  font-size: 12px;
-  color: #777;
-}
-
-.alert-actions {
-  margin-top: 12px;
-  display: flex;
-  gap: 8px;
-}
-
-.btn-verde {
-  background: #28a745;
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn-gris {
-  background: #6c757d;
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn-verde:hover {
-  background: #218838;
-}
-
-.btn-gris:hover {
-  background: #5a6268;
 }

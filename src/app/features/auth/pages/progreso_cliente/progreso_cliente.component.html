@@ -1,4 +1,4 @@
-<!-- progreso-cliente.component.html - VERSIÓN COMPLETA Y CORREGIDA -->
+<!-- progreso-cliente.component.html - CÓDIGO COMPLETO CON BARRAS DE PROGRESO -->
 <div class="progreso-cliente-container">
   
   <!-- ============================================================ -->
@@ -37,7 +37,7 @@
       class="tab-btn" 
       [class.active]="tabActiva === 'dashboard'"
       (click)="cambiarTab('dashboard')">
-      📈 Dashboard
+      📈 Principal
     </button>
     <button 
       class="tab-btn" 
@@ -99,12 +99,23 @@
               <span class="stat-value">{{ dashboard.resumen.total_sesiones }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Cumplimiento:</span>
+              <span class="stat-label">Cumplimiento Promedio:</span>
               <span class="stat-value" [class.success]="dashboard.resumen.cumplimiento_promedio >= 80">
                 {{ formatearNumero(dashboard.resumen.cumplimiento_promedio, 0) }}%
               </span>
             </div>
           </div>
+
+          <!-- ✅ BARRA DE PROGRESO DEL CUMPLIMIENTO -->
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width.%]="dashboard.resumen.cumplimiento_promedio"
+                   [class.complete]="dashboard.resumen.cumplimiento_promedio >= 100">
+              </div>
+            </div>
+          </div>
+
           <div class="stats-row">
             <div class="stat-item">
               <span class="stat-label">Última Sesión:</span>
@@ -127,19 +138,6 @@
           <button class="btn btn-warning btn-block" (click)="cambiarTab('alertas')">
             Ver Alertas
           </button>
-        </div>
-      </div>
-
-      <!-- Card: Records Personales -->
-      <div class="card card-success">
-        <div class="card-header">
-          <h3>🏆 Records Este Mes</h3>
-        </div>
-        <div class="card-body">
-          <div class="big-stat">
-            <div class="big-number">{{ dashboard.records_este_mes }}</div>
-            <div class="big-label">nuevos records personales</div>
-          </div>
         </div>
       </div>
 
@@ -338,11 +336,7 @@
                 (click)="filtroAlerta = 'pendiente'; filtrarAlertas()">
           Pendientes
         </button>
-        <button class="filtro-btn" 
-                [class.active]="filtroAlerta === 'vista'"
-                (click)="filtroAlerta = 'vista'; filtrarAlertas()">
-          Vistas
-        </button>
+      
         <button class="filtro-btn" 
                 [class.active]="filtroAlerta === 'atendida'"
                 (click)="filtroAlerta = 'atendida'; filtrarAlertas()">
@@ -479,20 +473,27 @@
           {{ objetivo.descripcion }}
         </p>
 
+        <!-- ✅ SECCIÓN DE PROGRESO CON BARRA VISUAL -->
         <div class="objetivo-progreso">
           <div class="progreso-info">
             <span class="progreso-actual">
-              {{ formatearNumero(objetivo.valor_actual || 0) }} / {{ formatearNumero(objetivo.valor_objetivo) }} {{ objetivo.unidad }}
+              {{ formatearNumero(objetivo.valor_actual || 0, 1) }} / 
+              {{ formatearNumero(objetivo.valor_objetivo, 1) }} 
+              <strong>{{ objetivo.unidad }}</strong>
             </span>
             <span class="progreso-porcentaje"
                   [class.success]="objetivo.porcentaje_completado >= 100">
               {{ objetivo.porcentaje_completado | number:'1.0-0' }}%
             </span>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill"
-                 [style.width.%]="objetivo.porcentaje_completado"
-                 [class.complete]="objetivo.porcentaje_completado >= 100">
+          
+          <!-- ✅ BARRA DE PROGRESO VISUAL -->
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width.%]="objetivo.porcentaje_completado"
+                   [class.complete]="objetivo.porcentaje_completado >= 100">
+              </div>
             </div>
           </div>
         </div>

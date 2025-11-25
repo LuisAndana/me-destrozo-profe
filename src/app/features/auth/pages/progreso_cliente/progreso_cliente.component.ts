@@ -1,4 +1,4 @@
-// progreso_cliente.component.ts - VERSIÓN CORREGIDA CON ALERTAS AUTOMÁTICAS
+// progreso-cliente.component.ts - CÓDIGO COMPLETO
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -67,6 +67,10 @@ export class ProgresoClienteComponent implements OnInit {
   
   // Modal de registro de progreso
   mostrarModalRegistro: boolean = false;
+  
+  // ✅ PROPIEDADES PARA CONTROL DE FECHAS
+  fechaMaximaPermitida: string = new Date().toISOString().slice(0, 10);
+  fechaMinimaPermitida: string = '2020-01-01';
   
   // Formulario de registro
   registroForm = {
@@ -352,7 +356,7 @@ export class ProgresoClienteComponent implements OnInit {
   }
 
   /**
-   * Abre modal para registrar progreso
+   * ✅ ABRE MODAL PARA REGISTRAR PROGRESO - VERSIÓN ACTUALIZADA CON SELECTOR DE FECHA
    */
   abrirModalRegistroProgreso(ejercicio: EjercicioProgreso): void {
     if (!this.rutinaSeleccionada) {
@@ -365,10 +369,20 @@ export class ProgresoClienteComponent implements OnInit {
     // ✅ Establecer el ejercicio seleccionado
     this.ejercicioSeleccionado = ejercicio;
 
+    // ✅ Calcular fecha mínima (primer día de la rutina)
+    let fechaMinima = this.fechaMinimaPermitida;
+    if (this.rutinaSeleccionada.fecha_inicio) {
+      const fechaInicioRutina = new Date(this.rutinaSeleccionada.fecha_inicio);
+      fechaMinima = fechaInicioRutina.toISOString().slice(0, 10);
+    }
+    
+    this.fechaMinimaPermitida = fechaMinima;
+    this.fechaMaximaPermitida = new Date().toISOString().slice(0, 10); // Hoy es el máximo
+
     this.registroForm = {
       id_historial: this.rutinaSeleccionada.id_historial,
       id_ejercicio: ejercicio.id_ejercicio,
-      fecha_sesion: new Date().toISOString().slice(0, 16),
+      fecha_sesion: new Date().toISOString().slice(0, 16),  // ✅ Por defecto hoy en formato datetime-local
       peso_kg: ejercicio.peso_actual || null,
       series_completadas: 3,
       repeticiones_completadas: 10,
@@ -390,7 +404,7 @@ export class ProgresoClienteComponent implements OnInit {
   }
 
   /**
-   * Registra progreso de ejercicio
+   * ✅ REGISTRA PROGRESO CON VALIDACIÓN DE FECHA
    */
   registrarProgreso(): void {
     if (!this.ejercicioSeleccionado) {
@@ -403,6 +417,11 @@ export class ProgresoClienteComponent implements OnInit {
       return;
     }
 
+    // ✅ VALIDAR FECHA - NO PERMITE FUTURO
+    if (!this.validarFecha()) {
+      return;
+    }
+
     if (!this.registroForm.peso_kg || this.registroForm.peso_kg <= 0) {
       this.error = 'Ingresa un peso válido';
       return;
@@ -412,6 +431,7 @@ export class ProgresoClienteComponent implements OnInit {
     this.error = '';
 
     console.log('💾 Registrando progreso...');
+    console.log('📅 Fecha seleccionada:', this.registroForm.fecha_sesion);
 
     this.progresoService.registrarSesion(
       this.ejercicioSeleccionado.id_ejercicio,
@@ -692,5 +712,76 @@ export class ProgresoClienteComponent implements OnInit {
         elemento.scrollIntoView({ behavior: 'smooth' });
       }
     }, 150);
+  }
+
+  // ============================================================
+  // ✅ NUEVOS MÉTODOS HELPER PARA MANEJO DE FECHAS
+  // ============================================================
+
+  /**
+   * ✅ Valida que la fecha no sea en el futuro
+   */
+  validarFecha(): boolean {
+    const fechaSeleccionada = new Date(this.registroForm.fecha_sesion);
+    const hoy = new Date();
+    
+    // Comparar solo la fecha (sin hora)
+    const fechaSeleccionadaStr = fechaSeleccionada.toISOString().slice(0, 10);
+    const hoyStr = hoy.toISOString().slice(0, 10);
+    
+    if (fechaSeleccionadaStr > hoyStr) {
+      this.error = '❌ No puedes registrar una sesión en el futuro';
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * ✅ Convierte fecha a formato legible
+   */
+  obtenerFechaLegible(fechaStr: string): string {
+    try {
+      const fecha = new Date(fechaStr);
+      return fecha.toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return fechaStr;
+    }
+  }
+
+  /**
+   * ✅ Calcula cuántos días atrás fue (desde hoy)
+   */
+  diasAtrasDesdeHoy(fechaStr: string): number {
+    const fechaSeleccionada = new Date(fechaStr);
+    const hoy = new Date();
+    
+    // Resetear horas para comparación correcta
+    fechaSeleccionada.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+    
+    const diferencia = hoy.getTime() - fechaSeleccionada.getTime();
+    return Math.floor(diferencia / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * ✅ Retorna texto amigable para la fecha relativa
+   * Ejemplos: "(Hoy)", "(Ayer)", "(Hace 3 días)", "(Hace 2 semanas)"
+   */
+  obtenerTextoFechaRelativa(fechaStr: string): string {
+    const dias = this.diasAtrasDesdeHoy(fechaStr);
+    
+    if (dias === 0) return '(Hoy)';
+    if (dias === 1) return '(Ayer)';
+    if (dias < 7) return `(Hace ${dias} días)`;
+    if (dias < 30) return `(Hace ${Math.floor(dias / 7)} semanas)`;
+    
+    return `(Hace ${Math.floor(dias / 30)} meses)`;
   }
 }
