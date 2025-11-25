@@ -1,5 +1,10 @@
 [build]
-builder = "NIXPACKS"
+builder = "nixpacks"
+buildCommand = "npm run build"
 
 [deploy]
 start = "npx http-server dist/me-destrozo-profe --port $PORT --silent"
+
+[nixpacks]
+# Desactiva la detección automática de Angular
+noStaticAnalysis = true
