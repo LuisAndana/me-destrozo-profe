@@ -1,5 +1,5 @@
 [phases.setup]
-nodejs = "22"
+nodejs = 22
 
 [phases.install]
 cmds = ["npm ci"]
