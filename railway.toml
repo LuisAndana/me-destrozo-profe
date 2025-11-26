@@ -9,3 +9,9 @@ cmds = ["npm run build"]
 
 [start]
 cmd = "caddy run --config /Caddyfile --adapter caddyfile"
+
+[build]
+builder = "dockerfile"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
