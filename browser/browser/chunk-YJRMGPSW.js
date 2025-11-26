@@ -1,0 +1,1 @@
+import{a}from"./chunk-5N4EOHUK.js";import"./chunk-DRA446E7.js";import"./chunk-V7WHDDYD.js";import"./chunk-T5YDL63U.js";import"./chunk-VJI5GMUY.js";import"./chunk-FDERIQAA.js";export{a as ResenasEntrenadorComponent};
