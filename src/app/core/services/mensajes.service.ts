@@ -4,7 +4,6 @@ import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http'
 import { Observable, throwError, BehaviorSubject, interval } from 'rxjs';
 import { catchError, tap, switchMap, startWith, map } from 'rxjs/operators';
 
-
 import {
   Mensaje,
   Conversacion,
@@ -13,7 +12,8 @@ import {
   MensajesNoLeidos
 } from '../models/mensaje.models';
 
-const API = (window as any).env?.apiUrl || 'http://localhost:8000';
+// ✅ Base de la API - USA RAILWAY EN PRODUCCIÓN
+const API = (window as any).env?.apiUrl || 'https://web-production-03d9e.up.railway.app';
 const BASE_URL = `${API}/mensajes`;
 
 @Injectable({
@@ -53,28 +53,29 @@ export class MensajesService {
       return null;
     }
   }
+  
   private mapearConversacion(conv: any): Conversacion {
-  return {
-    otro_usuario: {
-      id_usuario: conv.otro_usuario.id_usuario,
-      nombre: conv.otro_usuario.nombre,
-      apellido: conv.otro_usuario.apellido || "",
-      email: conv.otro_usuario.email || "",
-      foto_url: conv.otro_usuario.foto_url || null,
-      rol: conv.otro_usuario.rol || "usuario"
-    },
-    ultimo_mensaje: {
-      id_mensaje: conv.ultimo_mensaje.id_mensaje,
-      id_remitente: conv.ultimo_mensaje.id_remitente,
-      id_destinatario: conv.ultimo_mensaje.id_destinatario,
-      contenido: conv.ultimo_mensaje.contenido,
-      fecha_envio: conv.ultimo_mensaje.fecha_envio,
-      leido: conv.ultimo_mensaje.leido,
-      es_remitente: conv.ultimo_mensaje.es_remitente
-    },
-    mensajes_no_leidos: conv.mensajes_no_leidos || 0
-  };
-}
+    return {
+      otro_usuario: {
+        id_usuario: conv.otro_usuario.id_usuario,
+        nombre: conv.otro_usuario.nombre,
+        apellido: conv.otro_usuario.apellido || "",
+        email: conv.otro_usuario.email || "",
+        foto_url: conv.otro_usuario.foto_url || null,
+        rol: conv.otro_usuario.rol || "usuario"
+      },
+      ultimo_mensaje: {
+        id_mensaje: conv.ultimo_mensaje.id_mensaje,
+        id_remitente: conv.ultimo_mensaje.id_remitente,
+        id_destinatario: conv.ultimo_mensaje.id_destinatario,
+        contenido: conv.ultimo_mensaje.contenido,
+        fecha_envio: conv.ultimo_mensaje.fecha_envio,
+        leido: conv.ultimo_mensaje.leido,
+        es_remitente: conv.ultimo_mensaje.es_remitente
+      },
+      mensajes_no_leidos: conv.mensajes_no_leidos || 0
+    };
+  }
 
   // ============================
   // 🔁 Polling mensajes no leídos
@@ -159,34 +160,30 @@ export class MensajesService {
   }
 
   obtenerConversacionesCliente(): Observable<Conversacion[]> {
-  const userId = this.getUserId();
-  const params = new HttpParams().set('user_id', userId);
+    const userId = this.getUserId();
+    const params = new HttpParams().set('user_id', userId);
 
-  return this.http.get<any[]>(
-    `${BASE_URL}/mis-conversaciones/lista`,
-    { params }
-  ).pipe(
-    map((lista: any[]) => lista.map((c: any) => this.mapearConversacion(c))),
-    catchError(this.handleError)
-  );
-}
-
-
+    return this.http.get<any[]>(
+      `${BASE_URL}/mis-conversaciones/lista`,
+      { params }
+    ).pipe(
+      map((lista: any[]) => lista.map((c: any) => this.mapearConversacion(c))),
+      catchError(this.handleError)
+    );
+  }
 
   obtenerConversacionesEntrenador(): Observable<Conversacion[]> {
-  const userId = this.getUserId();
-  const params = new HttpParams().set('user_id', userId);
+    const userId = this.getUserId();
+    const params = new HttpParams().set('user_id', userId);
 
-  return this.http.get<any[]>(
-    `${BASE_URL}/mis-conversaciones-entrenador/lista`,
-    { params }
-  ).pipe(
-    map((lista: any[]) => lista.map((c: any) => this.mapearConversacion(c))),
-    catchError(this.handleError)
-  );
-}
-
-
+    return this.http.get<any[]>(
+      `${BASE_URL}/mis-conversaciones-entrenador/lista`,
+      { params }
+    ).pipe(
+      map((lista: any[]) => lista.map((c: any) => this.mapearConversacion(c))),
+      catchError(this.handleError)
+    );
+  }
 
   // ============================
   // 🟩 MARCAR LEÍDO
@@ -262,68 +259,67 @@ export class MensajesService {
     return throwError(() => new Error(msg));
   }
 
- // =====================
-// UTILIDADES PARA NOMBRES Y FECHAS
-// =====================
+  // =====================
+  // UTILIDADES PARA NOMBRES Y FECHAS
+  // =====================
 
-/** Devuelve iniciales de un usuario */
-obtenerIniciales(usuario: any): string {
-  if (!usuario) return "?";
-  const nombre = usuario.nombre || usuario.nombres || "";
-  const apellido = usuario.apellido || usuario.apellido_pat || usuario.apellidos || "";
-  const iniciales =
-    (nombre?.charAt(0) || "") + (apellido?.charAt(0) || "");
-  return iniciales.toUpperCase();
-}
-
-/** Devuelve el nombre completo del usuario */
-obtenerNombreCompleto(usuario: any): string {
-  if (!usuario) return "";
-  const nombre = usuario.nombre || usuario.nombres || "";
-  const apellidoPat = usuario.apellido_pat || usuario.apellidoPaterno || "";
-  const apellidoMat = usuario.apellido_mat || usuario.apellidoMaterno || "";
-  return `${nombre} ${apellidoPat} ${apellidoMat}`.trim();
-}
-
-/** Formatea una fecha tipo "hoy · 3:45 PM" */
-formatearFechaMensaje(fecha: string): string {
-  if (!fecha) return "";
-
-  const f = new Date(fecha);
-  const ahora = new Date();
-
-  const esHoy =
-    f.getDate() === ahora.getDate() &&
-    f.getMonth() === ahora.getMonth() &&
-    f.getFullYear() === ahora.getFullYear();
-
-  const opcionesHora: Intl.DateTimeFormatOptions = {
-    hour: "numeric",
-    minute: "numeric",
-  };
-
-  if (esHoy) {
-    return `Hoy · ${f.toLocaleTimeString("es-MX", opcionesHora)}`;
+  /** Devuelve iniciales de un usuario */
+  obtenerIniciales(usuario: any): string {
+    if (!usuario) return "?";
+    const nombre = usuario.nombre || usuario.nombres || "";
+    const apellido = usuario.apellido || usuario.apellido_pat || usuario.apellidos || "";
+    const iniciales =
+      (nombre?.charAt(0) || "") + (apellido?.charAt(0) || "");
+    return iniciales.toUpperCase();
   }
 
-  return f.toLocaleDateString("es-MX", {
-    day: "2-digit",
-    month: "short",
-  });
-}
+  /** Devuelve el nombre completo del usuario */
+  obtenerNombreCompleto(usuario: any): string {
+    if (!usuario) return "";
+    const nombre = usuario.nombre || usuario.nombres || "";
+    const apellidoPat = usuario.apellido_pat || usuario.apellidoPaterno || "";
+    const apellidoMat = usuario.apellido_mat || usuario.apellidoMaterno || "";
+    return `${nombre} ${apellidoPat} ${apellidoMat}`.trim();
+  }
 
-/** Formatea fecha completa tipo "25 de enero de 2025, 4:30 PM" */
-formatearFechaCompleta(fecha: string): string {
-  if (!fecha) return "";
+  /** Formatea una fecha tipo "hoy · 3:45 PM" */
+  formatearFechaMensaje(fecha: string): string {
+    if (!fecha) return "";
 
-  const f = new Date(fecha);
-  return f.toLocaleString("es-MX", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  });
-}
- 
+    const f = new Date(fecha);
+    const ahora = new Date();
+
+    const esHoy =
+      f.getDate() === ahora.getDate() &&
+      f.getMonth() === ahora.getMonth() &&
+      f.getFullYear() === ahora.getFullYear();
+
+    const opcionesHora: Intl.DateTimeFormatOptions = {
+      hour: "numeric",
+      minute: "numeric",
+    };
+
+    if (esHoy) {
+      return `Hoy · ${f.toLocaleTimeString("es-MX", opcionesHora)}`;
+    }
+
+    return f.toLocaleDateString("es-MX", {
+      day: "2-digit",
+      month: "short",
+    });
+  }
+
+  /** Formatea fecha completa tipo "25 de enero de 2025, 4:30 PM" */
+  formatearFechaCompleta(fecha: string): string {
+    if (!fecha) return "";
+
+    const f = new Date(fecha);
+    return f.toLocaleString("es-MX", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    });
+  }
 }

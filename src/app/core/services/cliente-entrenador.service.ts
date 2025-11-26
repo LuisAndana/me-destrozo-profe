@@ -2,9 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 
-const API = (window as any).env?.apiUrl || environment.apiBase || 'http://localhost:8000';
+const API = (window as any).env?.apiUrl || 'https://web-production-03d9e.up.railway.app';
 const BASE_URL = `${API}/cliente-entrenador`;
 const PAGOS_URL = `${API}/pagos`;
 

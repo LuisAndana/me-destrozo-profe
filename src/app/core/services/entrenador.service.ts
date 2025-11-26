@@ -4,8 +4,8 @@ import { Observable, of, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { TrainersResponse, TrainerDetail, PerfilEntrenador } from '../models/trainer.model';
 
-// ✅ Base de la API
-const API = (window as any).env?.apiUrl || 'http://localhost:8000';
+// ✅ Base de la API - USA RAILWAY EN PRODUCCIÓN
+const API = (window as any).env?.apiUrl || 'https://web-production-03d9e.up.railway.app';
 const USERS_BASE = `${API}/usuarios`;
 const TRAINERS_BASE = `${API}/entrenadores`;
 const CLIENTE_ENTRENADOR_BASE = `${API}/cliente-entrenador`;

@@ -79,7 +79,9 @@ export interface Rutina extends RutinaGenerada {
   providedIn: 'root'
 })
 export class RutinaService {
-  private apiUrl = 'http://localhost:8000/api';
+  // ✅ Base de la API - USA RAILWAY EN PRODUCCIÓN
+  private apiUrl = (window as any).env?.apiUrl || 'https://web-production-03d9e.up.railway.app';
+  private apiBaseUrl = `${this.apiUrl}/api`;
   private token = localStorage.getItem('token');
 
   private alumnoSeleccionadoSubject = new BehaviorSubject<Alumno | null>(null);
@@ -99,7 +101,7 @@ export class RutinaService {
   obtenerAlumnos(): Observable<Alumno[]> {
     const headers = this.getHeaders();
     return new Observable(observer => {
-      this.http.get<any[]>(`${this.apiUrl}/cliente-entrenador/mis-clientes`, { headers })
+      this.http.get<any[]>(`${this.apiBaseUrl}/cliente-entrenador/mis-clientes`, { headers })
         .subscribe({
           next: relaciones => {
             observer.next(relaciones.map(r => r.cliente));
@@ -112,7 +114,7 @@ export class RutinaService {
 
   obtenerAlumnoPorId(id: number): Observable<Alumno> {
     const headers = this.getHeaders();
-    return this.http.get<Alumno>(`${this.apiUrl}/usuarios/${id}`, { headers });
+    return this.http.get<Alumno>(`${this.apiBaseUrl}/usuarios/${id}`, { headers });
   }
 
   // ============================================================
@@ -121,7 +123,7 @@ export class RutinaService {
 
   obtenerEjerciciosDb(): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
-    return this.http.get<Ejercicio[]>(`${this.apiUrl}/ejercicios`, { headers });
+    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios`, { headers });
   }
 
   private cargarEjerciciosDb(): void {
@@ -133,12 +135,12 @@ export class RutinaService {
 
   obtenerEjerciciosPorGrupo(grupo: string): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
-    return this.http.get<Ejercicio[]>(`${this.apiUrl}/ejercicios/grupo/${grupo}`, { headers });
+    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios/grupo/${grupo}`, { headers });
   }
 
   obtenerEjerciciosPorDificultad(dificultad: string): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
-    return this.http.get<Ejercicio[]>(`${this.apiUrl}/ejercicios/dificultad/${dificultad}`, { headers });
+    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios/dificultad/${dificultad}`, { headers });
   }
 
   // ============================================================
@@ -167,7 +169,7 @@ export class RutinaService {
       ? new HttpParams().set("activar_vigencia", "true")
       : new HttpParams();
 
-    return this.http.post(`${this.apiUrl}/ia/generar-rutina`, body, { params });
+    return this.http.post(`${this.apiBaseUrl}/ia/generar-rutina`, body, { params });
   }
 
   // ============================================================
@@ -183,27 +185,27 @@ export class RutinaService {
     }
 
     // Si es manual → crear
-    return this.http.post<Rutina>(`${this.apiUrl}/rutinas`, rutina, { headers });
+    return this.http.post<Rutina>(`${this.apiBaseUrl}/rutinas`, rutina, { headers });
   }
 
   actualizarRutina(id: number, rutina: Rutina): Observable<Rutina> {
     const headers = this.getHeaders();
-    return this.http.put<Rutina>(`${this.apiUrl}/rutinas/${id}`, rutina, { headers });
+    return this.http.put<Rutina>(`${this.apiBaseUrl}/rutinas/${id}`, rutina, { headers });
   }
 
   obtenerRutinasAlumno(idAlumno: number): Observable<Rutina[]> {
     const headers = this.getHeaders();
-    return this.http.get<Rutina[]>(`${this.apiUrl}/rutinas/alumno/${idAlumno}`, { headers });
+    return this.http.get<Rutina[]>(`${this.apiBaseUrl}/rutinas/alumno/${idAlumno}`, { headers });
   }
 
   obtenerDetalleRutina(idRutina: number): Observable<Rutina> {
     const headers = this.getHeaders();
-    return this.http.get<Rutina>(`${this.apiUrl}/rutinas/${idRutina}`, { headers });
+    return this.http.get<Rutina>(`${this.apiBaseUrl}/rutinas/${idRutina}`, { headers });
   }
 
   eliminarRutina(idRutina: number): Observable<any> {
     const headers = this.getHeaders();
-    return this.http.delete(`${this.apiUrl}/rutinas/${idRutina}`, { headers });
+    return this.http.delete(`${this.apiBaseUrl}/rutinas/${idRutina}`, { headers });
   }
 
   // ============================================================
