@@ -6,7 +6,6 @@ export const environment = {
     register: '/usuarios/register',
     googleSignin: '/auth/google_signin',
     me: '/usuarios/me',
-    // Email Verification Endpoints 
     checkEmail: '/email/check',
     sendVerification: '/email/send-verification',
     verifyEmail: '/email/verify',
