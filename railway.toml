@@ -1,5 +1,11 @@
-[build]
-builder = "nixpacks"
+[phases.setup]
+nodejs_version = "22"
 
-[deploy]
-startCommand = "npx http-server dist/me-destrozo-profe -p $PORT --gzip -c-1"
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "caddy run --config /Caddyfile --adapter caddyfile"

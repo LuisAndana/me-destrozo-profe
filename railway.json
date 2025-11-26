@@ -1,6 +1,5 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
-  
   "staticSites": {
     "outputDirectory": "dist/me-destrozo-profe"
   }
