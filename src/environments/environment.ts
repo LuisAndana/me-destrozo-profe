@@ -1,6 +1,8 @@
+// src/environments/environment.ts
+
 export const environment = {
   production: false,
-  apiBase: 'http://localhost:8000', // <-- FastAPI
+  apiBase: 'http://localhost:8000',
   endpoints: {
     login: '/auth/login',
     register: '/usuarios/register',
