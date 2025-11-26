@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiBase: 'https://backendfitman-production-175f.up.railway.app',
+  apiBase: 'https://web-production-03d9e.up.railway.app',
   endpoints: {
     login: '/auth/login',
     register: '/usuarios/register',
