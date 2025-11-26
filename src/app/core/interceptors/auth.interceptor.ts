@@ -5,21 +5,34 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(private auth: AuthService) {}
 
-  /** Dominios/puertos donde SÍ se adjunta el token (ajusta los tuyos) */
+  /**
+   * Dominios/puertos donde SÍ se adjunta el token
+   * Incluye desarrollo local y production Railway
+   */
   private readonly API_WHITELIST = [
+    // Local development
     'http://localhost:4000',
     'http://127.0.0.1:4000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+    // Production Railway
+    'https://web-production-03d9e.up.railway.app',
+    'https://me-destrozo-profe-production-4bf0.up.railway.app',
+    // Current origin
     typeof window !== 'undefined' ? window.location.origin : ''
   ];
 
-  /** ¿Es URL relativa o coincide con alguno de los orígenes permitidos? */
+  /**
+   * ¿Es URL relativa o coincide con alguno de los orígenes permitidos?
+   */
   private isApiUrl(url: string): boolean {
     if (!/^https?:\/\//i.test(url)) return true; // relativa => nuestra app
     try {
@@ -34,38 +47,47 @@ export class AuthInterceptor implements HttpInterceptor {
     }
   }
 
-  /** Endpoints de auth donde NO se adjunta token */
+  /**
+   * Endpoints de auth donde NO se adjunta token
+   * (porque la petición misma autentica al usuario)
+   */
   private isAuthEndpoint(req: HttpRequest<any>): boolean {
     const url = req.url.replace(/\/+$/, '');
     const method = req.method.toUpperCase();
 
-    // Ajusta estas rutas a las que realmente tengas
-    const isLogin    = /\/usuarios\/login$/.test(url)    && method === 'POST';
-    const isRegister = ((/\/usuarios\/register$/.test(url) || /\/usuarios$/.test(url)) && method === 'POST');
-    const isRefresh  = /\/usuarios\/refresh$/.test(url)  && method === 'POST';
+    // Rutas de autenticación que NO necesitan token
+    const isLogin = /\/auth\/login$/.test(url) && method === 'POST';
+    const isGoogleSignin = /\/auth\/google_signin$/.test(url) && method === 'POST';
+    const isRegister = (/\/usuarios\/register$|\/usuarios$/.test(url) && method === 'POST');
+    const isEmailCheck = /\/email\/check$/.test(url) && method === 'POST';
+    const isEmailSend = /\/email\/send-verification$/.test(url) && method === 'POST';
 
-    return isLogin || isRegister || isRefresh;
+    return isLogin || isGoogleSignin || isRegister || isEmailCheck || isEmailSend;
   }
 
-  /** Obtiene id_entrenador desde storage/usuario para reescrituras */
+  /**
+   * Obtiene id_entrenador desde storage para reescrituras de URLs
+   */
   private resolveEntrenadorId(): number {
     const raw = localStorage.getItem('id_entrenador') || '';
     const id = parseInt(raw, 10);
     if (id > 0) return id;
 
     try {
-      const user = JSON.parse(localStorage.getItem('usuario') || 'null');
-      if (user?.id && (user.rol === 'entrenador' || user.rol === 'trainer')) {
-        return Number(user.id) || 0;
+      const gymUser = localStorage.getItem('gym_user');
+      const user = gymUser ? JSON.parse(gymUser) : null;
+      if (user?.id_usuario && (user.rol === 'entrenador' || user.rol === 'trainer')) {
+        return Number(user.id_usuario) || 0;
       }
     } catch { /* no-op */ }
 
     return 0;
   }
 
-  /** Reescribe URLs legacy -> forma correcta con /{id_entrenador} */
+  /**
+   * Reescribe URLs legacy -> forma correcta con /{id_entrenador}
+   */
   private rewriteClienteEntrenadorUrls(req: HttpRequest<any>): HttpRequest<any> {
-    // quitamos query y trailing slash para evaluar patrón
     const [baseWithoutQuery, ...qsParts] = req.url.split('?');
     const cleanBase = baseWithoutQuery.replace(/\/+$/, '');
     const qs = qsParts.length ? '?' + qsParts.join('?') : '';
@@ -77,10 +99,10 @@ export class AuthInterceptor implements HttpInterceptor {
       const id = this.resolveEntrenadorId();
       if (id > 0) {
         const newUrl = `${cleanBase}/${id}${qs}`;
-        console.warn('[AuthInterceptor:rewrite] 🔧 Reescrito:', req.url, '→', newUrl);
+        console.log('[AuthInterceptor:rewrite] 🔧 Reescrito:', req.url, '→', newUrl);
         return req.clone({ url: newUrl });
       } else {
-        console.error('[AuthInterceptor:rewrite] ❌ No se pudo resolver id_entrenador. URL no reescrita:', req.url);
+        console.warn('[AuthInterceptor:rewrite] ⚠️ No se pudo resolver id_entrenador. URL no reescrita:', req.url);
       }
     }
 
@@ -88,46 +110,73 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-  // 🚫 0) NO tocar rutas de IA
-  if (req.url.includes('/api/ia/')) {
-    return next.handle(req);
+    // 🚫 0) NO tocar rutas de IA (pueden tener su propio manejo)
+    if (req.url.includes('/api/ia/')) {
+      console.log('[AuthInterceptor] Saltando IA endpoint:', req.url);
+      return next.handle(req);
+    }
+
+    // 1) Permite forzar el salto del auth en una petición concreta
+    const skipAuth = req.headers.has('X-Skip-Auth');
+    let request = skipAuth ? req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
+
+    // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
+    request = this.rewriteClienteEntrenadorUrls(request);
+
+    // 2) Obtén el token del servicio de autenticación
+    const token = this.auth.getToken?.() || localStorage.getItem('gym_token');
+
+    // 3) Adjunta Authorization sólo cuando aplica
+    const canAttach =
+      !!token &&
+      !skipAuth &&
+      request.method !== 'OPTIONS' &&
+      this.isApiUrl(request.url) &&
+      !this.isAuthEndpoint(request);
+
+    if (canAttach) {
+      request = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('[AuthInterceptor] 🔐 Token agregado a:', request.method, request.url);
+    } else if (!this.isAuthEndpoint(request)) {
+      console.warn('[AuthInterceptor] ⚠️ Token NO agregado a:', request.url, {
+        tieneToken: !!token,
+        skipAuth,
+        esOpcion: request.method === 'OPTIONS',
+        esApiUrl: this.isApiUrl(request.url),
+        esAuthEndpoint: this.isAuthEndpoint(request)
+      });
+    }
+
+    // 4) Manejo de errores HTTP
+    return next.handle(request).pipe(
+      catchError((err: any) => {
+        if (err instanceof HttpErrorResponse) {
+          console.error(`[AuthInterceptor] HTTP ${err.status}:`, err.message, 'en', request.url);
+
+          // Si es 401, el token expiró o es inválido
+          if (err.status === 401) {
+            console.warn('[AuthInterceptor] Token inválido/expirado. Limpiando sesión...');
+            this.auth.logout();
+          }
+
+          // Si es 403, el usuario no tiene permisos
+          if (err.status === 403) {
+            console.warn('[AuthInterceptor] Acceso prohibido (403)');
+          }
+
+          // Si es error CORS
+          if (err.status === 0 && err.message) {
+            console.error('[AuthInterceptor] Posible error CORS:', err.message);
+          }
+        }
+
+        return throwError(() => err);
+      })
+    );
   }
-
-  // 1) Permite forzar el salto del auth en una petición concreta
-  const skipAuth = req.headers.has('X-Skip-Auth');
-  let request = skipAuth ? req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
-
-  // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
-  request = this.rewriteClienteEntrenadorUrls(request);
-
-  // 2) Obtén el token 
-  const token =
-    this.auth.getToken?.() ||
-    localStorage.getItem('access_token') ||
-    sessionStorage.getItem('access_token');
-
-  // 3) Adjunta Authorization sólo cuando aplica
-  const canAttach =
-    !!token &&
-    !skipAuth &&
-    request.method !== 'OPTIONS' &&
-    this.isApiUrl(request.url) &&
-    !this.isAuthEndpoint(request);
-
-  if (canAttach) {
-    request = request.clone({
-      setHeaders: { Authorization: `Bearer ${token}` }
-    });
-  }
-
-  // 4) Manejo básico de 401
-  return next.handle(request).pipe(
-    catchError((err: any) => {
-      if (err instanceof HttpErrorResponse && err.status === 401) {
-        console.warn('[AuthInterceptor] 401 en', request.method, request.url);
-      }
-      return throwError(() => err);
-    })
-  );
-}
 }
