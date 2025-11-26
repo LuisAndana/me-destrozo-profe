@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npx http-server dist/me-destrozo-profe --port $PORT --silent"
+cmd = "npx http-server dist/me-destrozo-profe -p $PORT --gzip -c-1"
