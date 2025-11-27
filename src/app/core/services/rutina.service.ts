@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -82,7 +82,6 @@ export interface Rutina extends RutinaGenerada {
 export class RutinaService {
   // ✅ Base de la API - USA ENVIRONMENT (HTTPS EN PROD, HTTP EN DEV)
   private apiBaseUrl = `${environment.apiBase}/api`;
-  private token = localStorage.getItem('token');
 
   private alumnoSeleccionadoSubject = new BehaviorSubject<Alumno | null>(null);
   private ejerciciosDb = new BehaviorSubject<Ejercicio[]>([]);
@@ -125,6 +124,8 @@ export class RutinaService {
   /**
    * ✅ CORREGIDO: Obtiene alumnos del entrenador actual
    * GET /api/cliente-entrenador/mis-clientes/{id_entrenador}
+   * 
+   * ✅ MEJORADO: Sin headers manuales - el interceptor agregará el token
    */
   obtenerAlumnos(): Observable<Alumno[]> {
     const idEntrenador = this.getIdEntrenadorFromStorage();
@@ -136,13 +137,12 @@ export class RutinaService {
       });
     }
 
-    const headers = this.getHeaders();
     const url = `${this.apiBaseUrl}/cliente-entrenador/mis-clientes/${idEntrenador}`;
     
     console.log(`🔍 obtenerAlumnos: Llamando a ${url}`);
     
     return new Observable(observer => {
-      this.http.get<any[]>(url, { headers })
+      this.http.get<any[]>(url)
         .subscribe({
           next: relaciones => {
             const alumnos = relaciones.map(r => r.cliente);
@@ -159,8 +159,7 @@ export class RutinaService {
   }
 
   obtenerAlumnoPorId(id: number): Observable<Alumno> {
-    const headers = this.getHeaders();
-    return this.http.get<Alumno>(`${this.apiBaseUrl}/usuarios/${id}`, { headers });
+    return this.http.get<Alumno>(`${this.apiBaseUrl}/usuarios/${id}`);
   }
 
   // ============================================================
@@ -168,10 +167,9 @@ export class RutinaService {
   // ============================================================
 
   obtenerEjerciciosDb(): Observable<Ejercicio[]> {
-    const headers = this.getHeaders();
     const url = `${this.apiBaseUrl}/ejercicios`;
     console.log(`🔍 obtenerEjerciciosDb: Llamando a ${url}`);
-    return this.http.get<Ejercicio[]>(url, { headers });
+    return this.http.get<Ejercicio[]>(url);
   }
 
   private cargarEjerciciosDb(): void {
@@ -185,13 +183,11 @@ export class RutinaService {
   }
 
   obtenerEjerciciosPorGrupo(grupo: string): Observable<Ejercicio[]> {
-    const headers = this.getHeaders();
-    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios/grupo/${grupo}`, { headers });
+    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios/grupo/${grupo}`);
   }
 
   obtenerEjerciciosPorDificultad(dificultad: string): Observable<Ejercicio[]> {
-    const headers = this.getHeaders();
-    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios/dificultad/${dificultad}`, { headers });
+    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios/dificultad/${dificultad}`);
   }
 
   // ============================================================
@@ -230,38 +226,43 @@ export class RutinaService {
   // 🔹 GUARDAR / ACTUALIZAR RUTINA
   // ============================================================
 
+  /**
+   * ✅ CORREGIDO: Sin headers manuales - interceptor agregará token
+   */
   guardarRutina(rutina: Rutina): Observable<Rutina> {
-    const headers = this.getHeaders();
-
     // Si viene desde IA, actualizar
     if (rutina.id_rutina && rutina.generada_por === "gemini") {
       return this.actualizarRutina(rutina.id_rutina, rutina);
     }
 
     // Si es manual → crear
-    return this.http.post<Rutina>(`${this.apiBaseUrl}/rutinas`, rutina, { headers });
+    const url = `${this.apiBaseUrl}/rutinas`;
+    console.log(`📤 guardarRutina: POST ${url}`);
+    return this.http.post<Rutina>(url, rutina);
   }
 
   actualizarRutina(id: number, rutina: Rutina): Observable<Rutina> {
-    const headers = this.getHeaders();
-    return this.http.put<Rutina>(`${this.apiBaseUrl}/rutinas/${id}`, rutina, { headers });
+    const url = `${this.apiBaseUrl}/rutinas/${id}`;
+    console.log(`📤 actualizarRutina: PUT ${url}`);
+    return this.http.put<Rutina>(url, rutina);
   }
 
   obtenerRutinasAlumno(idAlumno: number): Observable<Rutina[]> {
-    const headers = this.getHeaders();
     const url = `${this.apiBaseUrl}/rutinas/alumno/${idAlumno}`;
-    console.log(`🔍 obtenerRutinasAlumno: Llamando a ${url}`);
-    return this.http.get<Rutina[]>(url, { headers });
+    console.log(`🔍 obtenerRutinasAlumno: GET ${url}`);
+    return this.http.get<Rutina[]>(url);
   }
 
   obtenerDetalleRutina(idRutina: number): Observable<Rutina> {
-    const headers = this.getHeaders();
-    return this.http.get<Rutina>(`${this.apiBaseUrl}/rutinas/${idRutina}`, { headers });
+    const url = `${this.apiBaseUrl}/rutinas/${idRutina}`;
+    console.log(`🔍 obtenerDetalleRutina: GET ${url}`);
+    return this.http.get<Rutina>(url);
   }
 
   eliminarRutina(idRutina: number): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http.delete(`${this.apiBaseUrl}/rutinas/${idRutina}`, { headers });
+    const url = `${this.apiBaseUrl}/rutinas/${idRutina}`;
+    console.log(`🗑️  eliminarRutina: DELETE ${url}`);
+    return this.http.delete(url);
   }
 
   // ============================================================
@@ -303,13 +304,6 @@ export class RutinaService {
   private calcularIMC(p: number, a: number): number {
     const m = a / 100;
     return Math.round((p / (m * m)) * 100) / 100;
-  }
-
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      Authorization: `Bearer ${this.token}`,
-      "Content-Type": "application/json"
-    });
   }
 
   private cargarEjercicios(): void {
