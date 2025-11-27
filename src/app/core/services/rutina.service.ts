@@ -91,23 +91,70 @@ export class RutinaService {
   ejerciciosDb$ = this.ejerciciosDb.asObservable();
 
   constructor(private http: HttpClient) {
+    console.log(`🔧 RutinaService: apiUrl = ${this.apiUrl}`);
+    console.log(`🔧 RutinaService: apiBaseUrl = ${this.apiBaseUrl}`);
     this.cargarEjercicios();
+  }
+
+  // ============================================================
+  // 🔹 HELPER: Obtener ID del entrenador
+  // ============================================================
+  private getIdEntrenadorFromStorage(): number {
+    const raw = localStorage.getItem('id_entrenador') || '';
+    const id = parseInt(raw, 10);
+    if (id > 0) {
+      console.log(`✅ RutinaService: id_entrenador encontrado = ${id}`);
+      return id;
+    }
+    try {
+      const user = JSON.parse(localStorage.getItem('usuario') || 'null');
+      if (user?.id && (user.rol === 'entrenador' || user.rol === 'trainer')) {
+        console.log(`✅ RutinaService: id_entrenador extraído de usuario = ${user.id}`);
+        return Number(user.id) || 0;
+      }
+    } catch (e) {
+      console.error('❌ RutinaService: Error parseando usuario de storage', e);
+    }
+    console.warn('⚠️ RutinaService: No se pudo obtener id_entrenador');
+    return 0;
   }
 
   // ============================================================
   // 🔹 ALUMNOS
   // ============================================================
 
+  /**
+   * ✅ CORREGIDO: Obtiene alumnos del entrenador actual
+   * GET /api/cliente-entrenador/mis-clientes/{id_entrenador}
+   */
   obtenerAlumnos(): Observable<Alumno[]> {
+    const idEntrenador = this.getIdEntrenadorFromStorage();
+    
+    if (!idEntrenador) {
+      console.error('❌ obtenerAlumnos: id_entrenador no disponible');
+      return new Observable(observer => {
+        observer.error(new Error('id_entrenador requerido'));
+      });
+    }
+
     const headers = this.getHeaders();
+    const url = `${this.apiBaseUrl}/cliente-entrenador/mis-clientes/${idEntrenador}`;
+    
+    console.log(`🔍 obtenerAlumnos: Llamando a ${url}`);
+    
     return new Observable(observer => {
-      this.http.get<any[]>(`${this.apiBaseUrl}/cliente-entrenador/mis-clientes`, { headers })
+      this.http.get<any[]>(url, { headers })
         .subscribe({
           next: relaciones => {
-            observer.next(relaciones.map(r => r.cliente));
+            const alumnos = relaciones.map(r => r.cliente);
+            console.log(`✅ obtenerAlumnos: ${alumnos.length} alumnos cargados`);
+            observer.next(alumnos);
             observer.complete();
           },
-          error: err => observer.error(err)
+          error: err => {
+            console.error(`❌ obtenerAlumnos: Error`, err);
+            observer.error(err);
+          }
         });
     });
   }
@@ -123,13 +170,18 @@ export class RutinaService {
 
   obtenerEjerciciosDb(): Observable<Ejercicio[]> {
     const headers = this.getHeaders();
-    return this.http.get<Ejercicio[]>(`${this.apiBaseUrl}/ejercicios`, { headers });
+    const url = `${this.apiBaseUrl}/ejercicios`;
+    console.log(`🔍 obtenerEjerciciosDb: Llamando a ${url}`);
+    return this.http.get<Ejercicio[]>(url, { headers });
   }
 
   private cargarEjerciciosDb(): void {
     this.obtenerEjerciciosDb().subscribe({
-      next: ejercicios => this.ejerciciosDb.next(ejercicios),
-      error: error => console.error('Error ejercicios:', error)
+      next: ejercicios => {
+        console.log(`✅ cargarEjerciciosDb: ${ejercicios.length} ejercicios cargados`);
+        this.ejerciciosDb.next(ejercicios);
+      },
+      error: error => console.error('❌ Error cargando ejercicios:', error)
     });
   }
 
@@ -169,7 +221,10 @@ export class RutinaService {
       ? new HttpParams().set("activar_vigencia", "true")
       : new HttpParams();
 
-    return this.http.post(`${this.apiBaseUrl}/ia/generar-rutina`, body, { params });
+    const url = `${this.apiBaseUrl}/ia/generar-rutina`;
+    console.log(`🔍 generarRutinaIA: Llamando a ${url}`);
+
+    return this.http.post(url, body, { params });
   }
 
   // ============================================================
@@ -195,7 +250,9 @@ export class RutinaService {
 
   obtenerRutinasAlumno(idAlumno: number): Observable<Rutina[]> {
     const headers = this.getHeaders();
-    return this.http.get<Rutina[]>(`${this.apiBaseUrl}/rutinas/alumno/${idAlumno}`, { headers });
+    const url = `${this.apiBaseUrl}/rutinas/alumno/${idAlumno}`;
+    console.log(`🔍 obtenerRutinasAlumno: Llamando a ${url}`);
+    return this.http.get<Rutina[]>(url, { headers });
   }
 
   obtenerDetalleRutina(idRutina: number): Observable<Rutina> {
