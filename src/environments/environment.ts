@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBase: 'http://localhost:8000',
+  apiBase: 'https://web-production-03d9e.up.railway.app',
   endpoints: {
     login: '/auth/login',
     register: '/usuarios/register',
