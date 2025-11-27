@@ -109,6 +109,44 @@ export class AuthInterceptor implements HttpInterceptor {
     return req; // sin cambios
   }
 
+  /**
+   * 🔑 OBTENER TOKEN - CON FALLBACK ROBUSTO
+   * Intenta múltiples fuentes para obtener el token
+   */
+  private obtenerToken(): string {
+    // 1️⃣ Intenta obtenerlo desde el AuthService
+    const tokenDelServicio = this.auth.getToken?.();
+    if (tokenDelServicio && typeof tokenDelServicio === 'string' && tokenDelServicio.length > 0) {
+      return tokenDelServicio;
+    }
+
+    // 2️⃣ Fallback: localStorage con clave 'gym_token'
+    const tokenDelStorage = localStorage.getItem('gym_token');
+    if (tokenDelStorage && tokenDelStorage.length > 0) {
+      return tokenDelStorage;
+    }
+
+    // 3️⃣ Fallback: localStorage con clave alternativa 'token'
+    const tokenAlt = localStorage.getItem('token');
+    if (tokenAlt && tokenAlt.length > 0) {
+      return tokenAlt;
+    }
+
+    // 4️⃣ Fallback: buscar en gym_user.token (si está guardado como JSON)
+    try {
+      const gymUser = localStorage.getItem('gym_user');
+      if (gymUser) {
+        const user = JSON.parse(gymUser);
+        if (user?.token && typeof user.token === 'string' && user.token.length > 0) {
+          return user.token;
+        }
+      }
+    } catch { /* no-op */ }
+
+    // ❌ No se encontró token en ningún lado
+    return '';
+  }
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // 🚫 0) NO tocar rutas de IA (pueden tener su propio manejo)
     if (req.url.includes('/api/ia/')) {
@@ -123,8 +161,8 @@ export class AuthInterceptor implements HttpInterceptor {
     // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
     request = this.rewriteClienteEntrenadorUrls(request);
 
-    // 2) Obtén el token del servicio de autenticación
-    const token = this.auth.getToken?.() || localStorage.getItem('gym_token');
+    // 2) 🔑 Obtén el token con fallback robusto
+    const token = this.obtenerToken();
 
     // 3) Adjunta Authorization sólo cuando aplica
     const canAttach =
@@ -142,6 +180,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }
       });
       console.log('[AuthInterceptor] 🔐 Token agregado a:', request.method, request.url);
+      console.log('[AuthInterceptor] 📋 Token (primeros 20 chars):', token.substring(0, 20) + '...');
     } else if (!this.isAuthEndpoint(request)) {
       console.warn('[AuthInterceptor] ⚠️ Token NO agregado a:', request.url, {
         tieneToken: !!token,

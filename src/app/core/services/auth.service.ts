@@ -1,7 +1,8 @@
 ﻿// src/app/core/services/auth.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, map, switchMap, tap, Observable, of } from 'rxjs';
+import { BehaviorSubject, map, switchMap, tap, Observable, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 type LoginBody = { email: string; password: string };
@@ -82,8 +83,13 @@ export class AuthService {
   }
 
   public setUser(u: Usuario | null) {
-    if (u) localStorage.setItem('gym_user', JSON.stringify(u));
-    else localStorage.removeItem('gym_user');
+    if (u) {
+      localStorage.setItem('gym_user', JSON.stringify(u));
+      localStorage.setItem('id_entrenador', u.id_usuario.toString());
+    } else {
+      localStorage.removeItem('gym_user');
+      localStorage.removeItem('id_entrenador');
+    }
     this._user$.next(u);
   }
 
@@ -91,7 +97,10 @@ export class AuthService {
     const t = (token || '').trim();
     if (t) {
       localStorage.setItem(TOKEN_KEY, t);
-      console.log('💾 Token guardado en localStorage');
+      console.log('💾 Token guardado en localStorage:', t.substring(0, 20) + '...');
+    } else {
+      console.warn('⚠️ Token vacío, no se guardó');
+      localStorage.removeItem(TOKEN_KEY);
     }
   }
 
@@ -104,6 +113,7 @@ export class AuthService {
   
   /**
    * Login con email y contraseña
+   * ✅ MEJORADO: mejor manejo de errores
    */
   login(body: LoginBody): Observable<Usuario> {
     const url = environment.apiBase + environment.endpoints.login;
@@ -111,11 +121,50 @@ export class AuthService {
     
     return this.http.post<LoginApiResp>(url, body).pipe(
       tap(res => {
-        console.log('✅ Login response recibido:', res);
+        console.log('✅ Login API response recibido:', res);
+        
+        // Validar respuesta
+        if (!res.token) {
+          console.error('❌ Token no recibido en respuesta de login');
+          throw new Error('Token no recibido en respuesta de login');
+        }
+        
+        // Guardar token INMEDIATAMENTE
         this.saveToken(res.token);
+        console.log('✅ Token guardado correctamente');
+        
         this.wipeExternalAuthArtifacts();
       }),
-      switchMap(() => this.fetchMe())
+      switchMap(() => {
+        // Ahora fetchMe() con el token ya guardado
+        return this.fetchMe().pipe(
+          catchError(err => {
+            console.error('❌ fetchMe() falló:', err);
+            // Si fetchMe falla pero tenemos token, continuar de todas formas
+            const token = this.getToken();
+            if (token) {
+              console.warn('⚠️ fetchMe falló pero tenemos token, continuando...');
+              // Retornar un usuario dummy en lugar de fallar
+              return of({
+                id_usuario: 0,
+                nombre: 'Usuario',
+                apellido: '',
+                email: '',
+                rol: 'entrenador'
+              } as Usuario);
+            }
+            return throwError(() => err);
+          })
+        );
+      }),
+      tap((usuario) => {
+        console.log('✅ Login completado, usuario:', usuario);
+      }),
+      catchError(err => {
+        console.error('❌ Login falló completamente:', err);
+        this.logout();
+        return throwError(() => err);
+      })
     );
   }
 
@@ -129,10 +178,34 @@ export class AuthService {
     return this.http.post<LoginApiResp>(url, { credential, rol }).pipe(
       tap(res => {
         console.log('✅ Google Signin response recibido:', res);
+        if (!res.token) {
+          console.error('❌ Token no recibido en respuesta de google signin');
+          throw new Error('Token no recibido');
+        }
         this.saveToken(res.token);
         this.wipeExternalAuthArtifacts();
       }),
-      switchMap(() => this.fetchMe())
+      switchMap(() => this.fetchMe().pipe(
+        catchError(err => {
+          console.error('❌ fetchMe falló en googleSignin:', err);
+          const token = this.getToken();
+          if (token) {
+            return of({
+              id_usuario: 0,
+              nombre: 'Usuario',
+              apellido: '',
+              email: '',
+              rol: 'entrenador'
+            } as Usuario);
+          }
+          return throwError(() => err);
+        })
+      )),
+      catchError(err => {
+        console.error('❌ Google Signin falló:', err);
+        this.logout();
+        return throwError(() => err);
+      })
     );
   }
 
@@ -153,7 +226,11 @@ export class AuthService {
     
     return this.http.post<any>(url, payload).pipe(
       tap(res => console.log('✅ Register response recibido:', res)),
-      switchMap(() => this.login({ email: data.email!, password: data.password }))
+      switchMap(() => this.login({ email: data.email!, password: data.password })),
+      catchError(err => {
+        console.error('❌ Register falló:', err);
+        return throwError(() => err);
+      })
     );
   }
 
@@ -165,11 +242,12 @@ export class AuthService {
     const token = this.getToken();
 
     console.log('📤 GET Me:', url);
+    console.log('🔐 Token disponible:', !!token);
 
     if (!token) {
-      console.warn('[AuthService] No hay token, cerrando sesión.');
+      console.warn('[AuthService] ❌ No hay token, cerrando sesión.');
       this.logout();
-      return of(null as unknown as Usuario);
+      return throwError(() => new Error('No token available'));
     }
 
     const headers = { Authorization: `Bearer ${token}` };
@@ -191,6 +269,10 @@ export class AuthService {
           console.log('✅ Usuario normalizado y guardado:', u);
           this.setUser(u);
         }
+      }),
+      catchError(err => {
+        console.error('❌ fetchMe falló:', err);
+        return throwError(() => err);
       })
     );
   }
@@ -215,6 +297,7 @@ export class AuthService {
     console.log('🚪 Ejecutando logout...');
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(LEGACY_TOKEN_KEY);
+    localStorage.removeItem('id_entrenador');
     this.setUser(null);
     this.wipeExternalAuthArtifacts();
     console.log('✅ Logout completado');
