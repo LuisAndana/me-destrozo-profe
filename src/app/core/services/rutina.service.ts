@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 // ============================================================
 // 🔹 INTERFACES
@@ -79,9 +80,8 @@ export interface Rutina extends RutinaGenerada {
   providedIn: 'root'
 })
 export class RutinaService {
-  // ✅ Base de la API - USA RAILWAY EN PRODUCCIÓN
-  private apiUrl = (window as any).env?.apiUrl || 'https://web-production-03d9e.up.railway.app';
-  private apiBaseUrl = `${this.apiUrl}/api`;
+  // ✅ Base de la API - USA ENVIRONMENT (HTTPS EN PROD, HTTP EN DEV)
+  private apiBaseUrl = `${environment.apiBase}/api`;
   private token = localStorage.getItem('token');
 
   private alumnoSeleccionadoSubject = new BehaviorSubject<Alumno | null>(null);
@@ -91,7 +91,6 @@ export class RutinaService {
   ejerciciosDb$ = this.ejerciciosDb.asObservable();
 
   constructor(private http: HttpClient) {
-    console.log(`🔧 RutinaService: apiUrl = ${this.apiUrl}`);
     console.log(`🔧 RutinaService: apiBaseUrl = ${this.apiBaseUrl}`);
     this.cargarEjercicios();
   }
