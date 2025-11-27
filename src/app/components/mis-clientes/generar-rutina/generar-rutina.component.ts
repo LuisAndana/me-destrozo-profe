@@ -183,10 +183,7 @@
           this.ejerciciosDisponibles = ejercicios;
           console.log(`✅ Ejercicios cargados: ${ejercicios.length}`);
         },
-        error: (error: any) => {
-          console.error('Error al cargar ejercicios:', error);
-          this.mensajeError = 'Error al cargar los ejercicios de la base de datos.';
-        }
+        
       });
     }
 
