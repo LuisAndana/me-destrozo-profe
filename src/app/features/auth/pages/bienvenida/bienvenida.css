@@ -1,5 +1,5 @@
 /* ============================================================
-   WELCOME COMPONENT - RESPONSIVE DESIGN (FIXED VERTICAL)
+   WELCOME COMPONENT - RESPONSIVE DESIGN (FIXED DESKTOP & MOBILE)
    ============================================================ */
 
 * {
@@ -16,7 +16,7 @@ html, body {
 
 .welcome-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100vh;
   width: 100vw;
   background: #111;
@@ -32,13 +32,13 @@ html, body {
    ============================================================ */
 
 .banner {
-  flex: 0 0 auto;
+  flex: 0 0 50%;
   position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
   padding: 2rem;
-  min-height: 45vh;
+  min-height: 100%;
   background: url('/assets/gym-banner_page.jpg') no-repeat center center/cover;
   background-size: cover;
   background-position: center;
@@ -92,7 +92,7 @@ html, body {
    ============================================================ */
 
 .content {
-  flex: 1;
+  flex: 0 0 50%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -173,7 +173,7 @@ html, body {
    MOBILE DEVICES - SMALL (320px - 480px)
    ============================================================ */
 
-@media (max-width: 480px) {
+@media (max-width: 900px) {
   .welcome-container {
     flex-direction: column;
     height: 100vh;
