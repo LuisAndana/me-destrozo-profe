@@ -1,5 +1,5 @@
 /* ============================================================
-   WELCOME COMPONENT - RESPONSIVE DESIGN
+   WELCOME COMPONENT - RESPONSIVE DESIGN (FIXED VERTICAL)
    ============================================================ */
 
 * {
@@ -16,6 +16,7 @@ html, body {
 
 .welcome-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
   background: #111;
@@ -31,12 +32,13 @@ html, body {
    ============================================================ */
 
 .banner {
-  flex: 1;
+  flex: 0 0 auto;
   position: relative;
   display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
   padding: 2rem;
-  min-width: 0;
+  min-height: 45vh;
   background: url('/assets/gym-banner_page.jpg') no-repeat center center/cover;
   background-size: cover;
   background-position: center;
@@ -168,64 +170,6 @@ html, body {
 }
 
 /* ============================================================
-   TABLET DEVICES (768px - 900px)
-   ============================================================ */
-
-@media (max-width: 900px) {
-  .welcome-container {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .banner {
-    width: 100%;
-    min-height: 35vh;
-    padding: 1.5rem;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  .banner-content {
-    margin-bottom: 0.5rem;
-  }
-
-  .banner-content h2 {
-    font-size: clamp(1.4rem, 5vw, 2rem);
-    margin-bottom: 0.8rem;
-  }
-
-  .banner-content h3 {
-    font-size: clamp(0.95rem, 4vw, 1.3rem);
-    margin-bottom: 0.8rem;
-  }
-
-  .banner-content p {
-    font-size: clamp(0.85rem, 3vw, 1rem);
-  }
-
-  .content {
-    width: 100%;
-    min-height: 65vh;
-    padding: 1.5rem 1rem;
-    justify-content: space-around;
-  }
-
-  .logo {
-    font-size: clamp(1.3rem, 5vw, 2.2rem);
-    margin-bottom: 0.5rem;
-  }
-
-  .slogan {
-    font-size: clamp(0.95rem, 3vw, 1.2rem);
-    margin: 0.3rem 0 1rem 0;
-  }
-
-  .buttons {
-    max-width: 200px;
-  }
-}
-
-/* ============================================================
    MOBILE DEVICES - SMALL (320px - 480px)
    ============================================================ */
 
@@ -241,6 +185,7 @@ html, body {
     min-height: 45%;
     padding: 1rem;
     align-items: flex-end;
+    flex: 0 0 45%;
   }
 
   .banner-overlay {
@@ -278,6 +223,8 @@ html, body {
     min-height: 55%;
     padding: 1rem 0.75rem;
     gap: 0.8rem;
+    flex: 0 0 55%;
+    justify-content: center;
   }
 
   .logo {
@@ -312,10 +259,16 @@ html, body {
 }
 
 /* ============================================================
-   MOBILE DEVICES - EXTRA SMALL (< 320px)
+   MOBILE DEVICES - EXTRA SMALL (280px - 320px)
    ============================================================ */
 
 @media (max-width: 320px) {
+  .banner {
+    min-height: 48%;
+    padding: 0.75rem;
+    flex: 0 0 48%;
+  }
+
   .banner-content h2 {
     font-size: 1rem;
     margin-bottom: 0.3rem;
@@ -335,6 +288,13 @@ html, body {
   .banner-content p {
     font-size: 0.7rem;
     line-height: 1.2;
+  }
+
+  .content {
+    min-height: 52%;
+    padding: 0.75rem 0.5rem;
+    gap: 0.5rem;
+    flex: 0 0 52%;
   }
 
   .logo {
@@ -367,28 +327,19 @@ html, body {
     border-radius: 4px;
     letter-spacing: 0;
   }
-
-  .content {
-    padding: 0.75rem 0.5rem;
-    gap: 0.5rem;
-  }
-
-  .banner {
-    padding: 0.75rem;
-    min-height: 48%;
-  }
-
-  .welcome-container {
-    height: 100vh;
-    overflow: hidden;
-  }
 }
 
 /* ============================================================
-   ULTRA SMALL DEVICES (240px - 280px)
+   ULTRA SMALL DEVICES (< 280px)
    ============================================================ */
 
 @media (max-width: 280px) {
+  .banner {
+    min-height: 50%;
+    padding: 0.6rem;
+    flex: 0 0 50%;
+  }
+
   .banner-content h2 {
     font-size: 0.95rem;
     margin-bottom: 0.25rem;
@@ -409,6 +360,13 @@ html, body {
     font-size: 0.65rem;
     line-height: 1.1;
     margin-bottom: 0;
+  }
+
+  .content {
+    min-height: 50%;
+    padding: 0.6rem 0.5rem;
+    gap: 0.4rem;
+    flex: 0 0 50%;
   }
 
   .logo {
@@ -441,27 +399,22 @@ html, body {
     border: 1.5px solid white;
   }
 
-  .content {
-    padding: 0.6rem 0.5rem;
-    gap: 0.4rem;
-    justify-content: space-evenly;
-  }
-
-  .banner {
-    padding: 0.6rem;
-    min-height: 50%;
-  }
-
   .banner-overlay {
     background: rgba(0, 0, 0, 0.7);
   }
 }
 
 /* ============================================================
-   EXTREME ULTRA SMALL (< 240px - Smartwatches compatibility)
+   EXTREME ULTRA SMALL (< 240px - Smartwatches)
    ============================================================ */
 
 @media (max-width: 240px) {
+  .banner {
+    min-height: 50%;
+    padding: 0.5rem;
+    flex: 0 0 50%;
+  }
+
   .banner-content h2 {
     font-size: 0.9rem;
     margin-bottom: 0.2rem;
@@ -482,6 +435,13 @@ html, body {
   .banner-content p {
     font-size: 0.6rem;
     line-height: 1;
+  }
+
+  .content {
+    min-height: 50%;
+    padding: 0.5rem;
+    gap: 0.3rem;
+    flex: 0 0 50%;
   }
 
   .logo {
@@ -512,19 +472,10 @@ html, body {
     border-radius: 3px;
     border: 1px solid white;
   }
-
-  .content {
-    padding: 0.5rem;
-    gap: 0.3rem;
-  }
-
-  .banner {
-    padding: 0.5rem;
-  }
 }
 
 /* ============================================================
-   LANDSCAPE MODE
+   LANDSCAPE MODE (Cualquier orientación horizontal)
    ============================================================ */
 
 @media (max-height: 600px) and (orientation: landscape) {
@@ -537,12 +488,14 @@ html, body {
     width: 50%;
     min-height: 100vh;
     padding: 1rem;
+    flex: 0 0 50%;
   }
 
   .content {
     width: 50%;
     min-height: 100vh;
     padding: 1rem;
+    flex: 0 0 50%;
   }
 
   .banner-content h2 {
@@ -583,7 +536,6 @@ html, body {
   }
 }
 
-/* Prevenir selección de texto accidental */
 .banner-content,
 .logo,
 .slogan {
@@ -593,15 +545,10 @@ html, body {
   -ms-user-select: none;
 }
 
-/* Focus visible para accesibilidad */
 .btn:focus-visible {
   outline: 3px solid #ff4d4d;
   outline-offset: 2px;
 }
-
-/* ============================================================
-   SCROLLBAR STYLING (para .content overflow)
-   ============================================================ */
 
 .content::-webkit-scrollbar {
   width: 6px;
