@@ -157,5 +157,8 @@ export const routes: Routes = [
         .then(m => m.NuevaConversacionComponent),
   },
 
+  
 
+  // ================== WILDCARD ==================
+  { path: '**', redirectTo: 'login' },
 ];
