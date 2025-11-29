@@ -16,10 +16,15 @@
 
 /* Ajustes para pantallas grandes */
 @media (min-width: 1440px) {
-  .register-container { grid-template-columns: minmax(0, 1fr) 620px; }
+  .register-container { 
+    grid-template-columns: minmax(0, 1fr) 620px; 
+  }
 }
+
 @media (min-width: 1680px) {
-  .register-container { grid-template-columns: minmax(0, 1fr) 680px; }
+  .register-container { 
+    grid-template-columns: minmax(0, 1fr) 680px; 
+  }
 }
 
 /* ===== Imagen izquierda ===== */
@@ -28,6 +33,7 @@
   overflow: hidden;
   height: 100%;
 }
+
 .banner-img {
   width: 100%;
   height: 100%;
@@ -36,6 +42,7 @@
   object-position: 35% center;
   filter: brightness(0.6);
 }
+
 .banner-overlay {
   position: absolute;
   inset: 0;
@@ -65,7 +72,7 @@
   text-align: center;
 }
 
-/* ===== Formulario (sin sombra trasera) ===== */
+/* ===== Formulario ===== */
 .register-form {
   width: 100%;
   max-width: 520px;
@@ -82,8 +89,11 @@
   overflow: visible;
   position: relative;
 }
+
 @media (min-width: 1440px) {
-  .register-form { max-width: 560px; }
+  .register-form { 
+    max-width: 560px; 
+  }
 }
 
 /* ===== Campos ===== */
@@ -93,17 +103,18 @@
   gap: 0.4rem;
 }
 
-/* ===== Email input wrapper (NUEVO) ===== */
+/* ===== Email input wrapper ===== */
 .email-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
+
 .email-input-wrapper .control {
   flex: 1;
 }
 
-/* ===== Spinner de validación (NUEVO) ===== */
+/* ===== Spinner de validación ===== */
 .email-validating {
   position: absolute;
   right: 12px;
@@ -116,7 +127,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* ===== Mensaje de éxito en email (NUEVO) ===== */
+/* ===== Mensaje de éxito en email ===== */
 .email-check-success {
   margin-top: 0.4rem;
   padding: 0.5rem 0.7rem;
@@ -151,20 +162,23 @@
   outline: 0;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
+
 .control:focus {
   border-color: #4d90fe;
   box-shadow: 0 0 0 3px rgba(77, 144, 254, 0.18);
 }
+
 .field.valid .control { 
   border-color: #2ecc71;
   box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
 }
+
 .field.invalid .control { 
   border-color: #e74c3c;
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
-/* ===== Mensajes de error mejorados ===== */
+/* ===== Mensajes de error ===== */
 .error-msg {
   margin-top: 0.4rem;
   background: rgba(231, 76, 60, 0.08);
@@ -176,7 +190,7 @@
   line-height: 1.4;
 }
 
-/* ===== Botón "Continuar" limpio y compacto ===== */
+/* ===== Botón "Continuar" ===== */
 .continue-btn {
   background: #4d90fe;
   color: #fff;
@@ -194,19 +208,22 @@
   margin: 0.8rem auto 0;
   box-shadow: none;
 }
+
 .continue-btn:hover:not(:disabled) {
   background: #357ae8;
 }
+
 .continue-btn:active:not(:disabled) {
   transform: translateY(1px);
 }
+
 .continue-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   background: #4d90fe;
 }
 
-/* ===== Google (ACTUALIZADO - REDONDEADO) ===== */
+/* ===== Google (ACTUALIZADO - REDONDEADO Y VISIBLE) ===== */
 .login-google-label {
   color: #aaa;
   text-align: center;
@@ -214,6 +231,7 @@
   display: block;
   margin-bottom: 0.45rem;
 }
+
 .google-wrap {
   display: flex;
   justify-content: center;
@@ -221,26 +239,44 @@
   margin-bottom: 1.4rem;
   position: relative;
   z-index: 10;
+  min-height: 52px;
+  align-items: center;
 }
+
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
-  min-height: 42px;
-  transition: opacity 0.2s ease;
+  min-height: 48px;
   border-radius: 10px !important;
   overflow: hidden !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
 /* Forzar que los elementos internos de Google respeten el border-radius */
 #googleSignInBtn > div {
   border-radius: 10px !important;
   overflow: hidden !important;
+  width: 100%;
+  height: 100%;
 }
 
 #googleSignInBtn button,
 #googleSignInBtn [role="button"] {
   border-radius: 10px !important;
+  width: 100%;
+  min-height: 48px;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+#googleSignInBtn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 /* ===== Separador ===== */
@@ -250,7 +286,7 @@
   margin: 0.4rem 0 0.9rem;
 }
 
-/* ===== Fondo inferior (sin degradado ni sombra) ===== */
+/* ===== Fondo inferior ===== */
 .form-actions {
   position: sticky;
   bottom: 0;
@@ -271,6 +307,7 @@
   border: 1px solid #2f363d;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
 .strength-top {
   display: flex;
   justify-content: space-between;
@@ -280,14 +317,17 @@
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
+
 .strength-label { 
   color: #fff; 
   font-weight: 600; 
 }
+
 .strength-min { 
   color: #999; 
   font-size: 0.85rem; 
 }
+
 .meter {
   height: 8px;
   background: #2a2f37;
@@ -295,11 +335,13 @@
   overflow: hidden;
   margin-bottom: 0.6rem;
 }
+
 .meter-bar {
   height: 100%;
   width: 0%;
   transition: width 0.3s ease;
 }
+
 .strength.weak  .meter-bar { background: #e74c3c; }
 .strength.fair  .meter-bar { background: #f39c12; }
 .strength.good  .meter-bar { background: #2ecc71; }
@@ -314,6 +356,7 @@
   flex-direction: column;
   gap: 0.35rem;
 }
+
 .policy-item {
   position: relative;
   color: #aab3c5;
@@ -321,6 +364,7 @@
   padding-left: 1.3rem;
   transition: color 0.2s ease;
 }
+
 .policy-item::before {
   content: "•";
   position: absolute;
@@ -329,17 +373,19 @@
   color: #666;
   font-weight: bold;
 }
+
 .policy-item.ok {
   color: #7ee787;
   font-weight: 600;
 }
+
 .policy-item.ok::before {
   content: "✓";
   color: #2ecc71;
 }
 
 /* ============================================================
-   TABLET (768px - 1024px) - Responsive
+   TABLET (768px - 1024px)
    ============================================================ */
 
 @media (max-width: 1024px) {
@@ -347,18 +393,46 @@
     grid-template-columns: 1fr;
     height: auto;
   }
-  .register-banner { display: none; }
+
+  .register-banner { 
+    display: none; 
+  }
+
   .register-form-section {
     padding: 24px 16px;
     box-shadow: none;
     height: auto;
     overflow-y: auto;
   }
-  .register-form { max-width: 480px; }
-  .register-title { font-size: 24px; margin-bottom: 16px; }
-  .control { padding: 0.75rem 0.9rem; font-size: 0.95rem; }
-  .continue-btn { max-width: 300px; padding: 0.65rem 0.95rem; font-size: 0.9rem; }
-  #googleSignInBtn { max-width: 300px; }
+
+  .register-form { 
+    max-width: 480px; 
+  }
+
+  .register-title { 
+    font-size: 24px; 
+    margin-bottom: 16px; 
+  }
+
+  .control { 
+    padding: 0.75rem 0.9rem; 
+    font-size: 0.95rem; 
+  }
+
+  .continue-btn { 
+    max-width: 300px; 
+    padding: 0.65rem 0.95rem; 
+    font-size: 0.9rem; 
+  }
+
+  #googleSignInBtn { 
+    max-width: 300px; 
+    min-height: 44px;
+  }
+
+  .google-wrap {
+    min-height: 44px;
+  }
 }
 
 /* ============================================================
@@ -371,7 +445,11 @@
     height: 100vh;
     overflow-y: auto;
   }
-  .register-banner { display: none; }
+
+  .register-banner { 
+    display: none; 
+  }
+
   .register-form-section {
     padding: 20px 14px;
     box-shadow: none;
@@ -379,20 +457,24 @@
     overflow-y: auto;
     background: #181818;
   }
+
   .register-form {
     max-width: 100%;
     padding: 16px 12px;
     gap: 0.8rem;
   }
+
   .register-title {
     font-size: clamp(20px, 5vw, 24px);
     margin-bottom: 14px;
   }
+
   .control {
     padding: clamp(0.6rem, 2vh, 0.75rem) clamp(0.8rem, 2vw, 0.9rem);
     font-size: clamp(0.85rem, 2.5vw, 0.95rem);
     border-radius: 8px;
   }
+
   .continue-btn {
     max-width: 100%;
     padding: clamp(0.6rem, 1.5vh, 0.65rem) clamp(0.8rem, 2vw, 0.95rem);
@@ -400,17 +482,45 @@
     border-radius: 8px;
     min-height: 42px;
   }
+
   #googleSignInBtn {
     max-width: 100%;
     min-height: 42px;
     border-radius: 8px !important;
   }
-  .error-msg { font-size: clamp(0.8rem, 2vw, 0.9rem); padding: 0.4rem 0.6rem; }
-  .email-check-success { font-size: clamp(0.8rem, 2vw, 0.9rem); padding: 0.4rem 0.6rem; }
-  .strength { padding: clamp(0.6rem, 1.5vh, 0.8rem); margin-top: 0.6rem; }
-  .strength-top { font-size: clamp(0.8rem, 2vw, 0.9rem); margin-bottom: 0.4rem; }
-  .policy-item { font-size: clamp(0.8rem, 2vw, 0.9rem); padding-left: 1.2rem; }
-  .form-actions { padding: 10px 0; }
+
+  .google-wrap {
+    min-height: 42px;
+  }
+
+  .error-msg { 
+    font-size: clamp(0.8rem, 2vw, 0.9rem); 
+    padding: 0.4rem 0.6rem; 
+  }
+
+  .email-check-success { 
+    font-size: clamp(0.8rem, 2vw, 0.9rem); 
+    padding: 0.4rem 0.6rem; 
+  }
+
+  .strength { 
+    padding: clamp(0.6rem, 1.5vh, 0.8rem); 
+    margin-top: 0.6rem; 
+  }
+
+  .strength-top { 
+    font-size: clamp(0.8rem, 2vw, 0.9rem); 
+    margin-bottom: 0.4rem; 
+  }
+
+  .policy-item { 
+    font-size: clamp(0.8rem, 2vw, 0.9rem); 
+    padding-left: 1.2rem; 
+  }
+
+  .form-actions { 
+    padding: 10px 0; 
+  }
 }
 
 /* ============================================================
@@ -423,7 +533,11 @@
     height: auto;
     overflow-y: auto;
   }
-  .register-banner { display: none; }
+
+  .register-banner { 
+    display: none; 
+  }
+
   .register-form-section {
     padding: 16px 10px;
     box-shadow: none;
@@ -434,6 +548,7 @@
     display: flex;
     flex-direction: column;
   }
+
   .register-form {
     width: 100%;
     max-width: 100%;
@@ -442,34 +557,47 @@
     border-radius: 10px;
     flex-grow: 1;
   }
+
   .register-title {
     font-size: 18px;
     margin-bottom: 12px;
     font-weight: 700;
   }
+
   .field {
     gap: 0.3rem;
   }
+
   .control {
     padding: 0.6rem 0.8rem;
     font-size: 0.85rem;
     border-radius: 8px;
   }
+
   .control:focus {
     box-shadow: 0 0 0 2px rgba(77, 144, 254, 0.15);
   }
+
   .login-google-label {
     font-size: 0.85rem;
     margin-bottom: 0.4rem;
   }
+
   #googleSignInBtn {
     max-width: 100%;
     min-height: 40px;
     border-radius: 8px !important;
   }
+
+  .google-wrap {
+    min-height: 40px;
+    margin-bottom: 1rem;
+  }
+
   .divider-form {
     margin: 0.3rem 0 0.7rem;
   }
+
   .continue-btn {
     max-width: 100%;
     padding: 0.6rem 0.8rem;
@@ -478,45 +606,55 @@
     min-height: 40px;
     margin: 0.6rem auto 0;
   }
+
   .error-msg {
     margin-top: 0.3rem;
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
     border-left: 2px solid #e74c3c;
   }
+
   .email-check-success {
     margin-top: 0.3rem;
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
     border-left: 2px solid #2ecc71;
   }
+
   .strength {
     padding: 0.7rem 0.8rem;
     margin-top: 0.5rem;
     border-radius: 8px;
   }
+
   .strength-top {
     font-size: 0.8rem;
     margin-bottom: 0.35rem;
   }
+
   .strength-label {
     font-size: 0.8rem;
   }
+
   .strength-min {
     font-size: 0.75rem;
   }
+
   .meter {
     height: 6px;
     margin-bottom: 0.4rem;
   }
+
   .policy-list {
     padding-left: 0.9rem;
     gap: 0.3rem;
   }
+
   .policy-item {
     font-size: 0.8rem;
     padding-left: 1.1rem;
   }
+
   .form-actions {
     padding: 8px 0;
     border-top: 1px solid #2a2f37;
@@ -531,30 +669,41 @@
   .register-form-section {
     padding: 12px 8px;
   }
+
   .register-form {
     padding: 12px 8px;
     gap: 0.6rem;
     border-radius: 8px;
   }
+
   .register-title {
     font-size: 16px;
     margin-bottom: 10px;
   }
+
   .control {
     padding: 0.55rem 0.7rem;
     font-size: 0.8rem;
     border-radius: 6px;
   }
+
   .login-google-label {
     font-size: 0.8rem;
   }
+
   #googleSignInBtn {
     min-height: 38px;
     border-radius: 6px !important;
   }
+
+  .google-wrap {
+    min-height: 38px;
+  }
+
   .divider-form {
     margin: 0.25rem 0 0.6rem;
   }
+
   .continue-btn {
     padding: 0.55rem 0.7rem;
     font-size: 0.8rem;
@@ -562,23 +711,28 @@
     min-height: 38px;
     margin: 0.5rem auto 0;
   }
+
   .error-msg {
     padding: 0.35rem 0.5rem;
     font-size: 0.75rem;
   }
+
   .email-check-success {
     padding: 0.35rem 0.5rem;
     font-size: 0.75rem;
   }
+
   .strength {
     padding: 0.6rem 0.7rem;
     margin-top: 0.4rem;
     border-radius: 6px;
   }
+
   .strength-top {
     font-size: 0.75rem;
     margin-bottom: 0.3rem;
   }
+
   .policy-item {
     font-size: 0.75rem;
     padding-left: 1rem;
@@ -593,34 +747,45 @@
   .register-form-section {
     padding: 10px 6px;
   }
+
   .register-form {
     padding: 10px 6px;
     gap: 0.5rem;
     border-radius: 6px;
   }
+
   .register-title {
     font-size: 15px;
     margin-bottom: 8px;
   }
+
   .control {
     padding: 0.5rem 0.6rem;
     font-size: 0.75rem;
     border-radius: 6px;
   }
+
   #googleSignInBtn {
     min-height: 36px;
     border-radius: 6px !important;
   }
+
+  .google-wrap {
+    min-height: 36px;
+  }
+
   .continue-btn {
     padding: 0.5rem 0.6rem;
     font-size: 0.75rem;
     min-height: 36px;
     margin: 0.4rem auto 0;
   }
+
   .strength {
     padding: 0.5rem 0.6rem;
     margin-top: 0.3rem;
   }
+
   .policy-item {
     font-size: 0.7rem;
   }

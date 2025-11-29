@@ -1,45 +1,51 @@
 /* ==== CONTENEDOR PRINCIPAL ==== */
 .login-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   height: 100vh;
   width: 100%;
   background: #181818;
   font-family: 'Arial', sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-/* ==== BANNER ==== */
+/* ==== BANNER IZQUIERDO ==== */
 .login-banner {
-  flex: 1;
   position: relative;
   display: flex;
   align-items: stretch;
   justify-content: stretch;
   overflow: hidden;
+  background: #000;
 }
+
 .banner-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
+
 .banner-overlay {
   position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
   z-index: 1;
 }
 
 /* ==== COLUMNA DERECHA ==== */
 .login-form-section {
-  flex: 1;
-  background: #232323;
+  background: #181818;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 2.5rem 2rem;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 /* ==== TÍTULO ==== */
@@ -108,9 +114,9 @@
 }
 
 /* Inputs */
-.login-form input {
-  background: #181818;
-  border: 2px solid #444;
+.control {
+  background: #232323;
+  border: 2px solid #4d90fe;
   color: #fff;
   padding: 0.8rem 1rem;
   border-radius: 8px;
@@ -119,12 +125,16 @@
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
-.login-form input:focus {
-  border-color: #4d90fe;
-  box-shadow: 0 0 0 3px rgba(77,144,254,.18);
+.control::placeholder {
+  color: #999;
 }
 
-.login-form input:disabled {
+.control:focus {
+  border-color: #4d90fe;
+  box-shadow: 0 0 0 3px rgba(77, 144, 254, 0.18);
+}
+
+.control:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -170,7 +180,7 @@
 .divider-form {
   height: 1px;
   background: #444;
-  margin: .6rem 0 .9rem;
+  margin: 0.6rem 0 0.9rem;
 }
 
 .login-google-label {
@@ -178,35 +188,48 @@
   text-align: center;
   font-size: 0.95rem;
   display: block;
-  margin-bottom: .45rem;
+  margin-bottom: 0.45rem;
 }
 
-/* ==== BOTÓN OFICIAL DE GOOGLE (ACTUALIZADO - REDONDEADO) ==== */
+/* ==== BOTÓN OFICIAL DE GOOGLE (REDONDEADO) ==== */
 .google-wrap {
   display: flex;
   justify-content: center;
   width: 100%;
-  margin: 0.5rem 0;
+  margin: 0.5rem 0 1rem 0;
+  min-height: 50px;
+  align-items: center;
 }
 
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
+  min-height: 48px;
   border-radius: 10px !important;
   overflow: hidden !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
 /* Forzar que los elementos internos de Google respeten el border-radius */
 #googleSignInBtn > div {
   border-radius: 10px !important;
   overflow: hidden !important;
+  width: 100%;
+  height: 100%;
 }
 
 #googleSignInBtn button,
 #googleSignInBtn [role="button"] {
   border-radius: 10px !important;
+  width: 100%;
+  min-height: 48px;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
 /* Efectos hover al pasar el mouse */
@@ -215,24 +238,19 @@
   transform: translateY(-1px);
 }
 
-/* Si quedara el botón antiguo por error, ocultarlo */
-.google-btn, .google-btn img {
-  display: none !important;
-}
-
 /* ==== SUBMIT ==== */
 .continue-btn {
   background: #4d90fe;
   color: #fff;
   border: none;
   border-radius: 10px;
-  padding: .9rem 1rem;
+  padding: 0.9rem 1rem;
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
-  margin-top: .55rem;
-  transition: background .2s, transform .06s, opacity .2s;
-  box-shadow: 0 10px 24px rgba(77,144,254,.25);
+  margin-top: 0.55rem;
+  transition: background 0.2s, transform 0.06s, opacity 0.2s;
+  box-shadow: 0 10px 24px rgba(77, 144, 254, 0.25);
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -278,40 +296,62 @@
 }
 
 /* ============================================================
+   DESKTOP LARGE (1440px+)
+   ============================================================ */
+
+@media (min-width: 1440px) {
+  .login-container {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+/* ============================================================
    TABLET (768px - 1024px)
    ============================================================ */
 
 @media (max-width: 1024px) {
   .login-container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     height: auto;
   }
+
   .login-banner {
     display: none;
   }
+
   .login-form-section {
     width: 100%;
     min-height: 100vh;
     padding: 2rem 1rem;
     background: #181818;
   }
+
   .login-title {
     font-size: 24px;
     margin-bottom: 1rem;
   }
+
   .login-form {
     max-width: 450px;
   }
-  .login-form input {
+
+  .control {
     padding: 0.75rem 0.9rem;
     font-size: 0.95rem;
   }
+
   .continue-btn {
     padding: 0.8rem 1rem;
     font-size: 0.95rem;
   }
+
   #googleSignInBtn {
-    border-radius: 8px !important;
+    max-width: 340px;
+    min-height: 44px;
+  }
+
+  .google-wrap {
+    min-height: 44px;
   }
 }
 
@@ -321,47 +361,60 @@
 
 @media (max-width: 768px) {
   .login-container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     height: 100vh;
     overflow-y: auto;
   }
+
   .login-banner {
     display: none;
   }
+
   .login-form-section {
     width: 100%;
     min-height: 100vh;
     padding: 2rem 1.5rem;
     background: #181818;
   }
+
   .login-title {
     font-size: 22px;
     margin-bottom: 1.5rem;
     font-weight: 700;
   }
+
   .login-form {
     width: 100%;
     max-width: 100%;
     gap: 1rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.8rem 1rem;
     font-size: 0.95rem;
     border-radius: 8px;
     min-height: 44px;
   }
+
   .divider-form {
     margin: 0.6rem 0 1rem;
   }
+
   .login-google-label {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
   }
+
   #googleSignInBtn {
     max-width: 100%;
     min-height: 44px;
     border-radius: 8px !important;
   }
+
+  .google-wrap {
+    min-height: 44px;
+  }
+
   .continue-btn {
     padding: 0.8rem 1rem;
     font-size: 0.95rem;
@@ -378,35 +431,47 @@
   .login-form-section {
     padding: 1.8rem 1.2rem;
   }
+
   .login-title {
     font-size: 20px;
     margin-bottom: 1.3rem;
     font-weight: 700;
   }
+
   .login-form {
     width: 100%;
     gap: 0.9rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.75rem 0.95rem;
     font-size: 0.9rem;
     border-radius: 8px;
     min-height: 42px;
   }
+
   .error-message {
     font-size: 0.8rem;
   }
+
   .divider-form {
     margin: 0.5rem 0 0.9rem;
   }
+
   .login-google-label {
     font-size: 0.85rem;
     margin-bottom: 0.45rem;
   }
+
   #googleSignInBtn {
     min-height: 42px;
     border-radius: 8px !important;
   }
+
+  .google-wrap {
+    min-height: 42px;
+  }
+
   .continue-btn {
     padding: 0.75rem 0.95rem;
     font-size: 0.9rem;
@@ -421,13 +486,15 @@
 
 @media (max-width: 480px) {
   .login-container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     height: auto;
     overflow-y: auto;
   }
+
   .login-banner {
     display: none;
   }
+
   .login-form-section {
     width: 100%;
     min-height: 100vh;
@@ -437,53 +504,68 @@
     flex-direction: column;
     justify-content: center;
   }
+
   .login-title {
     font-size: 18px;
     margin-bottom: 1.2rem;
     font-weight: 700;
   }
+
   .alert {
     max-width: 100%;
     font-size: 0.85rem;
     padding: 0.8rem 0.9rem;
   }
+
   .login-form {
     width: 100%;
     max-width: 100%;
     gap: 0.8rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.7rem 0.9rem;
     font-size: 0.85rem;
     border-radius: 8px;
     min-height: 40px;
   }
-  .login-form input:focus {
-    box-shadow: 0 0 0 2px rgba(77,144,254,.12);
+
+  .control:focus {
+    box-shadow: 0 0 0 2px rgba(77, 144, 254, 0.12);
   }
+
   .error-message {
     font-size: 0.78rem;
   }
+
   .divider-form {
     margin: 0.45rem 0 0.8rem;
   }
+
   .login-google-label {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
   }
+
   #googleSignInBtn {
     max-width: 100%;
     min-height: 40px;
     border-radius: 8px !important;
   }
+
+  .google-wrap {
+    min-height: 40px;
+  }
+
   .continue-btn {
     padding: 0.7rem 0.9rem;
     font-size: 0.85rem;
     border-radius: 8px;
     min-height: 40px;
     margin-top: 0.45rem;
-    box-shadow: 0 6px 16px rgba(77,144,254,.2);
+    box-shadow: 0 6px 16px rgba(77, 144, 254, 0.2);
   }
+
   .register-link {
     margin-top: 1.2rem;
     font-size: 0.85rem;
@@ -498,39 +580,52 @@
   .login-form-section {
     padding: 1.3rem 0.9rem;
   }
+
   .login-title {
     font-size: 17px;
     margin-bottom: 1rem;
     font-weight: 700;
   }
+
   .alert {
     max-width: 100%;
     font-size: 0.8rem;
     padding: 0.7rem 0.85rem;
   }
+
   .login-form {
     gap: 0.75rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.65rem 0.85rem;
     font-size: 0.8rem;
     border-radius: 7px;
     min-height: 38px;
   }
+
   .error-message {
     font-size: 0.75rem;
   }
+
   .divider-form {
     margin: 0.4rem 0 0.75rem;
   }
+
   .login-google-label {
     font-size: 0.75rem;
     margin-bottom: 0.35rem;
   }
+
   #googleSignInBtn {
     min-height: 38px;
     border-radius: 7px !important;
   }
+
+  .google-wrap {
+    min-height: 38px;
+  }
+
   .continue-btn {
     padding: 0.65rem 0.85rem;
     font-size: 0.8rem;
@@ -548,34 +643,46 @@
   .login-form-section {
     padding: 1.2rem 0.85rem;
   }
+
   .login-title {
     font-size: 16px;
     margin-bottom: 0.95rem;
     font-weight: 700;
   }
+
   .login-form {
     gap: 0.7rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.6rem 0.8rem;
     font-size: 0.77rem;
     border-radius: 7px;
     min-height: 36px;
   }
+
   .error-message {
     font-size: 0.72rem;
   }
+
   .divider-form {
     margin: 0.35rem 0 0.7rem;
   }
+
   .login-google-label {
     font-size: 0.72rem;
     margin-bottom: 0.32rem;
   }
+
   #googleSignInBtn {
     min-height: 36px;
     border-radius: 7px !important;
   }
+
+  .google-wrap {
+    min-height: 36px;
+  }
+
   .continue-btn {
     padding: 0.6rem 0.8rem;
     font-size: 0.77rem;
@@ -593,34 +700,46 @@
   .login-form-section {
     padding: 1.1rem 0.8rem;
   }
+
   .login-title {
     font-size: 15px;
     margin-bottom: 0.9rem;
     font-weight: 700;
   }
+
   .login-form {
     gap: 0.65rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.58rem 0.75rem;
     font-size: 0.75rem;
     border-radius: 6px;
     min-height: 34px;
   }
+
   .error-message {
     font-size: 0.7rem;
   }
+
   .divider-form {
     margin: 0.32rem 0 0.65rem;
   }
+
   .login-google-label {
     font-size: 0.7rem;
     margin-bottom: 0.3rem;
   }
+
   #googleSignInBtn {
     min-height: 34px;
     border-radius: 6px !important;
   }
+
+  .google-wrap {
+    min-height: 34px;
+  }
+
   .continue-btn {
     padding: 0.58rem 0.75rem;
     font-size: 0.75rem;
@@ -638,130 +757,53 @@
   .login-form-section {
     padding: 1rem 0.75rem;
   }
+
   .login-title {
     font-size: 14px;
     margin-bottom: 0.85rem;
     font-weight: 700;
   }
+
   .login-form {
     gap: 0.6rem;
   }
-  .login-form input {
+
+  .control {
     padding: 0.55rem 0.7rem;
     font-size: 0.72rem;
     border-radius: 6px;
     min-height: 32px;
   }
+
   .error-message {
     font-size: 0.68rem;
   }
+
   .divider-form {
     margin: 0.3rem 0 0.6rem;
   }
+
   .login-google-label {
     font-size: 0.68rem;
     margin-bottom: 0.28rem;
   }
+
   #googleSignInBtn {
     min-height: 32px;
     border-radius: 6px !important;
   }
+
+  .google-wrap {
+    min-height: 32px;
+  }
+
   .continue-btn {
     padding: 0.55rem 0.7rem;
     font-size: 0.72rem;
     border-radius: 6px;
     min-height: 32px;
     margin-top: 0.3rem;
-    box-shadow: 0 4px 10px rgba(77,144,254,.15);
-  }
-}
-
-/* ============================================================
-   ULTRA SMALL (280px - 320px - Smartwatch)
-   ============================================================ */
-
-@media (max-width: 280px) {
-  .login-form-section {
-    padding: 0.9rem 0.7rem;
-  }
-  .login-title {
-    font-size: 13px;
-    margin-bottom: 0.8rem;
-    font-weight: 700;
-  }
-  .login-form {
-    gap: 0.55rem;
-  }
-  .login-form input {
-    padding: 0.5rem 0.65rem;
-    font-size: 0.68rem;
-    border-radius: 5px;
-    min-height: 30px;
-  }
-  .error-message {
-    font-size: 0.65rem;
-  }
-  .divider-form {
-    margin: 0.28rem 0 0.55rem;
-  }
-  .login-google-label {
-    font-size: 0.65rem;
-    margin-bottom: 0.26rem;
-  }
-  #googleSignInBtn {
-    min-height: 30px;
-    border-radius: 5px !important;
-  }
-  .continue-btn {
-    padding: 0.5rem 0.65rem;
-    font-size: 0.68rem;
-    border-radius: 5px;
-    min-height: 30px;
-    margin-top: 0.28rem;
-  }
-}
-
-/* ============================================================
-   HYPER EXTREME (< 240px - Ultra smartwatch)
-   ============================================================ */
-
-@media (max-width: 240px) {
-  .login-form-section {
-    padding: 0.8rem 0.65rem;
-  }
-  .login-title {
-    font-size: 12px;
-    margin-bottom: 0.75rem;
-  }
-  .login-form {
-    gap: 0.5rem;
-  }
-  .login-form input {
-    padding: 0.45rem 0.6rem;
-    font-size: 0.65rem;
-    border-radius: 5px;
-    min-height: 28px;
-  }
-  .error-message {
-    font-size: 0.6rem;
-  }
-  .divider-form {
-    margin: 0.25rem 0 0.5rem;
-  }
-  .login-google-label {
-    font-size: 0.6rem;
-    margin-bottom: 0.24rem;
-  }
-  #googleSignInBtn {
-    min-height: 28px;
-    border-radius: 5px !important;
-  }
-  .continue-btn {
-    padding: 0.45rem 0.6rem;
-    font-size: 0.65rem;
-    border-radius: 5px;
-    min-height: 28px;
-    margin-top: 0.25rem;
+    box-shadow: 0 4px 10px rgba(77, 144, 254, 0.15);
   }
 }
 

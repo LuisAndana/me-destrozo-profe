@@ -1,11 +1,11 @@
 <div class="login-container">
-  <!-- Banner -->
+  <!-- Banner Izquierdo -->
   <div class="login-banner">
+    <img src="assets/gym-banner_page.jpg" alt="Banner" class="banner-img" />
     <div class="banner-overlay"></div>
-    <img src="/assets/gym-banner_page.jpg" alt="Banner" class="banner-img" />
   </div>
 
-  <!-- Formulario -->
+  <!-- Formulario Derecho -->
   <div class="login-form-section">
     <h2 class="login-title">Login de usuario</h2>
 
@@ -26,6 +26,7 @@
           (input)="validateEmail()"
           [class.input-error]="emailError"
           [class.input-valid]="emailControl?.valid && emailControl?.touched && !emailError"
+          class="control"
         />
         <div *ngIf="emailError" class="error-message">
           <span class="error-icon">✗</span> {{ emailError }}
@@ -42,18 +43,11 @@
           (input)="validatePassword()"
           [class.input-error]="passwordError"
           [class.input-valid]="passwordControl?.valid && passwordControl?.touched && !passwordError"
+          class="control"
         />
         <div *ngIf="passwordError" class="error-message">
           <span class="error-icon">✗</span> {{ passwordError }}
         </div>
-      </div>
-
-      <div class="divider-form"></div>
-      <span class="login-google-label">Inicia sesión con</span>
-
-      <!-- Botón oficial de Google -->
-      <div class="google-wrap">
-        <div #googleSignInBtn id="googleSignInBtn"></div>
       </div>
 
       <!-- Botón Continuar -->
@@ -67,6 +61,15 @@
         <span *ngIf="isLoading">Validando...</span>
       </button>
     </form>
+
+    <!-- Separador -->
+    <div class="divider-form"></div>
+    <span class="login-google-label">Inicia sesión con</span>
+
+    <!-- Botón oficial de Google -->
+    <div class="google-wrap">
+      <div id="googleSignInBtn"></div>
+    </div>
 
     <!-- Enlace a registro -->
     <div class="register-link">
