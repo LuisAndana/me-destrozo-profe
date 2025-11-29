@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
+  production: true,
   apiBase: 'https://web-production-03d9e.up.railway.app',
   endpoints: {
     login: '/auth/login',
@@ -13,5 +13,5 @@ export const environment = {
     verificationStatus: '/email/verification-status',
     stripePublicKey: "pk_test_51SUdMoEwnNTMkfQfPAiN2aOQUw5e9FmDr41o5TkWMd3Mp4KKATAvLMwER9Oz2kHBaBbdSmzWBYnVolP3XszNkfwI00AKDm9YVx"
   },
-  googleClientId: '144363202163-juhhgsrj47dp46co5bevehtmrpo54h9n.apps.googleusercontent.com'
+  googleClientId: '815296256153-0tht6evf9u6ap498l5mfs2ept5uer3ll.apps.googleusercontent.com'
 };
