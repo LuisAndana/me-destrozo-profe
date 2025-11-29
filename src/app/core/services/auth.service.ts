@@ -1,5 +1,5 @@
 ﻿// src/app/core/services/auth.service.ts
-// VERSIÓN MEJORADA: Mantiene sesión estable durante la navegación
+// VERSIÓN MEJORADA CON FIX: Manejo seguro de id_usuario
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -78,7 +78,6 @@ export class AuthService {
       this._isAuthenticated$.next(true);
     } else if (token && !user) {
       console.log('⚠️ Token existe pero no hay usuario, intentando fetchMe()...');
-      // El interceptor se encargará de fetchMe en la siguiente request
     } else {
       console.log('❌ Sin sesión válida');
       this.wipeAll();
@@ -129,7 +128,7 @@ export class AuthService {
       const raw = localStorage.getItem(USER_KEY);
       return this.normalizeUser(raw ? JSON.parse(raw) : null);
     } catch { 
-      console.error('❌ Error restaurando usuario:', arguments);
+      console.error('❌ Error restaurando usuario');
       return null;
     }
   }
@@ -141,11 +140,22 @@ export class AuthService {
     return 'alumno';
   }
 
+  /**
+   * 💾 Guarda usuario en localStorage - CON VALIDACIÓN SEGURA
+   * ✅ MEJORADO: Manejo seguro de id_usuario
+   */
   public setUser(u: Usuario | null) {
     if (u) {
+      // Validar que tenga ID válido
+      const id = u.id_usuario || (u as any).id;
+      if (!id || !Number.isFinite(id)) {
+        console.error('❌ Usuario sin ID válido, no se guardará');
+        return;
+      }
+
       localStorage.setItem('gym_user', JSON.stringify(u));
-      localStorage.setItem('id_entrenador', u.id_usuario.toString());
-      console.log('💾 Usuario guardado:', u.email);
+      localStorage.setItem('id_entrenador', String(id));
+      console.log('💾 Usuario guardado:', u.email, 'ID:', id);
     } else {
       localStorage.removeItem('gym_user');
       localStorage.removeItem('id_entrenador');
