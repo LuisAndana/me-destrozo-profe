@@ -171,7 +171,8 @@ export class Login implements AfterViewInit {
   }
 
   /**
-   * Inicializar Google Sign-In y renderizar botón
+   * Inicializar Google Sign-In y renderizar botón ESTÁNDAR
+   * ⭐ FUERZA auto_select: false para evitar que aparezca One Tap
    */
   private initializeGoogle(): void {
     try {
@@ -187,24 +188,26 @@ export class Login implements AfterViewInit {
         client_id: environment.googleClientId,
         callback: (resp: any) => this.onGoogleCredential(resp),
         ux_mode: 'popup',
+        auto_select: false,  // ⭐ DESACTIVAR AUTO-SELECCIÓN (evita One Tap)
       });
 
-      console.log('[Login] 🎯 Renderizando botón Google...');
+      console.log('[Login] 🎯 Renderizando botón Google ESTÁNDAR...');
       
       google.accounts.id.renderButton(
         this.googleSignInBtn?.nativeElement,
         {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'pill',
-          width: 320,
+          type: 'standard',        // ← BOTÓN ESTÁNDAR (no 'icon')
+          theme: 'outline',        // ← Tema outline
+          size: 'large',           // ← Tamaño grande
+          text: 'continue_with',   // ← Texto: "Continuar con"
+          shape: 'rounded',        // ← Botón redondeado
+          width: 320,              // ← Ancho fijo
+          logo_alignment: 'left',  // ← Logo a la izquierda
         }
       );
 
       this.googleReady = true;
-      console.log('[Login] ✅ Botón Google renderizado correctamente');
+      console.log('[Login] ✅ Botón Google ESTÁNDAR renderizado correctamente');
     } catch (error: any) {
       console.error('[Login] ❌ Error al inicializar Google:', error);
       this.generalError = 'Error al cargar Google Sign-In: ' + error?.message;
