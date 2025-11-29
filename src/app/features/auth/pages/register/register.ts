@@ -47,18 +47,21 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     nombre: '', apellido: '', email: '', password: '', confirmPassword: '', rol: '', general: ''
   };
 
+  private googleInitAttempts = 0;
+  private maxGoogleAttempts = 20;
+
   constructor(
     private router: Router,
     private http: HttpClient,
     private renderer: Renderer2,
     @Inject(DOCUMENT) private doc: Document
   ) {
-    console.log('[Register] constructor - googleClientId:', environment.googleClientId);
+    console.log('[Register] ✅ Constructor - googleClientId:', environment.googleClientId);
   }
 
   ngOnInit(): void {
     this.renderer.addClass(this.doc.body, 'register-page');
-    console.log('[Register] ngOnInit - componente activo');
+    console.log('[Register] ✅ ngOnInit - componente activo');
   }
 
   ngOnDestroy(): void {
@@ -67,32 +70,84 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
 
   // === GOOGLE SIGN-IN ===
   ngAfterViewInit(): void {
-    console.log('[Register] ngAfterViewInit - inicializando Google Sign-In');
-    console.log('[Register] googleSignInBtn element:', this.googleSignInBtn);
+    console.log('[Register] 🔄 ngAfterViewInit - inicializando Google Sign-In');
+    
+    // Esperar un tick para asegurar que el DOM está listo
+    setTimeout(() => {
+      this.initializeGoogle();
+    }, 100);
+  }
+
+  private initializeGoogle(): void {
+    console.log('[Register] 🔍 Verificando si Google está disponible...');
     console.log('[Register] window.google:', (window as any).google);
+    console.log('[Register] googleSignInBtn:', this.googleSignInBtn?.nativeElement);
 
-    const init = () => {
-      console.log('[Register] Ejecutando init() de Google');
+    // Verificar que el elemento existe
+    if (!this.googleSignInBtn?.nativeElement) {
+      console.error('[Register] ❌ Elemento #googleSignInBtn no encontrado');
+      return;
+    }
+
+    // Si Google ya está disponible, inicializar inmediatamente
+    if ((window as any).google?.accounts?.id) {
+      console.log('[Register] ✅ Google ya está disponible - inicializando');
+      this.renderGoogleButton();
+      return;
+    }
+
+    // Si no está disponible, esperar a que se cargue
+    console.log('[Register] ⏳ Esperando a que Google se cargue...');
+    
+    // Método 1: Escuchar el callback de Google
+    (window as any).onGoogleLibraryLoad = () => {
+      console.log('[Register] ✅ Google library cargada (callback)');
+      this.renderGoogleButton();
+    };
+
+    // Método 2: Polling - reintentar cada 200ms por hasta 4 segundos
+    const pollInterval = setInterval(() => {
+      this.googleInitAttempts++;
       
-      if (!this.googleSignInBtn) {
-        console.error('[Register] googleSignInBtn no encontrado');
-        return;
+      if ((window as any).google?.accounts?.id) {
+        console.log(`[Register] ✅ Google disponible en intento ${this.googleInitAttempts}`);
+        clearInterval(pollInterval);
+        this.renderGoogleButton();
+      } else if (this.googleInitAttempts >= this.maxGoogleAttempts) {
+        console.error(`[Register] ❌ Google no cargó después de ${this.googleInitAttempts * 200}ms`);
+        clearInterval(pollInterval);
+        this.showGoogleError();
+      } else {
+        console.log(`[Register] ⏳ Intento ${this.googleInitAttempts}/${this.maxGoogleAttempts} - Google aún no disponible`);
       }
+    }, 200);
+  }
 
-      if (!google?.accounts?.id) {
-        console.error('[Register] google.accounts.id no disponible');
-        return;
-      }
+  private renderGoogleButton(): void {
+    if (!this.googleSignInBtn?.nativeElement) {
+      console.error('[Register] ❌ googleSignInBtn no existe');
+      return;
+    }
 
-      try {
-        google.accounts.id.initialize({
-          client_id: environment.googleClientId,
-          callback: (resp: any) => this.onGoogleCredential(resp),
-          ux_mode: 'popup',
-        });
-        console.log('[Register] ✅ Google inicializado correctamente');
+    if (!google?.accounts?.id) {
+      console.error('[Register] ❌ google.accounts.id no disponible');
+      return;
+    }
 
-        google.accounts.id.renderButton(this.googleSignInBtn.nativeElement, {
+    try {
+      console.log('[Register] 🎨 Inicializando Google...');
+      google.accounts.id.initialize({
+        client_id: environment.googleClientId,
+        callback: (resp: any) => this.onGoogleCredential(resp),
+        ux_mode: 'popup',
+        auto_select: false,
+      });
+      console.log('[Register] ✅ Google inicializado correctamente');
+
+      console.log('[Register] 🎨 Renderizando botón Google...');
+      google.accounts.id.renderButton(
+        this.googleSignInBtn.nativeElement,
+        {
           type: 'standard',
           theme: 'outline',
           size: 'large',
@@ -100,37 +155,32 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
           shape: 'rounded',
           width: '320',
           logo_alignment: 'left',
-        });
-        console.log('[Register] ✅ Botón renderizado correctamente');
-      } catch (error) {
-        console.error('[Register] Error inicializando Google:', error);
-      }
-    };
-
-    // Esperar a que Google se cargue
-    if ((window as any).google) {
-      console.log('[Register] Google ya está disponible');
-      init();
-    } else {
-      console.log('[Register] Esperando a que Google se cargue...');
-      (window as any).onGoogleLibraryLoad = () => {
-        console.log('[Register] Google library cargada - llamando init()');
-        init();
-      };
-      
-      // Fallback: reintentar cada 500ms hasta 5 segundos
-      let attempts = 0;
-      const checkInterval = setInterval(() => {
-        attempts++;
-        if ((window as any).google) {
-          console.log(`[Register] Google disponible en intento ${attempts}`);
-          clearInterval(checkInterval);
-          init();
-        } else if (attempts > 10) {
-          console.error('[Register] Google Sign-In no se pudo cargar después de 5 segundos');
-          clearInterval(checkInterval);
         }
-      }, 500);
+      );
+      console.log('[Register] ✅ Botón Google renderizado correctamente');
+
+    } catch (error) {
+      console.error('[Register] ❌ Error en renderButton:', error);
+      this.showGoogleError();
+    }
+  }
+
+  private showGoogleError(): void {
+    const btn = this.googleSignInBtn?.nativeElement;
+    if (btn) {
+      btn.innerHTML = `
+        <div style="
+          padding: 12px 16px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid #ef4444;
+          border-radius: 8px;
+          color: #fca5a5;
+          text-align: center;
+          font-size: 0.9rem;
+        ">
+          ⚠️ Error cargando Google Sign-In
+        </div>
+      `;
     }
   }
 
@@ -149,12 +199,12 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private onGoogleCredential(response: any): void {
-    console.log('[Register] onGoogleCredential - response recibida');
+    console.log('[Register] 🔐 onGoogleCredential - response recibida');
     this.clearErrors();
     const credential = response?.credential;
     if (!credential) {
       this.formErrors.general = 'No se recibió credencial de Google.';
-      console.error('[Register] Sin credencial en response');
+      console.error('[Register] ❌ Sin credencial en response');
       return;
     }
 
@@ -166,7 +216,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    console.log('[Register] Enviando credencial a backend');
+    console.log('[Register] 📤 Enviando credencial a backend');
     this.http.post(
       `${environment.apiBase}${environment.endpoints.googleSignin}`,
       { credential, rol: rolFront }
@@ -176,7 +226,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
         this.router.navigate(['/login']);
       },
       error: (err: any) => {
-        console.error('[Register] Error en Google Sign-In:', err);
+        console.error('[Register] ❌ Error en Google Sign-In:', err);
         this.handleBackendErrors(err);
       }
     });

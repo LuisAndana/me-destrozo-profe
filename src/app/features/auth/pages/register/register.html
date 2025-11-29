@@ -18,8 +18,8 @@
       <!-- NOMBRE -->
       <div class="field"
            [ngClass]="{
-             'invalid': ((nombreCtrl && nombreCtrl.invalid && (nombreCtrl.touched || submitted)) || formErrors.nombre),
-             'valid':   (nombreCtrl && nombreCtrl.valid && (nombreCtrl.touched || submitted))
+             'invalid': (nombreCtrl && nombreCtrl.invalid && (nombreCtrl.touched || submitted)) || formErrors.nombre,
+             'valid': (nombreCtrl && nombreCtrl.valid && nombreCtrl.touched && !formErrors.nombre)
            }">
         <input class="control"
                type="text"
@@ -32,19 +32,17 @@
                #nombreCtrl="ngModel" />
         <div class="error-msg"
              *ngIf="(nombreCtrl && nombreCtrl.invalid && (nombreCtrl.touched || submitted)) || formErrors.nombre">
-          <span *ngIf="formErrors.nombre; else nombreAuto">{{ formErrors.nombre }}</span>
-          <ng-template #nombreAuto>
-            <span *ngIf="nombreCtrl && nombreCtrl.errors?.['required']">Ingresa tu nombre.</span>
-            <span *ngIf="nombreCtrl && nombreCtrl.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
-          </ng-template>
+          <span *ngIf="formErrors.nombre">{{ formErrors.nombre }}</span>
+          <span *ngIf="!formErrors.nombre && nombreCtrl?.errors?.['required']">Ingresa tu nombre.</span>
+          <span *ngIf="!formErrors.nombre && nombreCtrl?.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
         </div>
       </div>
 
       <!-- APELLIDOS -->
       <div class="field"
            [ngClass]="{
-             'invalid': ((apellidoCtrl && apellidoCtrl.invalid && (apellidoCtrl.touched || submitted)) || formErrors.apellido),
-             'valid':   (apellidoCtrl && apellidoCtrl.valid && (apellidoCtrl.touched || submitted))
+             'invalid': (apellidoCtrl && apellidoCtrl.invalid && (apellidoCtrl.touched || submitted)) || formErrors.apellido,
+             'valid': (apellidoCtrl && apellidoCtrl.valid && apellidoCtrl.touched && !formErrors.apellido)
            }">
         <input class="control"
                type="text"
@@ -57,19 +55,17 @@
                #apellidoCtrl="ngModel" />
         <div class="error-msg"
              *ngIf="(apellidoCtrl && apellidoCtrl.invalid && (apellidoCtrl.touched || submitted)) || formErrors.apellido">
-          <span *ngIf="formErrors.apellido; else apellidoAuto">{{ formErrors.apellido }}</span>
-          <ng-template #apellidoAuto>
-            <span *ngIf="apellidoCtrl && apellidoCtrl.errors?.['required']">Ingresa tus apellidos.</span>
-            <span *ngIf="apellidoCtrl && apellidoCtrl.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
-          </ng-template>
+          <span *ngIf="formErrors.apellido">{{ formErrors.apellido }}</span>
+          <span *ngIf="!formErrors.apellido && apellidoCtrl?.errors?.['required']">Ingresa tus apellidos.</span>
+          <span *ngIf="!formErrors.apellido && apellidoCtrl?.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
         </div>
       </div>
 
       <!-- EMAIL CON VALIDACIÓN EN TIEMPO REAL -->
       <div class="field"
            [ngClass]="{
-             'invalid': ((emailCtrl && emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors.email || (!emailIsAvailable && emailCtrl && emailCtrl.touched)),
-             'valid':   (emailCtrl && emailCtrl.valid && emailIsValid && emailIsAvailable && (emailCtrl.touched || submitted))
+             'invalid': (emailCtrl && emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors.email || (!emailIsAvailable && emailCtrl?.touched),
+             'valid': (emailCtrl && emailCtrl.valid && emailIsValid && emailIsAvailable && emailCtrl.touched)
            }">
         <div class="email-input-wrapper">
           <input class="control"
@@ -97,21 +93,19 @@
 
         <!-- Mensaje de error en validación -->
         <div class="error-msg"
-             *ngIf="(emailCtrl && emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors.email || (!emailIsAvailable && emailCtrl && emailCtrl.touched)">
-          <span *ngIf="formErrors.email; else emailAuto">{{ formErrors.email }}</span>
-          <ng-template #emailAuto>
-            <span *ngIf="emailCtrl && emailCtrl.errors?.['required']">Ingresa tu email.</span>
-            <span *ngIf="emailCtrl && emailCtrl.errors?.['email']">Formato de email inválido.</span>
-            <span *ngIf="emailCheckStatus === 'existente'">Este email ya está registrado.</span>
-          </ng-template>
+             *ngIf="(emailCtrl && emailCtrl.invalid && (emailCtrl.touched || submitted)) || formErrors.email || (!emailIsAvailable && emailCtrl?.touched)">
+          <span *ngIf="formErrors.email">{{ formErrors.email }}</span>
+          <span *ngIf="!formErrors.email && emailCtrl?.errors?.['required']">Ingresa tu email.</span>
+          <span *ngIf="!formErrors.email && emailCtrl?.errors?.['email']">Formato de email inválido.</span>
+          <span *ngIf="!formErrors.email && emailCheckStatus === 'existente'">Este email ya está registrado.</span>
         </div>
       </div>
 
       <!-- PASSWORD -->
       <div class="field"
            [ngClass]="{
-             'invalid': (((passwordTouched || submitted) && !isPasswordValid()) || formErrors.password),
-             'valid':   (isPasswordValid() && (passwordTouched || submitted))
+             'invalid': (passwordTouched || submitted) && !isPasswordValid() || formErrors.password,
+             'valid': isPasswordValid() && passwordTouched && !formErrors.password
            }">
 
         <input class="control"
@@ -127,7 +121,7 @@
 
         <!-- Mensaje rojo SOLO si hay error e interacción -->
         <div class="error-msg"
-             *ngIf="(((passwordTouched || submitted) && !isPasswordValid()) || formErrors.password)">
+             *ngIf="((passwordTouched || submitted) && !isPasswordValid()) || formErrors.password">
           {{ formErrors.password || 'La contraseña no cumple con los requisitos.' }}
         </div>
 
@@ -156,8 +150,8 @@
       <!-- CONFIRM PASSWORD -->
       <div class="field"
            [ngClass]="{
-             'invalid': (((confirmTouched || submitted) && password !== confirmPassword) || formErrors.confirmPassword),
-             'valid':   (confirmPassword && password === confirmPassword && (confirmTouched || submitted))
+             'invalid': (confirmTouched || submitted) && password !== confirmPassword || formErrors.confirmPassword,
+             'valid': confirmPassword && password === confirmPassword && confirmTouched && !formErrors.confirmPassword
            }">
         <input class="control"
                type="password"
@@ -169,7 +163,7 @@
                (input)="confirmTouched = true"
                (blur)="confirmTouched = true" />
         <div class="error-msg"
-             *ngIf="(((confirmTouched || submitted) && password !== confirmPassword) || formErrors.confirmPassword)">
+             *ngIf="(confirmTouched || submitted) && password !== confirmPassword || formErrors.confirmPassword">
           {{ formErrors.confirmPassword || 'Las contraseñas no coinciden.' }}
         </div>
       </div>
@@ -177,16 +171,15 @@
       <!-- ROL -->
       <div class="field"
            [ngClass]="{
-             'invalid': (((roleTouched || submitted) && !selectedRole) || formErrors.rol),
-             'valid':   (!!selectedRole && (roleTouched || submitted))
+             'invalid': (roleTouched || submitted) && !selectedRole || formErrors.rol,
+             'valid': selectedRole && roleTouched && !formErrors.rol
            }">
         <select class="control"
                 name="selectedRole"
                 [(ngModel)]="selectedRole"
                 required
                 (blur)="roleTouched = true"
-                (change)="roleTouched = true"
-                #roleCtrl="ngModel">
+                (change)="roleTouched = true">
           <option value="" disabled>Tipo de usuario</option>
           <option value="alumno">Alumno</option>
           <option value="entrenador">Entrenador</option>
