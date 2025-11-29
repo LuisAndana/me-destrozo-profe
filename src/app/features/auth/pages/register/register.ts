@@ -22,7 +22,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   email = '';
   password = '';
   confirmPassword = '';
-  rol: 'alumno' | 'entrenador' | '' = '';
+  selectedRole: 'alumno' | 'entrenador' | '' = '';
 
   readonly MIN_PASSWORD_LEN = 10;
   private readonly SPECIALS_RE = /[!@#$%^&*()\-\_=+\[\]{};:,.<>/?\\|`~"']/;
@@ -35,12 +35,13 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   roleTouched = false;
 
   // ============================================================
-  // VALIDACIÓN DE EMAIL (NUEVO) ⭐
+  // VALIDACIÓN DE EMAIL
   // ============================================================
   isCheckingEmail = false;
   emailCheckMessage = '';
   emailIsValid = false;
   emailIsAvailable = false;
+  emailCheckStatus: 'validando' | 'existente' | 'disponible' | '' = '';
 
   formErrors: Record<'nombre' | 'apellido' | 'email' | 'password' | 'confirmPassword' | 'rol' | 'general', string> = {
     nombre: '', apellido: '', email: '', password: '', confirmPassword: '', rol: '', general: ''
@@ -57,6 +58,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     this.renderer.addClass(this.doc.body, 'register-page');
     console.log('[Register] componente activo');
   }
+
   ngOnDestroy(): void {
     this.renderer.removeClass(this.doc.body, 'register-page');
   }
@@ -85,21 +87,18 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private scrollToFirstError(scrollToTopIfGeneral = false): void {
-  // Busca el primer campo con error visual
-  const el = document.querySelector('.field.invalid .control') as HTMLElement | null;
+    const el = document.querySelector('.field.invalid .control') as HTMLElement | null;
 
-  if (el) {
-    // Enfocar y hacer scroll suave
-    el.focus({ preventScroll: false });
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
+    if (el) {
+      el.focus({ preventScroll: false });
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (scrollToTopIfGeneral) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
-
-  if (scrollToTopIfGeneral) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}
-
 
   private onGoogleCredential(response: any): void {
     this.clearErrors();
@@ -109,7 +108,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    const rolFront = this.rol;
+    const rolFront = this.selectedRole;
     if (!rolFront || (rolFront !== 'alumno' && rolFront !== 'entrenador')) {
       this.formErrors.rol = 'Selecciona "alumno" o "entrenador" antes de continuar con Google.';
       this.roleTouched = true;
@@ -127,17 +126,19 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   // ============================================================
-  // VALIDACIÓN DE EMAIL (NUEVO) ⭐
+  // VALIDACIÓN DE EMAIL
   // ============================================================
   checkEmail(): void {
     if (!this.email || this.email.trim() === '') {
       this.emailIsValid = false;
       this.emailIsAvailable = false;
       this.emailCheckMessage = '';
+      this.emailCheckStatus = '';
       return;
     }
 
     this.isCheckingEmail = true;
+    this.emailCheckStatus = 'validando';
     this.emailCheckMessage = '';
 
     this.http.post(
@@ -151,12 +152,15 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
 
         if (response.is_valid && response.is_available) {
           this.emailCheckMessage = '✓ Email válido y disponible';
+          this.emailCheckStatus = 'disponible';
           this.formErrors.email = '';
         } else if (!response.is_valid) {
           this.emailCheckMessage = response.message || 'Email inválido';
+          this.emailCheckStatus = '';
           this.formErrors.email = response.message || 'Email inválido';
         } else if (!response.is_available) {
           this.emailCheckMessage = response.message || 'Email ya registrado';
+          this.emailCheckStatus = 'existente';
           this.formErrors.email = response.message || 'Email ya registrado';
         }
       },
@@ -164,6 +168,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
         this.isCheckingEmail = false;
         this.emailIsValid = false;
         this.emailIsAvailable = false;
+        this.emailCheckStatus = '';
         const errorMsg = err?.error?.detail || 'Error al validar email';
         this.emailCheckMessage = errorMsg;
         this.formErrors.email = errorMsg;
@@ -175,31 +180,64 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   private emailUser(): string {
     return (this.email || '').split('@')[0]?.toLowerCase() || '';
   }
-  private lower(v: string): string { return (v || '').toLowerCase(); }
 
-  hasUpper(): boolean { return /[A-Z]/.test(this.password); }
-  hasLower(): boolean { return /[a-z]/.test(this.password); }
-  hasDigit(): boolean { return /\d/.test(this.password); }
-  hasSpecial(): boolean { return this.SPECIALS_RE.test(this.password); }
-  hasMinLen(): boolean { return (this.password || '').length >= this.MIN_PASSWORD_LEN; }
-  hasNoSpaces(): boolean { return !/\s/.test(this.password || ''); }
+  private lower(v: string): string {
+    return (v || '').toLowerCase();
+  }
+
+  hasUpper(): boolean {
+    return /[A-Z]/.test(this.password);
+  }
+
+  hasLower(): boolean {
+    return /[a-z]/.test(this.password);
+  }
+
+  hasDigit(): boolean {
+    return /\d/.test(this.password);
+  }
+
+  hasSpecial(): boolean {
+    return this.SPECIALS_RE.test(this.password);
+  }
+
+  hasMinLen(): boolean {
+    return (this.password || '').length >= this.MIN_PASSWORD_LEN;
+  }
+
+  hasNoSpaces(): boolean {
+    return !/\s/.test(this.password || '');
+  }
+
   noPersonalData(): boolean {
     const pw = this.lower(this.password);
     const parts = [
       this.lower(this.nombre),
       this.lower(this.apellido),
       this.emailUser()
-    ].filter(Boolean).map(p => p.trim()).filter(p => p.length >= 3);
+    ]
+      .filter(Boolean)
+      .map(p => p.trim())
+      .filter(p => p.length >= 3);
     return !parts.some(p => pw.includes(p));
   }
 
   passwordPassedCount(): number {
     return [
-      this.hasUpper(), this.hasLower(), this.hasDigit(),
-      this.hasSpecial(), this.hasMinLen(), this.hasNoSpaces(), this.noPersonalData()
+      this.hasUpper(),
+      this.hasLower(),
+      this.hasDigit(),
+      this.hasSpecial(),
+      this.hasMinLen(),
+      this.hasNoSpaces(),
+      this.noPersonalData()
     ].filter(Boolean).length;
   }
-  passwordScorePercent(): number { return Math.round((this.passwordPassedCount() / 7) * 100); }
+
+  passwordScorePercent(): number {
+    return Math.round((this.passwordPassedCount() / 7) * 100);
+  }
+
   strengthLabel(): string {
     const p = this.passwordScorePercent();
     if (p >= 85) return 'Muy fuerte';
@@ -207,6 +245,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     if (p >= 35) return 'Media';
     return 'Débil';
   }
+
   strengthClass(): string {
     const p = this.passwordScorePercent();
     if (p >= 85) return 'great';
@@ -214,25 +253,43 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     if (p >= 35) return 'fair';
     return 'weak';
   }
+
   isPasswordValid(): boolean {
-    return this.hasUpper() && this.hasLower() && this.hasDigit()
-      && this.hasSpecial() && this.hasMinLen() && this.hasNoSpaces()
-      && this.noPersonalData();
+    return (
+      this.hasUpper() &&
+      this.hasLower() &&
+      this.hasDigit() &&
+      this.hasSpecial() &&
+      this.hasMinLen() &&
+      this.hasNoSpaces() &&
+      this.noPersonalData()
+    );
   }
+
   firstPasswordError(): string | null {
-    if (!this.hasMinLen())  return `La contraseña debe tener al menos ${this.MIN_PASSWORD_LEN} caracteres.`;
-    if (!this.hasUpper())   return 'Debe incluir al menos una letra MAYÚSCULA.';
-    if (!this.hasLower())   return 'Debe incluir al menos una letra minúscula.';
-    if (!this.hasDigit())   return 'Debe incluir al menos un número.';
+    if (!this.hasMinLen())
+      return `La contraseña debe tener al menos ${this.MIN_PASSWORD_LEN} caracteres.`;
+    if (!this.hasUpper()) return 'Debe incluir al menos una letra MAYÚSCULA.';
+    if (!this.hasLower()) return 'Debe incluir al menos una letra minúscula.';
+    if (!this.hasDigit()) return 'Debe incluir al menos un número.';
     if (!this.hasSpecial()) return 'Debe incluir al menos un símbolo.';
     if (!this.hasNoSpaces()) return 'No puede contener espacios.';
-    if (!this.noPersonalData()) return 'No debe contener tu nombre, apellido o usuario del email.';
+    if (!this.noPersonalData())
+      return 'No debe contener tu nombre, apellido o usuario del email.';
     return null;
   }
 
   // === Errores / UX ===
   private clearErrors(): void {
-    this.formErrors = { nombre: '', apellido: '', email: '', password: '', confirmPassword: '', rol: '', general: '' };
+    this.formErrors = {
+      nombre: '',
+      apellido: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      rol: '',
+      general: ''
+    };
   }
 
   private translatePydanticMsg(msg: string): string {
@@ -246,95 +303,96 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     return msg;
   }
 
-  private mapDetailToFieldName(loc: any): 'nombre'|'apellido'|'email'|'password'|'rol'|'confirmPassword'|'general' {
+  private mapDetailToFieldName(
+    loc: any
+  ): 'nombre' | 'apellido' | 'email' | 'password' | 'rol' | 'confirmPassword' | 'general' {
     const arr = Array.isArray(loc) ? loc : [];
     const last = (arr[arr.length - 1] || '').toString().toLowerCase();
-    if (['nombre','nombres'].includes(last)) return 'nombre';
-    if (['apellido','apellidos'].includes(last)) return 'apellido';
+    if (['nombre', 'nombres'].includes(last)) return 'nombre';
+    if (['apellido', 'apellidos'].includes(last)) return 'apellido';
     if (last === 'email') return 'email';
     if (last === 'password') return 'password';
-    if (['rol','usertype'].includes(last)) return 'rol';
+    if (['rol', 'usertype'].includes(last)) return 'rol';
     return 'general';
   }
 
- private handleBackendErrors(err: any): void {
-  this.clearErrors();
+  private handleBackendErrors(err: any): void {
+    this.clearErrors();
 
-  // Sin conexión
-  if (err?.status === 0) {
-    this.formErrors.general = 'No se pudo conectar al servidor.';
-    this.scrollToFirstError(true);
-    return;
-  }
-
-  // ⭐ CASO NUEVO: Usuario ya existe pero NO verificado
-  if (err?.status === 409 && err?.error?.needs_verification) {
-    console.warn('[Register] Usuario existe pero NO verificado → Enviando a verify-email');
-
-    sessionStorage.setItem('registerEmail', this.email.trim().toLowerCase());
-
-    alert('Este email ya estaba registrado pero no había sido verificado. Se reenvió el código de verificación.');
-
-    this.router.navigate(['/verify-email']);
-    return;
-  }
-
-  // Email en uso (usuario verificado)
-  if (err?.status === 409) {
-    this.formErrors.email = err?.error?.detail || 'El email ya está registrado.';
-    this.scrollToFirstError();
-    return;
-  }
-
-  // Errores de validación
-  if (err?.status === 422) {
-    const detail = err?.error?.detail;
-    if (Array.isArray(detail)) {
-      for (const d of detail) {
-        const field = this.mapDetailToFieldName(d?.loc);
-        const message = this.translatePydanticMsg(d?.msg || d?.detail || '');
-        if (!this.formErrors[field]) this.formErrors[field] = message;
-      }
+    // Sin conexión
+    if (err?.status === 0) {
+      this.formErrors.general = 'No se pudo conectar al servidor.';
+      this.scrollToFirstError(true);
+      return;
     }
-    this.passwordTouched = true;
-    this.confirmTouched = true;
-    this.roleTouched = true;
-    this.scrollToFirstError();
-    return;
+
+    // Usuario ya existe pero NO verificado
+    if (err?.status === 409 && err?.error?.needs_verification) {
+      console.warn('[Register] Usuario existe pero NO verificado → Enviando a verify-email');
+
+      sessionStorage.setItem('registerEmail', this.email.trim().toLowerCase());
+
+      alert('Este email ya estaba registrado pero no había sido verificado. Se reenvió el código de verificación.');
+
+      this.router.navigate(['/verify-email']);
+      return;
+    }
+
+    // Email en uso (usuario verificado)
+    if (err?.status === 409) {
+      this.formErrors.email = err?.error?.detail || 'El email ya está registrado.';
+      this.scrollToFirstError();
+      return;
+    }
+
+    // Errores de validación
+    if (err?.status === 422) {
+      const detail = err?.error?.detail;
+      if (Array.isArray(detail)) {
+        for (const d of detail) {
+          const field = this.mapDetailToFieldName(d?.loc);
+          const message = this.translatePydanticMsg(d?.msg || d?.detail || '');
+          if (!this.formErrors[field]) this.formErrors[field] = message;
+        }
+      }
+      this.passwordTouched = true;
+      this.confirmTouched = true;
+      this.roleTouched = true;
+      this.scrollToFirstError();
+      return;
+    }
+
+    // Error genérico
+    const msg = err?.error?.detail || err?.error?.mensaje || err?.message || 'Ocurrió un error.';
+    this.formErrors.general = msg;
+    this.scrollToFirstError(true);
   }
-
-  // Error genérico
-  const msg = err?.error?.detail || err?.error?.mensaje || err?.message || 'Ocurrió un error.';
-  this.formErrors.general = msg;
-  this.scrollToFirstError(true);
-}
-
 
   // === Submit ===
-  register(): void {
+  onSubmit(): void {
     this.submitted = true;
     this.clearErrors();
 
-    const nombre   = this.nombre?.trim();
+    const nombre = this.nombre?.trim();
     const apellido = this.apellido?.trim();
-    const email    = this.email?.trim().toLowerCase();
+    const email = this.email?.trim().toLowerCase();
     const password = this.password;
-    const rolFront = this.rol;
+    const rolFront = this.selectedRole;
 
     if (!nombre) this.formErrors.nombre = 'Ingresa tu nombre.';
     if (!apellido) this.formErrors.apellido = 'Ingresa tus apellidos.';
     if (!email) this.formErrors.email = 'Ingresa tu email.';
     if (!rolFront) this.formErrors.rol = 'Selecciona un tipo de usuario.';
 
-    // ============================================================
-    // VALIDACIÓN DE EMAIL (NUEVO) ⭐
-    // ============================================================
     if (!this.emailIsValid || !this.emailIsAvailable) {
-      this.formErrors.email = this.formErrors.email || 'Por favor, verifica primero que el email sea válido.';
+      this.formErrors.email =
+        this.formErrors.email || 'Por favor, verifica primero que el email sea válido.';
     }
 
-    if (password !== this.confirmPassword) this.formErrors.confirmPassword = 'Las contraseñas no coinciden.';
-    if (!this.isPasswordValid()) this.formErrors.password = this.firstPasswordError() || 'Contraseña inválida.';
+    if (password !== this.confirmPassword)
+      this.formErrors.confirmPassword = 'Las contraseñas no coinciden.';
+    if (!this.isPasswordValid())
+      this.formErrors.password = this.firstPasswordError() || 'Contraseña inválida.';
 
     const hasClientErrors = Object.values(this.formErrors).some(v => !!v);
     if (hasClientErrors) {
@@ -352,72 +410,68 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
 
     this.http.post(url, bodyA).subscribe({
       next: () => {
-        // ============================================================
-        // ENVIAR VERIFICACIÓN DE EMAIL (NUEVO) ⭐
-        // ============================================================
         this.sendEmailVerification(email, nombre);
       },
       error: (errA: any) => {
+        if (errA?.status === 409 && errA?.error?.needs_verification) {
+          console.warn('[Register] Email existente NO verificado → reenviando correo');
 
-  // ⭐ Si el backend responde que el usuario ya existe pero NO está verificado
- if (errA?.status === 409 && errA?.error?.needs_verification) {
-  console.warn('[Register] Email existente NO verificado → reenviando correo');
+          this.sendEmailVerification(email, nombre);
 
-  // reenviar token
-  this.sendEmailVerification(email, nombre);
+          sessionStorage.setItem('registerEmail', email);
 
-  // guardar email
-  sessionStorage.setItem('registerEmail', email);
+          alert(
+            'El email ya estaba registrado pero no verificado. Se envió un nuevo código.'
+          );
 
-  alert('El email ya estaba registrado pero no verificado. Se envió un nuevo código.');
+          this.router.navigate(['/verify-email']);
+          return;
+        }
 
-  // ir a verify-email
-  this.router.navigate(['/verify-email']);
-  return;
-}
+        const msg = (errA?.error?.detail || '').toString().toLowerCase();
+        const shouldRetry =
+          [400, 422, 500].includes(errA?.status) &&
+          (msg.includes('faltan') ||
+            msg.includes('obligatori') ||
+            msg.includes('rol') ||
+            msg.includes('nombre'));
 
-
-  // ⭐ Si el error requiere fallback bodyB (tu lógica ya existente)
-  const msg = (errA?.error?.detail || '').toString().toLowerCase();
-  const shouldRetry = [400, 422, 500].includes(errA?.status) &&
-    (msg.includes('faltan') || msg.includes('obligatori') || msg.includes('rol') || msg.includes('nombre'));
-
-  if (shouldRetry) {
-    this.http.post(url, bodyB).subscribe({
-      next: () => this.sendEmailVerification(email, nombre),
-      error: (errB: any) => this.handleBackendErrors(errB)
-    });
-  } else {
-    this.handleBackendErrors(errA);
-  }
-}
-
-
-    });
-  }
-
-  // ============================================================
-  // ENVIAR EMAIL DE VERIFICACIÓN (NUEVO) ⭐
-  // ============================================================
-  private sendEmailVerification(email: string, nombre: string): void {
-     sessionStorage.setItem('registerEmail', email);
-    this.http.post(
-      `${environment.apiBase}${environment.endpoints.sendVerification}`,
-      { email, nombre }
-    ).subscribe({
-      next: () => {
-        // Email enviado exitosamente
-        alert(`✓ Se envió un email de verificación a ${email}\nPor favor, revisa tu bandeja de entrada.`);
-        this.router.navigate(['/verify-email']);
-      },
-      error: (err: any) => {
-        // Si hay error al enviar email, aún así permite ir a verify-email
-        console.warn('[Register] Error enviando email de verificación:', err);
-        const errorMsg = err?.error?.detail || 'Error al enviar email de verificación';
-        this.formErrors.general = `Usuario registrado, pero hubo un problema al enviar el email: ${errorMsg}. Puedes intentar reenviar desde la página de verificación.`;
-        alert(this.formErrors.general);
-        this.router.navigate(['/verify-email']);
+        if (shouldRetry) {
+          this.http.post(url, bodyB).subscribe({
+            next: () => this.sendEmailVerification(email, nombre),
+            error: (errB: any) => this.handleBackendErrors(errB)
+          });
+        } else {
+          this.handleBackendErrors(errA);
+        }
       }
     });
+  }
+
+  // ============================================================
+  // ENVIAR EMAIL DE VERIFICACIÓN
+  // ============================================================
+  private sendEmailVerification(email: string, nombre: string): void {
+    sessionStorage.setItem('registerEmail', email);
+    this.http
+      .post(`${environment.apiBase}${environment.endpoints.sendVerification}`, {
+        email,
+        nombre
+      })
+      .subscribe({
+        next: () => {
+          alert(
+            `✓ Se envió un email de verificación a ${email}\nPor favor, revisa tu bandeja de entrada.`
+          );
+          this.router.navigate(['/verify-email']);
+        },
+        error: (err: any) => {
+          console.warn('[Register] Error enviando email de verificación:', err);
+          const errorMsg = err?.error?.detail || 'Error al enviar email de verificación';
+          this.formErrors.general = `Usuario registrado, pero hubo un problema al enviar el email: ${errorMsg}. Puedes intentar reenviar desde la página de verificación.`;
+          alert(this.formErrors.general);
+          this.router.navigate(['/verify-email']);
+        }
+      });
   }
 }
