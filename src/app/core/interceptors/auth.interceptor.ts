@@ -112,24 +112,25 @@ export class AuthInterceptor implements HttpInterceptor {
   /**
    * 🔑 OBTENER TOKEN - CON FALLBACK ROBUSTO
    * Intenta múltiples fuentes para obtener el token
+   * ✅ MEJORADO: Validación más estricta (mínimo 10 caracteres)
    */
   private obtenerToken(): string {
     // 1️⃣ Intenta obtenerlo desde el AuthService
     const tokenDelServicio = this.auth.getToken?.();
-    if (tokenDelServicio && typeof tokenDelServicio === 'string' && tokenDelServicio.length > 0) {
-      return tokenDelServicio;
+    if (tokenDelServicio && typeof tokenDelServicio === 'string' && tokenDelServicio.trim().length > 10) {
+      return tokenDelServicio.trim();
     }
 
     // 2️⃣ Fallback: localStorage con clave 'gym_token'
-    const tokenDelStorage = localStorage.getItem('gym_token');
-    if (tokenDelStorage && tokenDelStorage.length > 0) {
-      return tokenDelStorage;
+    let tokenDelStorage = localStorage.getItem('gym_token');
+    if (tokenDelStorage && tokenDelStorage.trim().length > 10) {
+      return tokenDelStorage.trim();
     }
 
     // 3️⃣ Fallback: localStorage con clave alternativa 'token'
-    const tokenAlt = localStorage.getItem('token');
-    if (tokenAlt && tokenAlt.length > 0) {
-      return tokenAlt;
+    let tokenAlt = localStorage.getItem('token');
+    if (tokenAlt && tokenAlt.trim().length > 10) {
+      return tokenAlt.trim();
     }
 
     // 4️⃣ Fallback: buscar en gym_user.token (si está guardado como JSON)
@@ -137,8 +138,8 @@ export class AuthInterceptor implements HttpInterceptor {
       const gymUser = localStorage.getItem('gym_user');
       if (gymUser) {
         const user = JSON.parse(gymUser);
-        if (user?.token && typeof user.token === 'string' && user.token.length > 0) {
-          return user.token;
+        if (user?.token && typeof user.token === 'string' && user.token.trim().length > 10) {
+          return user.token.trim();
         }
       }
     } catch { /* no-op */ }
@@ -191,26 +192,28 @@ export class AuthInterceptor implements HttpInterceptor {
       });
     }
 
-    // 4) Manejo de errores HTTP
+    // 4) Manejo mejorado de errores HTTP
     return next.handle(request).pipe(
       catchError((err: any) => {
         if (err instanceof HttpErrorResponse) {
           console.error(`[AuthInterceptor] HTTP ${err.status}:`, err.message, 'en', request.url);
 
-          // Si es 401, el token expiró o es inválido
-          if (err.status === 401) {
-            console.warn('[AuthInterceptor] Token inválido/expirado. Limpiando sesión...');
+          // ⭐ 401 = Token inválido o expirado
+          // SOLO hacer logout si NO es un auth endpoint
+          if (err.status === 401 && !this.isAuthEndpoint(request)) {
+            console.warn('[AuthInterceptor] ⚠️ Token inválido/expirado (401)');
+            console.warn('[AuthInterceptor] 🚪 Ejecutando logout...');
             this.auth.logout();
           }
 
-          // Si es 403, el usuario no tiene permisos
+          // 403 = Acceso prohibido (sin logout)
           if (err.status === 403) {
-            console.warn('[AuthInterceptor] Acceso prohibido (403)');
+            console.warn('[AuthInterceptor] 🚫 Acceso prohibido (403)');
           }
 
-          // Si es error CORS
+          // 0 = Error CORS o de conexión
           if (err.status === 0 && err.message) {
-            console.error('[AuthInterceptor] Posible error CORS:', err.message);
+            console.error('[AuthInterceptor] ❌ Posible error CORS o de red:', err.message);
           }
         }
 
