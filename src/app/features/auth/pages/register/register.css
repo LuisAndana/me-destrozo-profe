@@ -206,63 +206,49 @@
   background: #4d90fe;
 }
 
-/* ===== Google - SIN FONDO BLANCO ===== */
+/* ===== Google - SIN CUADRO NEGRO ===== */
 .login-google-label {
   color: #aaa;
   text-align: center;
   font-size: 0.95rem;
   display: block;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.6rem;
 }
 
 .google-wrap {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
   margin-bottom: 1.4rem;
   position: relative;
   z-index: 10;
-  background: transparent !important;
+  /* SIN FONDO - TRANSPARENT */
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-height: auto;
 }
 
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
   min-height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   transition: opacity 0.2s ease;
-  background: transparent !important;
-  border: none !important;
+}
+
+#googleSignInBtn:hover {
+  opacity: 0.95;
 }
 
 .google-btn-container {
-  background: transparent !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
-  border: none !important;
-}
-
-/* Quitar todos los fondos blancos del widget de Google */
-#googleSignInBtn > div {
-  background: transparent !important;
-  border: none !important;
-}
-
-#googleSignInBtn button,
-#googleSignInBtn [role="button"],
-#googleSignInBtn div[role="button"] {
-  background: transparent !important;
-  border: none !important;
-}
-
-#googleSignInBtn iframe {
-  background: transparent !important;
-}
-
-/* Asegurar transparencia en todos los elementos anidados */
-#googleSignInBtn * {
-  background: transparent !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 /* ===== Separador ===== */
@@ -380,6 +366,7 @@
   .register-title { font-size: 24px; margin-bottom: 16px; }
   .control { padding: 0.75rem 0.9rem; font-size: 0.95rem; }
   .continue-btn { max-width: 300px; padding: 0.65rem 0.95rem; font-size: 0.9rem; }
+  #googleSignInBtn { max-width: 290px; min-height: 40px; }
 }
 
 /* ============================================================
@@ -420,6 +407,10 @@
     font-size: clamp(0.8rem, 2vw, 0.9rem);
     border-radius: 8px;
     min-height: 42px;
+  }
+  #googleSignInBtn {
+    max-width: 100%;
+    min-height: 40px;
   }
   .error-msg { font-size: clamp(0.8rem, 2vw, 0.9rem); padding: 0.4rem 0.6rem; }
   .email-check-success { font-size: clamp(0.8rem, 2vw, 0.9rem); padding: 0.4rem 0.6rem; }
@@ -480,7 +471,7 @@
   }
   #googleSignInBtn {
     max-width: 100%;
-    min-height: 40px;
+    min-height: 38px;
   }
   .divider-form {
     margin: 0.3rem 0 0.7rem;
