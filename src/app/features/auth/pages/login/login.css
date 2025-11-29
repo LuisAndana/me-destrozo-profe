@@ -181,16 +181,38 @@
   margin-bottom: .45rem;
 }
 
-/* ==== BOTÓN OFICIAL DE GOOGLE ==== */
+/* ==== BOTÓN OFICIAL DE GOOGLE (ACTUALIZADO - REDONDEADO) ==== */
 .google-wrap {
   display: flex;
   justify-content: center;
   width: 100%;
+  margin: 0.5rem 0;
 }
 
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Forzar que los elementos internos de Google respeten el border-radius */
+#googleSignInBtn > div {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+#googleSignInBtn button,
+#googleSignInBtn [role="button"] {
+  border-radius: 10px !important;
+}
+
+/* Efectos hover al pasar el mouse */
+#googleSignInBtn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 /* Si quedara el botón antiguo por error, ocultarlo */
@@ -288,6 +310,9 @@
     padding: 0.8rem 1rem;
     font-size: 0.95rem;
   }
+  #googleSignInBtn {
+    border-radius: 8px !important;
+  }
 }
 
 /* ============================================================
@@ -335,6 +360,7 @@
   #googleSignInBtn {
     max-width: 100%;
     min-height: 44px;
+    border-radius: 8px !important;
   }
   .continue-btn {
     padding: 0.8rem 1rem;
@@ -379,6 +405,7 @@
   }
   #googleSignInBtn {
     min-height: 42px;
+    border-radius: 8px !important;
   }
   .continue-btn {
     padding: 0.75rem 0.95rem;
@@ -447,6 +474,7 @@
   #googleSignInBtn {
     max-width: 100%;
     min-height: 40px;
+    border-radius: 8px !important;
   }
   .continue-btn {
     padding: 0.7rem 0.9rem;
@@ -501,6 +529,7 @@
   }
   #googleSignInBtn {
     min-height: 38px;
+    border-radius: 7px !important;
   }
   .continue-btn {
     padding: 0.65rem 0.85rem;
@@ -545,6 +574,7 @@
   }
   #googleSignInBtn {
     min-height: 36px;
+    border-radius: 7px !important;
   }
   .continue-btn {
     padding: 0.6rem 0.8rem;
@@ -589,6 +619,7 @@
   }
   #googleSignInBtn {
     min-height: 34px;
+    border-radius: 6px !important;
   }
   .continue-btn {
     padding: 0.58rem 0.75rem;
@@ -633,6 +664,7 @@
   }
   #googleSignInBtn {
     min-height: 32px;
+    border-radius: 6px !important;
   }
   .continue-btn {
     padding: 0.55rem 0.7rem;
@@ -678,6 +710,7 @@
   }
   #googleSignInBtn {
     min-height: 30px;
+    border-radius: 5px !important;
   }
   .continue-btn {
     padding: 0.5rem 0.65rem;
@@ -721,6 +754,7 @@
   }
   #googleSignInBtn {
     min-height: 28px;
+    border-radius: 5px !important;
   }
   .continue-btn {
     padding: 0.45rem 0.6rem;
