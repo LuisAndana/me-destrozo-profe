@@ -1,5 +1,5 @@
 <!-- src/app/components/mensajes/chat/chat.component.html -->
-<!-- Componente de Chat - Mostrando nombre del usuario mejorado -->
+<!-- VERSIÓN CORREGIDA: Con trackBy para evitar re-renderizado -->
 
 <div class="chat-container">
   <!-- Header del chat -->
@@ -76,7 +76,7 @@
 
     <!-- Mensajes agrupados por fecha -->
     <div *ngIf="!cargando && !error" class="mensajes-lista">
-      <div *ngFor="let grupo of agruparMensajesPorFecha()" class="grupo-fecha">
+      <div *ngFor="let grupo of agruparMensajesPorFecha(); trackBy: trackByGrupo" class="grupo-fecha">
         <!-- Separador de fecha -->
         <div class="fecha-separador">
           <span>{{ grupo.fecha }}</span>
@@ -84,7 +84,7 @@
 
         <!-- Mensajes del día -->
         <div 
-          *ngFor="let mensaje of grupo.mensajes" 
+          *ngFor="let mensaje of grupo.mensajes; trackBy: trackByMensaje" 
           class="mensaje-wrapper"
           [class.mensaje-mio]="esMensajeMio(mensaje)"
           [class.mensaje-otro]="!esMensajeMio(mensaje)"
@@ -136,4 +136,3 @@
     </div>
   </div>
 </div>
-

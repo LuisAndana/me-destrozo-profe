@@ -1,5 +1,5 @@
 // src/app/components/mensajes/chat/chat.component.ts
-// VERSIÓN CORREGIDA - Sin error TS2339
+// VERSIÓN CORREGIDA - Evita re-renderizado de mensajes
 
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -53,7 +53,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   ngOnInit(): void {
   console.log('💬 [INIT] ChatComponent inicializado');
 
-  this.rolUsuario = this.obtenerRolUsuario(); // <--- AQUI
+  this.rolUsuario = this.obtenerRolUsuario();
 
   this.idUsuarioActual = this.obtenerIdUsuarioActual();
   if (!this.idUsuarioActual) {
@@ -124,7 +124,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * 👤 Carga información del otro usuario
-   * CORREGIDA - Sin errores de tipos
    */
   private cargarInfoOtroUsuario(): void {
   this.cargandoUsuario = true;
@@ -133,9 +132,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   console.log('👤 [CARGA USUARIO] Buscando información del usuario:', this.idOtroUsuario);
   console.log('🔑 Rol del usuario actual:', rolUsuario);
 
-  // =============================
-  //    CASO 1: ENTRENADOR
-  // =============================
   if (rolUsuario === 'entrenador' || rolUsuario === 'trainer') {
     console.log('🔍 CASO 1: Eres ENTRENADOR, buscando CLIENTES...');
 
@@ -166,12 +162,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         }
       });
 
-    return; // <---- IMPORTANTE: EVITA EJECUTAR EL CÓDIGO DEL CLIENTE
+    return;
   }
 
-  // =============================
-  //    CASO 2: CLIENTE
-  // =============================
   console.log('🔍 CASO 2: Eres CLIENTE, buscando tu ENTRENADOR...');
 
   this.clienteEntrenadorService.miEntrenador(this.idUsuarioActual)
@@ -216,7 +209,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
    * 🔑 Obtiene el rol del usuario actual
    */
   obtenerRolUsuario(): string {
-
     try {
       const usuarioStr = localStorage.getItem('usuario');
       if (!usuarioStr) return '';
@@ -256,6 +248,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * 🔄 Inicia el polling para actualizar mensajes automáticamente
+   * ⭐ VERSIÓN CORREGIDA: Solo agrega mensajes nuevos, no reemplaza todos
    */
   private iniciarPolling(): void {
     interval(this.pollingInterval)
@@ -266,10 +259,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       .subscribe({
         next: (historial) => {
           const cantidadAnterior = this.mensajes.length;
-          this.mensajes = historial.mensajes;
           
-          // Si hay nuevos mensajes, hacer scroll al final
-          if (this.mensajes.length > cantidadAnterior) {
+          // ⭐ SOLO agregar mensajes nuevos, NO reemplazar todo
+          if (historial.mensajes.length > cantidadAnterior) {
+            // Obtener solo los mensajes nuevos
+            const mensajesNuevos = historial.mensajes.slice(cantidadAnterior);
+            
+            // Agregar solo los nuevos (no reemplazar todo)
+            this.mensajes.push(...mensajesNuevos);
+            
+            console.log('✅ Mensajes nuevos agregados:', mensajesNuevos.length);
             this.shouldScrollToBottom = true;
             this.marcarConversacionComoLeida();
           }
@@ -444,5 +443,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       fecha,
       mensajes: grupos[fecha]
     }));
+  }
+
+  /**
+   * 🔍 TrackBy para optimizar ngFor con mensajes
+   * Previene que Angular re-renderice todos los mensajes cuando hay cambios
+   */
+  trackByMensaje(index: number, mensaje: Mensaje): number {
+    return mensaje.id_mensaje || index;
+  }
+
+  /**
+   * 🔍 TrackBy para optimizar ngFor con grupos de fecha
+   */
+  trackByGrupo(index: number, grupo: { fecha: string, mensajes: Mensaje[] }): string {
+    return grupo.fecha;
   }
 }
