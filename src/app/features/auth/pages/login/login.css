@@ -191,7 +191,7 @@
   margin-bottom: 0.45rem;
 }
 
-/* ==== BOTÓN GOOGLE - LIMPIO SIN FONDO OSCURO ==== */
+/* ==== BOTÓN GOOGLE - SIN FONDO BLANCO ==== */
 .google-wrap {
   display: flex;
   justify-content: center;
@@ -200,11 +200,6 @@
   margin: 0.5rem 0 1rem 0;
   position: relative;
   z-index: 10;
-  /* SIN FONDO - TRANSPARENT */
-  background: transparent;
-  border: none;
-  padding: 0;
-  min-height: auto;
 }
 
 #googleSignInBtn {
@@ -215,10 +210,60 @@
   justify-content: center;
   align-items: center;
   transition: opacity 0.2s ease;
+  
+  /* ⭐ REMOVER FONDO BLANCO */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Forzar que los elementos internos de Google sean transparentes */
+#googleSignInBtn > div {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+#googleSignInBtn button,
+#googleSignInBtn [role="button"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 #googleSignInBtn:hover {
   opacity: 0.95;
+}
+
+/* ==== GOOGLE LOADING INDICATOR ==== */
+.google-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+  height: 48px;
+  margin: 0.5rem 0 1rem 0;
+  color: #aaa;
+  font-size: 0.95rem;
+  animation: fadeInOut 1.5s infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.google-loading[hidden] {
+  display: none !important;
 }
 
 /* ==== SUBMIT ==== */
@@ -391,6 +436,7 @@
   #googleSignInBtn {
     max-width: 100%;
     min-height: 44px;
+    border-radius: 8px !important;
   }
 
   .google-wrap {
@@ -447,6 +493,7 @@
 
   #googleSignInBtn {
     min-height: 42px;
+    border-radius: 8px !important;
   }
 
   .google-wrap {
@@ -531,6 +578,7 @@
   #googleSignInBtn {
     max-width: 100%;
     min-height: 40px;
+    border-radius: 8px !important;
   }
 
   .google-wrap {
@@ -599,6 +647,7 @@
 
   #googleSignInBtn {
     min-height: 38px;
+    border-radius: 7px !important;
   }
 
   .google-wrap {
@@ -655,6 +704,7 @@
 
   #googleSignInBtn {
     min-height: 36px;
+    border-radius: 7px !important;
   }
 
   .google-wrap {
@@ -711,6 +761,7 @@
 
   #googleSignInBtn {
     min-height: 34px;
+    border-radius: 6px !important;
   }
 
   .google-wrap {
@@ -767,6 +818,7 @@
 
   #googleSignInBtn {
     min-height: 32px;
+    border-radius: 6px !important;
   }
 
   .google-wrap {
