@@ -206,7 +206,7 @@
   background: #4d90fe;
 }
 
-/* ===== Google ===== */
+/* ===== Google - SIN FONDO BLANCO ===== */
 .login-google-label {
   color: #aaa;
   text-align: center;
@@ -214,6 +214,7 @@
   display: block;
   margin-bottom: 0.45rem;
 }
+
 .google-wrap {
   display: flex;
   justify-content: center;
@@ -221,12 +222,47 @@
   margin-bottom: 1.4rem;
   position: relative;
   z-index: 10;
+  background: transparent !important;
 }
+
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
   min-height: 42px;
   transition: opacity 0.2s ease;
+  background: transparent !important;
+  border: none !important;
+}
+
+.google-btn-container {
+  background: transparent !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  border: none !important;
+}
+
+/* Quitar todos los fondos blancos del widget de Google */
+#googleSignInBtn > div {
+  background: transparent !important;
+  border: none !important;
+}
+
+#googleSignInBtn button,
+#googleSignInBtn [role="button"],
+#googleSignInBtn div[role="button"] {
+  background: transparent !important;
+  border: none !important;
+}
+
+#googleSignInBtn iframe {
+  background: transparent !important;
+}
+
+/* Asegurar transparencia en todos los elementos anidados */
+#googleSignInBtn * {
+  background: transparent !important;
 }
 
 /* ===== Separador ===== */
