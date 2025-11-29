@@ -186,16 +186,31 @@
   display: flex;
   justify-content: center;
   width: 100%;
+  margin: 0.5rem 0;
 }
 
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Forzar que los elementos internos de Google respeten el border-radius */
+#googleSignInBtn > div {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+#googleSignInBtn button,
+#googleSignInBtn [role="button"] {
+  border-radius: 10px !important;
 }
 
 /* Si quedara el botón antiguo por error, ocultarlo */
-.google-btn, .google-btn img {
-  display: none !important;
+.google-btn, .google-btn img { 
+  display: none !important; 
 }
 
 /* ==== SUBMIT ==== */
@@ -218,12 +233,12 @@
   gap: 0.5rem;
 }
 
-.continue-btn:hover:not(:disabled) {
-  background: #357ae8;
+.continue-btn:hover:not(:disabled) { 
+  background: #357ae8; 
 }
 
-.continue-btn:active:not(:disabled) {
-  transform: translateY(1px);
+.continue-btn:active:not(:disabled) { 
+  transform: translateY(1px); 
 }
 
 .continue-btn:disabled {
@@ -233,26 +248,6 @@
 
 .continue-btn.loading {
   background: #6ba3f5;
-}
-
-/* Enlace a registro */
-.register-link {
-  color: #aaa;
-  text-align: center;
-  font-size: 0.9rem;
-  margin-top: 1.5rem;
-}
-
-.register-link a {
-  color: #4d90fe;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.register-link a:hover {
-  color: #357ae8;
-  text-decoration: underline;
 }
 
 /* ============================================================
@@ -455,10 +450,6 @@
     min-height: 40px;
     margin-top: 0.45rem;
     box-shadow: 0 6px 16px rgba(77,144,254,.2);
-  }
-  .register-link {
-    margin-top: 1.2rem;
-    font-size: 0.85rem;
   }
 }
 
