@@ -27,6 +27,7 @@
           [class.input-error]="emailError"
           [class.input-valid]="emailControl?.valid && emailControl?.touched && !emailError"
           class="control"
+          autocomplete="email"
         />
         <div *ngIf="emailError" class="error-message">
           <span class="error-icon">✗</span> {{ emailError }}
@@ -44,6 +45,7 @@
           [class.input-error]="passwordError"
           [class.input-valid]="passwordControl?.valid && passwordControl?.touched && !passwordError"
           class="control"
+          autocomplete="current-password"
         />
         <div *ngIf="passwordError" class="error-message">
           <span class="error-icon">✗</span> {{ passwordError }}
@@ -66,9 +68,14 @@
     <div class="divider-form"></div>
     <span class="login-google-label">Inicia sesión con</span>
 
-    <!-- Botón oficial de Google -->
+    <!-- Botón oficial de Google - CON ViewChild reference -->
     <div class="google-wrap">
-      <div id="googleSignInBtn"></div>
+      <div #googleSignInBtn id="googleSignInBtn"></div>
+    </div>
+
+    <!-- Loading indicator para Google (opcional) -->
+    <div *ngIf="!googleReady" class="google-loading">
+      <span>⏳ Cargando Google Sign-In...</span>
     </div>
 
     <!-- Enlace a registro -->

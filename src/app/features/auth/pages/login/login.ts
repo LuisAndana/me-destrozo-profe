@@ -40,6 +40,7 @@ export class Login implements AfterViewInit {
   passwordError: string = '';
   generalError: string = '';
   isLoading: boolean = false;
+  googleReady: boolean = false;
 
   @ViewChild('googleSignInBtn', { static: false }) googleSignInBtn!: ElementRef;
 
@@ -130,46 +131,114 @@ export class Login implements AfterViewInit {
 
   // ---------- GOOGLE SIGN-IN ----------
   ngAfterViewInit(): void {
-    const init = () => {
+    console.log('[Login] ✅ Vista inicializada, cargando Google Sign-In...');
+    
+    // Esperar a que el DOM esté completamente listo
+    setTimeout(() => {
+      this.loadGoogleScript();
+    }, 100);
+  }
+
+  /**
+   * Buscar y cargar Google Sign-In
+   * Reintentar hasta 10 veces si no está disponible
+   */
+  private loadGoogleScript(): void {
+    console.log('[Login] 🔄 Buscando objeto google...');
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const checkGoogle = () => {
+      attempts++;
+      const isAvailable = (window as any).google?.accounts?.id;
+      
+      console.log(`[Login] Intento ${attempts}/${maxAttempts}: ${isAvailable ? '✅ ENCONTRADO' : '⏳ Esperando...'}`);
+
+      if (isAvailable) {
+        console.log('[Login] ✅ Google cargado exitosamente');
+        this.initializeGoogle();
+      } else if (attempts < maxAttempts) {
+        setTimeout(checkGoogle, 500);
+      } else {
+        console.error('[Login] ❌ Google NO se cargó después de 5 segundos');
+        console.log('[Login] window.google:', (window as any).google);
+        this.generalError = 'El servicio de Google no está disponible. Recarga la página.';
+      }
+    };
+
+    checkGoogle();
+  }
+
+  /**
+   * Inicializar Google Sign-In y renderizar botón
+   */
+  private initializeGoogle(): void {
+    try {
       if (!environment.googleClientId) {
-        console.error('googleClientId vacío en environment');
+        console.error('[Login] ❌ googleClientId vacío en environment');
+        this.generalError = 'Configuración de Google inválida';
         return;
       }
-      google?.accounts.id.initialize({
+
+      console.log('[Login] 📝 Inicializando Google con CLIENT_ID:', environment.googleClientId);
+
+      google.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: (resp: any) => this.onGoogleCredential(resp),
         ux_mode: 'popup',
       });
 
-      google?.accounts.id.renderButton(this.googleSignInBtn.nativeElement, {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        text: 'continue_with',
-        shape: 'pill',
-        width: 320,
-      });
-    };
+      console.log('[Login] 🎯 Renderizando botón Google...');
+      
+      google.accounts.id.renderButton(
+        this.googleSignInBtn?.nativeElement,
+        {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'pill',
+          width: 320,
+        }
+      );
 
-    if ((window as any).google) init();
-    else (window as any).onGoogleLibraryLoad = init;
+      this.googleReady = true;
+      console.log('[Login] ✅ Botón Google renderizado correctamente');
+    } catch (error: any) {
+      console.error('[Login] ❌ Error al inicializar Google:', error);
+      this.generalError = 'Error al cargar Google Sign-In: ' + error?.message;
+    }
   }
 
+  /**
+   * Callback cuando Google retorna credencial
+   */
   private onGoogleCredential(response: any) {
+    console.log('[Login] 🔐 Credencial de Google recibida');
+    
     const credential = response?.credential;
     if (!credential) {
       this.generalError = 'No se recibió credencial de Google';
+      console.error('[Login] ❌ Sin credencial en response:', response);
       return;
     }
+
     this.lastGoogleCredential = credential;
+    this.isLoading = true;
+    console.log('[Login] 📡 Enviando credencial al backend...');
 
     this.http.post<LoginResponse>(
       `${environment.apiBase}/auth/google_signin`,
       { credential }
     ).subscribe({
       next: (res) => {
+        console.log('[Login] ✅ Respuesta del backend recibida');
+        this.isLoading = false;
+
         if (!res?.ok) {
           this.generalError = res?.mensaje || 'No se pudo iniciar sesión con Google.';
+          console.error('[Login] ❌ res.ok = false:', res);
           return;
         }
 
@@ -184,12 +253,19 @@ export class Login implements AfterViewInit {
           rol: roleForStore,
         };
 
-        if (res.token) localStorage.setItem('token', res.token);
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+          console.log('[Login] ✅ Token guardado');
+        }
+
         localStorage.setItem('usuario', JSON.stringify({ ...usuario, rol: roleForStore }));
+        console.log('[Login] ✅ Usuario guardado, navegando a:', roleForStore === 'entrenador' ? '/pagina-principal-entrenador' : '/cliente');
+        
         this.goToHomeByRole(roleForStore);
       },
       error: (err) => {
-        console.error('[google_signin][login] error:', err);
+        console.error('[Login] ❌ Error en google_signin:', err);
+        this.isLoading = false;
         const detail = err?.error?.detail || '';
         
         if (err?.status === 0) {
@@ -199,6 +275,7 @@ export class Login implements AfterViewInit {
         } else if (err?.status === 409) {
           this.generalError = detail || 'El email ya está registrado';
         } else if (err?.status === 422) {
+          console.log('[Login] 422: Pidiendo rol al usuario...');
           const rol = prompt('Selecciona tu rol: escribe "alumno" o "entrenador"');
           if (!rol || !/^(alumno|entrenador)$/i.test(rol)) {
             this.generalError = 'Rol inválido. Usa "alumno" o "entrenador"';
@@ -212,13 +289,26 @@ export class Login implements AfterViewInit {
     });
   }
 
+  /**
+   * Reintentar Google Sign-In con rol especificado
+   */
   private retryGoogleWithRole(rol: 'alumno' | 'entrenador'): void {
-    if (!this.lastGoogleCredential) return;
+    if (!this.lastGoogleCredential) {
+      console.error('[Login] ❌ Sin credencial guardada para reintentar');
+      return;
+    }
+
+    this.isLoading = true;
+    console.log('[Login] 🔄 Reintentando con rol:', rol);
+
     this.http.post<LoginResponse>(
       `${environment.apiBase}/auth/google_signin`,
       { credential: this.lastGoogleCredential, rol }
     ).subscribe({
       next: (res) => {
+        console.log('[Login] ✅ Respuesta del reintento recibida');
+        this.isLoading = false;
+
         if (!res?.ok) {
           this.generalError = res?.mensaje || 'No se pudo completar el registro con Google';
           return;
@@ -235,13 +325,21 @@ export class Login implements AfterViewInit {
           rol: roleForStore,
         };
 
-        if (res.token) localStorage.setItem('token', res.token);
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+          console.log('[Login] ✅ Token guardado (reintento)');
+        }
+
         localStorage.setItem('usuario', JSON.stringify({ ...usuario, rol: roleForStore }));
+        console.log('[Login] ✅ Usuario guardado (reintento), navegando...');
+        
         this.goToHomeByRole(roleForStore);
       },
       error: (err) => {
-        console.error('[google_signin][retry] error:', err);
+        console.error('[Login] ❌ Error en reintento de google_signin:', err);
+        this.isLoading = false;
         const detail = err?.error?.detail || '';
+
         if (err?.status === 409) {
           this.generalError = detail || 'El email ya está registrado';
         } else {
@@ -273,6 +371,8 @@ export class Login implements AfterViewInit {
     const email = this.loginForm.get('email')?.value.trim().toLowerCase();
     const password = this.loginForm.get('password')?.value.trim();
 
+    console.log('[Login] 📡 Enviando login con email/password...');
+
     const url = `${environment.apiBase}/auth/login`;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
@@ -280,7 +380,9 @@ export class Login implements AfterViewInit {
       .post<LoginResponse>(url, { email, password }, { headers, withCredentials: false })
       .subscribe({
         next: (res) => {
+          console.log('[Login] ✅ Login exitoso');
           this.isLoading = false;
+
           if (res?.ok && res.token && res.usuario) {
             localStorage.setItem('token', res.token);
 
@@ -288,6 +390,8 @@ export class Login implements AfterViewInit {
             const usuario = { ...res.usuario, rol: roleForStore };
 
             localStorage.setItem('usuario', JSON.stringify(usuario));
+            console.log('[Login] ✅ Navegando a:', roleForStore === 'entrenador' ? '/pagina-principal-entrenador' : '/cliente');
+            
             this.goToHomeByRole(roleForStore);
           } else {
             this.generalError = res?.mensaje || 'Error en login';
@@ -295,7 +399,7 @@ export class Login implements AfterViewInit {
         },
         error: (err) => {
           this.isLoading = false;
-          console.error('❌ Error en login:', err);
+          console.error('[Login] ❌ Error en login:', err);
           const detail = err?.error?.detail || err?.message || '';
 
           if (err?.status === 0) {

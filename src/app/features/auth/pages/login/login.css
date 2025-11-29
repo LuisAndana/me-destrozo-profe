@@ -191,51 +191,34 @@
   margin-bottom: 0.45rem;
 }
 
-/* ==== BOTÓN OFICIAL DE GOOGLE (REDONDEADO) ==== */
+/* ==== BOTÓN GOOGLE - LIMPIO SIN FONDO OSCURO ==== */
 .google-wrap {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
   margin: 0.5rem 0 1rem 0;
-  min-height: 50px;
-  align-items: center;
+  position: relative;
+  z-index: 10;
+  /* SIN FONDO - TRANSPARENT */
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-height: auto;
 }
 
 #googleSignInBtn {
   width: 100%;
   max-width: 340px;
   min-height: 48px;
-  border-radius: 10px !important;
-  overflow: hidden !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.2s ease;
 }
 
-/* Forzar que los elementos internos de Google respeten el border-radius */
-#googleSignInBtn > div {
-  border-radius: 10px !important;
-  overflow: hidden !important;
-  width: 100%;
-  height: 100%;
-}
-
-#googleSignInBtn button,
-#googleSignInBtn [role="button"] {
-  border-radius: 10px !important;
-  width: 100%;
-  min-height: 48px;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-}
-
-/* Efectos hover al pasar el mouse */
 #googleSignInBtn:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
+  opacity: 0.95;
 }
 
 /* ==== SUBMIT ==== */
@@ -351,7 +334,7 @@
   }
 
   .google-wrap {
-    min-height: 44px;
+    min-height: auto;
   }
 }
 
@@ -408,11 +391,10 @@
   #googleSignInBtn {
     max-width: 100%;
     min-height: 44px;
-    border-radius: 8px !important;
   }
 
   .google-wrap {
-    min-height: 44px;
+    min-height: auto;
   }
 
   .continue-btn {
@@ -465,11 +447,10 @@
 
   #googleSignInBtn {
     min-height: 42px;
-    border-radius: 8px !important;
   }
 
   .google-wrap {
-    min-height: 42px;
+    min-height: auto;
   }
 
   .continue-btn {
@@ -550,11 +531,10 @@
   #googleSignInBtn {
     max-width: 100%;
     min-height: 40px;
-    border-radius: 8px !important;
   }
 
   .google-wrap {
-    min-height: 40px;
+    min-height: auto;
   }
 
   .continue-btn {
@@ -619,11 +599,10 @@
 
   #googleSignInBtn {
     min-height: 38px;
-    border-radius: 7px !important;
   }
 
   .google-wrap {
-    min-height: 38px;
+    min-height: auto;
   }
 
   .continue-btn {
@@ -676,11 +655,10 @@
 
   #googleSignInBtn {
     min-height: 36px;
-    border-radius: 7px !important;
   }
 
   .google-wrap {
-    min-height: 36px;
+    min-height: auto;
   }
 
   .continue-btn {
@@ -733,11 +711,10 @@
 
   #googleSignInBtn {
     min-height: 34px;
-    border-radius: 6px !important;
   }
 
   .google-wrap {
-    min-height: 34px;
+    min-height: auto;
   }
 
   .continue-btn {
@@ -790,11 +767,10 @@
 
   #googleSignInBtn {
     min-height: 32px;
-    border-radius: 6px !important;
   }
 
   .google-wrap {
-    min-height: 32px;
+    min-height: auto;
   }
 
   .continue-btn {
