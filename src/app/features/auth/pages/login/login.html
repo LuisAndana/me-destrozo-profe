@@ -9,21 +9,44 @@
   <div class="login-form-section">
     <h2 class="login-title">Login de usuario</h2>
 
-    <form class="login-form" (ngSubmit)="login()">
-      <input
-        type="email"
-        placeholder="E-Mail"
-        [(ngModel)]="email"
-        name="email"
-        required
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        [(ngModel)]="password"
-        name="password"
-        required
-      />
+    <!-- Mensaje de error general -->
+    <div *ngIf="generalError" class="alert alert-error">
+      <span class="alert-icon">⚠️</span>
+      <span class="alert-message">{{ generalError }}</span>
+    </div>
+
+    <form [formGroup]="loginForm" class="login-form" (ngSubmit)="login()">
+      <!-- Campo Email -->
+      <div class="form-group">
+        <input
+          type="email"
+          placeholder="E-Mail"
+          formControlName="email"
+          (blur)="validateEmail()"
+          (input)="validateEmail()"
+          [class.input-error]="emailError"
+          [class.input-valid]="emailControl?.valid && emailControl?.touched && !emailError"
+        />
+        <div *ngIf="emailError" class="error-message">
+          <span class="error-icon">✗</span> {{ emailError }}
+        </div>
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group">
+        <input
+          type="password"
+          placeholder="Contraseña"
+          formControlName="password"
+          (blur)="validatePassword()"
+          (input)="validatePassword()"
+          [class.input-error]="passwordError"
+          [class.input-valid]="passwordControl?.valid && passwordControl?.touched && !passwordError"
+        />
+        <div *ngIf="passwordError" class="error-message">
+          <span class="error-icon">✗</span> {{ passwordError }}
+        </div>
+      </div>
 
       <div class="divider-form"></div>
       <span class="login-google-label">Inicia sesión con</span>
@@ -33,7 +56,21 @@
         <div #googleSignInBtn id="googleSignInBtn"></div>
       </div>
 
-      <button type="submit" class="continue-btn">Continuar</button>
+      <!-- Botón Continuar -->
+      <button 
+        type="submit" 
+        class="continue-btn"
+        [disabled]="isLoading"
+        [class.loading]="isLoading"
+      >
+        <span *ngIf="!isLoading">Continuar</span>
+        <span *ngIf="isLoading">Validando...</span>
+      </button>
     </form>
+
+    <!-- Enlace a registro -->
+    <div class="register-link">
+      ¿No tienes cuenta? <a (click)="goToRegister()">Regístrate aquí</a>
+    </div>
   </div>
 </div>

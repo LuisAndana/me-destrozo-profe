@@ -39,6 +39,7 @@
   justify-content: center;
   align-items: center;
   padding: 2.5rem 2rem;
+  overflow-y: auto;
 }
 
 /* ==== TÍTULO ==== */
@@ -50,6 +51,46 @@
   text-align: center;
 }
 
+/* ==== ALERTA DE ERROR GENERAL ==== */
+.alert {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #fecaca;
+}
+
+.alert-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.alert-message {
+  flex: 1;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ==== FORM ==== */
 .login-form {
   width: 100%;
@@ -59,20 +100,70 @@
   gap: 1rem;
 }
 
+/* Grupo de formulario */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 /* Inputs */
 .login-form input {
   background: #181818;
-  border: 1px solid #444;
+  border: 2px solid #444;
   color: #fff;
   padding: 0.8rem 1rem;
   border-radius: 8px;
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
+
 .login-form input:focus {
   border-color: #4d90fe;
   box-shadow: 0 0 0 3px rgba(77,144,254,.18);
+}
+
+.login-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Input con error */
+.input-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Input válido */
+.input-valid {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.input-valid:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Mensaje de error */
+.error-message {
+  font-size: 0.85rem;
+  color: #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-icon {
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
 /* Separador + etiqueta */
@@ -81,6 +172,7 @@
   background: #444;
   margin: .6rem 0 .9rem;
 }
+
 .login-google-label {
   color: #aaa;
   text-align: center;
@@ -90,18 +182,21 @@
 }
 
 /* ==== BOTÓN OFICIAL DE GOOGLE ==== */
-.google-wrap{
+.google-wrap {
   display: flex;
   justify-content: center;
   width: 100%;
 }
-#googleSignInBtn{
+
+#googleSignInBtn {
   width: 100%;
   max-width: 340px;
 }
 
 /* Si quedara el botón antiguo por error, ocultarlo */
-.google-btn, .google-btn img { display: none !important; }
+.google-btn, .google-btn img {
+  display: none !important;
+}
 
 /* ==== SUBMIT ==== */
 .continue-btn {
@@ -114,12 +209,51 @@
   font-weight: 800;
   cursor: pointer;
   margin-top: .55rem;
-  transition: background .2s, transform .06s;
+  transition: background .2s, transform .06s, opacity .2s;
   box-shadow: 0 10px 24px rgba(77,144,254,.25);
   min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
-.continue-btn:hover { background: #357ae8; }
-.continue-btn:active { transform: translateY(1px); }
+
+.continue-btn:hover:not(:disabled) {
+  background: #357ae8;
+}
+
+.continue-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.continue-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.continue-btn.loading {
+  background: #6ba3f5;
+}
+
+/* Enlace a registro */
+.register-link {
+  color: #aaa;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.register-link a {
+  color: #4d90fe;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.register-link a:hover {
+  color: #357ae8;
+  text-decoration: underline;
+}
 
 /* ============================================================
    TABLET (768px - 1024px)
@@ -233,6 +367,9 @@
     border-radius: 8px;
     min-height: 42px;
   }
+  .error-message {
+    font-size: 0.8rem;
+  }
   .divider-form {
     margin: 0.5rem 0 0.9rem;
   }
@@ -278,6 +415,11 @@
     margin-bottom: 1.2rem;
     font-weight: 700;
   }
+  .alert {
+    max-width: 100%;
+    font-size: 0.85rem;
+    padding: 0.8rem 0.9rem;
+  }
   .login-form {
     width: 100%;
     max-width: 100%;
@@ -291,6 +433,9 @@
   }
   .login-form input:focus {
     box-shadow: 0 0 0 2px rgba(77,144,254,.12);
+  }
+  .error-message {
+    font-size: 0.78rem;
   }
   .divider-form {
     margin: 0.45rem 0 0.8rem;
@@ -311,6 +456,10 @@
     margin-top: 0.45rem;
     box-shadow: 0 6px 16px rgba(77,144,254,.2);
   }
+  .register-link {
+    margin-top: 1.2rem;
+    font-size: 0.85rem;
+  }
 }
 
 /* ============================================================
@@ -326,6 +475,11 @@
     margin-bottom: 1rem;
     font-weight: 700;
   }
+  .alert {
+    max-width: 100%;
+    font-size: 0.8rem;
+    padding: 0.7rem 0.85rem;
+  }
   .login-form {
     gap: 0.75rem;
   }
@@ -334,6 +488,9 @@
     font-size: 0.8rem;
     border-radius: 7px;
     min-height: 38px;
+  }
+  .error-message {
+    font-size: 0.75rem;
   }
   .divider-form {
     margin: 0.4rem 0 0.75rem;
@@ -376,6 +533,9 @@
     border-radius: 7px;
     min-height: 36px;
   }
+  .error-message {
+    font-size: 0.72rem;
+  }
   .divider-form {
     margin: 0.35rem 0 0.7rem;
   }
@@ -417,6 +577,9 @@
     border-radius: 6px;
     min-height: 34px;
   }
+  .error-message {
+    font-size: 0.7rem;
+  }
   .divider-form {
     margin: 0.32rem 0 0.65rem;
   }
@@ -457,6 +620,9 @@
     font-size: 0.72rem;
     border-radius: 6px;
     min-height: 32px;
+  }
+  .error-message {
+    font-size: 0.68rem;
   }
   .divider-form {
     margin: 0.3rem 0 0.6rem;
@@ -500,6 +666,9 @@
     border-radius: 5px;
     min-height: 30px;
   }
+  .error-message {
+    font-size: 0.65rem;
+  }
   .divider-form {
     margin: 0.28rem 0 0.55rem;
   }
@@ -539,6 +708,9 @@
     font-size: 0.65rem;
     border-radius: 5px;
     min-height: 28px;
+  }
+  .error-message {
+    font-size: 0.6rem;
   }
   .divider-form {
     margin: 0.25rem 0 0.5rem;
