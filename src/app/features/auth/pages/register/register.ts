@@ -2,7 +2,7 @@ import { Component, AfterViewInit, ElementRef, ViewChild, ViewEncapsulation, OnI
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { environment } from '../../../../../environments/environment';
 import { DOCUMENT } from '@angular/common';
 
@@ -11,7 +11,7 @@ declare const google: any;
 @Component({
   standalone: true,
   selector: 'app-register',
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
   templateUrl: './register.html',
   styleUrls: ['./register.css'],
   encapsulation: ViewEncapsulation.None
@@ -35,7 +35,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   roleTouched = false;
 
   // ============================================================
-  // VALIDACIÓN DE EMAIL
+  // VALIDACIÓN DE EMAIL (NUEVO) ⭐
   // ============================================================
   isCheckingEmail = false;
   emailCheckMessage = '';
@@ -43,25 +43,33 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   emailIsAvailable = false;
   emailCheckStatus: 'validando' | 'existente' | 'disponible' | '' = '';
 
+  // ============================================================
+  // PASSWORD REQUIREMENTS
+  // ============================================================
+  passwordRequirements = {
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false,
+    length: false
+  };
+
   formErrors: Record<'nombre' | 'apellido' | 'email' | 'password' | 'confirmPassword' | 'rol' | 'general', string> = {
     nombre: '', apellido: '', email: '', password: '', confirmPassword: '', rol: '', general: ''
   };
 
-  private googleInitAttempts = 0;
-  private maxGoogleAttempts = 20;
+  errorMessage: string = '';
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private renderer: Renderer2,
     @Inject(DOCUMENT) private doc: Document
-  ) {
-    console.log('[Register] ✅ Constructor - googleClientId:', environment.googleClientId);
-  }
+  ) {}
 
   ngOnInit(): void {
     this.renderer.addClass(this.doc.body, 'register-page');
-    console.log('[Register] ✅ ngOnInit - componente activo');
+    console.log('[Register] componente activo');
   }
 
   ngOnDestroy(): void {
@@ -70,124 +78,33 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
 
   // === GOOGLE SIGN-IN ===
   ngAfterViewInit(): void {
-    console.log('[Register] 🔄 ngAfterViewInit - inicializando Google Sign-In');
-    
-    // Esperar un tick para asegurar que el DOM está listo
-    setTimeout(() => {
-      this.initializeGoogle();
-    }, 100);
-  }
-
-  private initializeGoogle(): void {
-    console.log('[Register] 🔍 Verificando si Google está disponible...');
-    console.log('[Register] window.google:', (window as any).google);
-    console.log('[Register] googleSignInBtn:', this.googleSignInBtn?.nativeElement);
-
-    // Verificar que el elemento existe
-    if (!this.googleSignInBtn?.nativeElement) {
-      console.error('[Register] ❌ Elemento #googleSignInBtn no encontrado');
-      return;
-    }
-
-    // Si Google ya está disponible, inicializar inmediatamente
-    if ((window as any).google?.accounts?.id) {
-      console.log('[Register] ✅ Google ya está disponible - inicializando');
-      this.renderGoogleButton();
-      return;
-    }
-
-    // Si no está disponible, esperar a que se cargue
-    console.log('[Register] ⏳ Esperando a que Google se cargue...');
-    
-    // Método 1: Escuchar el callback de Google
-    (window as any).onGoogleLibraryLoad = () => {
-      console.log('[Register] ✅ Google library cargada (callback)');
-      this.renderGoogleButton();
-    };
-
-    // Método 2: Polling - reintentar cada 200ms por hasta 4 segundos
-    const pollInterval = setInterval(() => {
-      this.googleInitAttempts++;
-      
-      if ((window as any).google?.accounts?.id) {
-        console.log(`[Register] ✅ Google disponible en intento ${this.googleInitAttempts}`);
-        clearInterval(pollInterval);
-        this.renderGoogleButton();
-      } else if (this.googleInitAttempts >= this.maxGoogleAttempts) {
-        console.error(`[Register] ❌ Google no cargó después de ${this.googleInitAttempts * 200}ms`);
-        clearInterval(pollInterval);
-        this.showGoogleError();
-      } else {
-        console.log(`[Register] ⏳ Intento ${this.googleInitAttempts}/${this.maxGoogleAttempts} - Google aún no disponible`);
-      }
-    }, 200);
-  }
-
-  private renderGoogleButton(): void {
-    if (!this.googleSignInBtn?.nativeElement) {
-      console.error('[Register] ❌ googleSignInBtn no existe');
-      return;
-    }
-
-    if (!google?.accounts?.id) {
-      console.error('[Register] ❌ google.accounts.id no disponible');
-      return;
-    }
-
-    try {
-      console.log('[Register] 🎨 Inicializando Google...');
-      google.accounts.id.initialize({
+    const init = () => {
+      google?.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: (resp: any) => this.onGoogleCredential(resp),
         ux_mode: 'popup',
-        auto_select: false,
       });
-      console.log('[Register] ✅ Google inicializado correctamente');
 
-      console.log('[Register] 🎨 Renderizando botón Google...');
-      google.accounts.id.renderButton(
-        this.googleSignInBtn.nativeElement,
-        {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'rounded',
-          width: '320',
-          logo_alignment: 'left',
-        }
-      );
-      console.log('[Register] ✅ Botón Google renderizado correctamente');
+      google?.accounts.id.renderButton(this.googleSignInBtn.nativeElement, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'pill',
+        width: 320,
+      });
+    };
 
-    } catch (error) {
-      console.error('[Register] ❌ Error en renderButton:', error);
-      this.showGoogleError();
-    }
-  }
-
-  private showGoogleError(): void {
-    const btn = this.googleSignInBtn?.nativeElement;
-    if (btn) {
-      btn.innerHTML = `
-        <div style="
-          padding: 12px 16px;
-          background: rgba(239, 68, 68, 0.1);
-          border: 1px solid #ef4444;
-          border-radius: 8px;
-          color: #fca5a5;
-          text-align: center;
-          font-size: 0.9rem;
-        ">
-          ⚠️ Error cargando Google Sign-In
-        </div>
-      `;
-    }
+    if ((window as any).google) init();
+    else (window as any).onGoogleLibraryLoad = init;
   }
 
   private scrollToFirstError(scrollToTopIfGeneral = false): void {
+    // Busca el primer campo con error visual
     const el = document.querySelector('.field.invalid .control') as HTMLElement | null;
 
     if (el) {
+      // Enfocar y hacer scroll suave
       el.focus({ preventScroll: false });
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -199,12 +116,10 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private onGoogleCredential(response: any): void {
-    console.log('[Register] 🔐 onGoogleCredential - response recibida');
     this.clearErrors();
     const credential = response?.credential;
     if (!credential) {
       this.formErrors.general = 'No se recibió credencial de Google.';
-      console.error('[Register] ❌ Sin credencial en response');
       return;
     }
 
@@ -216,24 +131,17 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    console.log('[Register] 📤 Enviando credencial a backend');
     this.http.post(
       `${environment.apiBase}${environment.endpoints.googleSignin}`,
       { credential, rol: rolFront }
     ).subscribe({
-      next: () => {
-        console.log('[Register] ✅ Google Sign-In exitoso');
-        this.router.navigate(['/login']);
-      },
-      error: (err: any) => {
-        console.error('[Register] ❌ Error en Google Sign-In:', err);
-        this.handleBackendErrors(err);
-      }
+      next: () => this.router.navigate(['/login']),
+      error: (err: any) => this.handleBackendErrors(err)
     });
   }
 
   // ============================================================
-  // VALIDACIÓN DE EMAIL
+  // VALIDACIÓN DE EMAIL (NUEVO) ⭐
   // ============================================================
   checkEmail(): void {
     if (!this.email || this.email.trim() === '') {
@@ -397,6 +305,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
       rol: '',
       general: ''
     };
+    this.errorMessage = '';
   }
 
   private translatePydanticMsg(msg: string): string {
@@ -433,7 +342,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    // Usuario ya existe pero NO verificado
+    // ⭐ CASO NUEVO: Usuario ya existe pero NO verificado
     if (err?.status === 409 && err?.error?.needs_verification) {
       console.warn('[Register] Usuario existe pero NO verificado → Enviando a verify-email');
 
@@ -491,6 +400,9 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
     if (!email) this.formErrors.email = 'Ingresa tu email.';
     if (!rolFront) this.formErrors.rol = 'Selecciona un tipo de usuario.';
 
+    // ============================================================
+    // VALIDACIÓN DE EMAIL (NUEVO) ⭐
+    // ============================================================
     if (!this.emailIsValid || !this.emailIsAvailable) {
       this.formErrors.email =
         this.formErrors.email || 'Por favor, verifica primero que el email sea válido.';
@@ -517,24 +429,32 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
 
     this.http.post(url, bodyA).subscribe({
       next: () => {
+        // ============================================================
+        // ENVIAR VERIFICACIÓN DE EMAIL (NUEVO) ⭐
+        // ============================================================
         this.sendEmailVerification(email, nombre);
       },
       error: (errA: any) => {
+        // ⭐ Si el backend responde que el usuario ya existe pero NO está verificado
         if (errA?.status === 409 && errA?.error?.needs_verification) {
           console.warn('[Register] Email existente NO verificado → reenviando correo');
 
+          // reenviar token
           this.sendEmailVerification(email, nombre);
 
+          // guardar email
           sessionStorage.setItem('registerEmail', email);
 
           alert(
             'El email ya estaba registrado pero no verificado. Se envió un nuevo código.'
           );
 
+          // ir a verify-email
           this.router.navigate(['/verify-email']);
           return;
         }
 
+        // ⭐ Si el error requiere fallback bodyB (tu lógica ya existente)
         const msg = (errA?.error?.detail || '').toString().toLowerCase();
         const shouldRetry =
           [400, 422, 500].includes(errA?.status) &&
@@ -556,7 +476,7 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   // ============================================================
-  // ENVIAR EMAIL DE VERIFICACIÓN
+  // ENVIAR EMAIL DE VERIFICACIÓN (NUEVO) ⭐
   // ============================================================
   private sendEmailVerification(email: string, nombre: string): void {
     sessionStorage.setItem('registerEmail', email);
@@ -567,12 +487,14 @@ export class RegisterComponent implements AfterViewInit, OnInit, OnDestroy {
       })
       .subscribe({
         next: () => {
+          // Email enviado exitosamente
           alert(
             `✓ Se envió un email de verificación a ${email}\nPor favor, revisa tu bandeja de entrada.`
           );
           this.router.navigate(['/verify-email']);
         },
         error: (err: any) => {
+          // Si hay error al enviar email, aún así permite ir a verify-email
           console.warn('[Register] Error enviando email de verificación:', err);
           const errorMsg = err?.error?.detail || 'Error al enviar email de verificación';
           this.formErrors.general = `Usuario registrado, pero hubo un problema al enviar el email: ${errorMsg}. Puedes intentar reenviar desde la página de verificación.`;
