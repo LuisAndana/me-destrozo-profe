@@ -136,6 +136,10 @@ export class AuthInterceptor implements HttpInterceptor {
 
   /**
    * Reescribe URLs legacy de cliente/entrenador
+   * 
+   * ⚠️ IMPORTANTE: NO reescribir rutas que usan JWT token:
+   * - /usuarios/entrenador/perfil (GET/PUT con JWT)
+   * - Estas rutas obtienen el ID del token, NO de la URL
    */
   private rewriteClienteEntrenadorUrls(req: HttpRequest<any>): HttpRequest<any> {
     let url = req.url;
@@ -143,11 +147,24 @@ export class AuthInterceptor implements HttpInterceptor {
 
     if (!idEntrenador) return req;
 
-    // Reemplazar patrones legacy
+    // ✅ NO REESCRIBIR rutas que usan JWT para identificación
+    const jwtBasedRoutes = [
+      /\/usuarios\/entrenador\/perfil$/,  // GET/PUT perfil con JWT
+      /\/api\/upload\/profile-photo$/,     // Upload con JWT
+    ];
+
+    for (const pattern of jwtBasedRoutes) {
+      if (pattern.test(url)) {
+        console.log('[AuthInterceptor] ℹ️ Ruta usa JWT, no reescribir:', url);
+        return req; // NO modificar
+      }
+    }
+
+    // Reemplazar solo patrones legacy que SÍ necesitan ID en URL
     const patterns = [
       { from: /\/cliente\/(\d+)\/entrenador$/, to: `/cliente/$1/entrenador/${idEntrenador}` },
-      { from: /\/entrenador\/clientes$/, to: `/entrenador/${idEntrenador}/clientes` },
-      { from: /\/entrenador\/perfil$/, to: `/entrenador/${idEntrenador}/perfil` }
+      // ❌ REMOVIDO: { from: /\/entrenador\/perfil$/, to: `/entrenador/${idEntrenador}/perfil` }
+      // ❌ REMOVIDO: { from: /\/entrenador\/clientes$/, to: `/entrenador/${idEntrenador}/clientes` }
     ];
 
     for (const p of patterns) {
