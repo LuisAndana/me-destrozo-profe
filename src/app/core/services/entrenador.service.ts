@@ -62,41 +62,32 @@ export class EntrenadorService {
   }
 
   /** ================== PERFIL ================== */
-  // Backend espera ?user_id en Query
+  // ✅ CORREGIDO: Sin query parameter ?user_id
+  // JWT token en header es suficiente
   getPerfil(idEntrenador?: number): Observable<PerfilEntrenador> {
     const url = `${USERS_BASE}/entrenador/perfil`;
-    let params = new HttpParams();
-
-    if (idEntrenador) {
-      params = params.set('user_id', String(idEntrenador));
-      console.log(`📡 GET ${url}?user_id=${idEntrenador}`);
-    }
+    console.log(`📡 GET ${url}`);
 
     return this.http.get<PerfilEntrenador>(url, {
-      params,
       headers: this.authHeaders(),
     });
   }
 
+  // ✅ CORREGIDO: Sin query parameter ?user_id
   updatePerfil(
     data: PerfilEntrenador,
     idEntrenador?: number
   ): Observable<PerfilEntrenador> {
     const url = `${USERS_BASE}/entrenador/perfil`;
-    let params = new HttpParams();
-
-    if (idEntrenador) {
-      params = params.set('user_id', String(idEntrenador));
-      console.log(`📡 PUT ${url}?user_id=${idEntrenador}`);
-    }
+    console.log(`📡 PUT ${url}`);
 
     return this.http.put<PerfilEntrenador>(url, data, {
-      params,
       headers: this.authHeaders(),
     });
   }
 
   /** ================== AVATAR ================== */
+  // ✅ CORREGIDO: Sin query parameter ?user_id
   uploadAvatar(
     file: File,
     idEntrenador?: number
@@ -106,35 +97,25 @@ export class EntrenadorService {
     formData.append('avatar', file);
 
     const url = `${USERS_BASE}/perfil/avatar`;
-    let params = new HttpParams();
-
-    if (idEntrenador) {
-      params = params.set('user_id', String(idEntrenador));
-      console.log(`📡 POST ${url}?user_id=${idEntrenador}`);
-    }
+    console.log(`📡 POST ${url}`);
 
     return this.http.post<{ foto_url?: string; url?: string }>(url, formData, {
-      params,
       headers: this.authHeaders(),
     });
   }
 
+  // ✅ CORREGIDO: Sin query parameter ?user_id
   deleteAvatar(idEntrenador?: number): Observable<void> {
     const url = `${USERS_BASE}/perfil/avatar`;
-    let params = new HttpParams();
-
-    if (idEntrenador) {
-      params = params.set('user_id', String(idEntrenador));
-      console.log(`📡 DELETE ${url}?user_id=${idEntrenador}`);
-    }
+    console.log(`📡 DELETE ${url}`);
 
     return this.http.delete<void>(url, {
-      params,
       headers: this.authHeaders(),
     });
   }
 
   /** ================== EVIDENCIAS ================== */
+  // ✅ CORREGIDO: Sin query parameter ?user_id
   uploadEvidence(
     file: File,
     idEntrenador?: number
@@ -143,15 +124,9 @@ export class EntrenadorService {
     formData.append('file', file);
 
     const url = `${USERS_BASE}/entrenador/evidencia`;
-    let params = new HttpParams();
-
-    if (idEntrenador) {
-      params = params.set('user_id', String(idEntrenador));
-      console.log(`📡 POST ${url}?user_id=${idEntrenador}`);
-    }
+    console.log(`📡 POST ${url}`);
 
     return this.http.post<{ url: string; success: boolean }>(url, formData, {
-      params,
       headers: this.authHeaders(),
     });
   }

@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthService } from './auth.service';
 
 export interface PerfilVM {
   nombre_completo: string;
@@ -21,7 +20,6 @@ export interface PerfilVM {
 @Injectable({ providedIn: 'root' })
 export class PerfilService {
   private http = inject(HttpClient);
-  private auth = inject(AuthService);
 
   /** Base del endpoint del backend */
   private base = `${environment.apiBase}/usuarios`;
@@ -51,12 +49,14 @@ export class PerfilService {
   }
 
   /**
-   * ✅ Obtiene el perfil sin requerir token.
-   *    Se pasa el user_id como parámetro query (?user_id=)
+   * ✅ CORREGIDO: Obtiene el perfil sin query parameter ?user_id
+   * JWT token en Authorization header es suficiente
    */
   getPerfil(userId: number): Observable<PerfilVM> {
+    console.log(`📡 GET ${this.base}/me`);
+    
     return this.http
-      .get<any>(`${this.base}/me?user_id=${userId}`)
+      .get<any>(`${this.base}/me`)
       .pipe(
         map(resp => {
           const r = resp?.usuario ?? resp;
@@ -81,7 +81,8 @@ export class PerfilService {
   }
 
   /**
-   * ✅ Guarda los cambios del perfil sin token (usa user_id)
+   * ✅ CORREGIDO: Guarda los cambios del perfil sin query parameter ?user_id
+   * JWT token en Authorization header es suficiente
    */
   savePerfil(vm: Partial<PerfilVM>, userId: number): Observable<PerfilVM> {
     const enfermedadesList = (vm.enfermedades ?? [])
@@ -96,40 +97,47 @@ export class PerfilService {
       enfermedades: enfermedadesList
     };
 
+    console.log(`📡 PATCH ${this.base}/perfil`);
+
     return this.http.patch<PerfilVM>(
-      `${this.base}/perfil?user_id=${userId}`,
+      `${this.base}/perfil`,
       body
     );
   }
 
   /**
-   * ✅ Sube el avatar del usuario sin requerir token
+   * ✅ CORREGIDO: Sube el avatar del usuario sin query parameter ?user_id
+   * JWT token en Authorization header es suficiente
    */
-uploadAvatar(file: File, userId: number): Observable<{ foto_url?: string; avatar_url?: string }> {
-  const fd = new FormData();
-  fd.append('avatar', file); // 👈 usar 'avatar' porque envías a /usuarios/perfil/avatar
+  uploadAvatar(file: File, userId: number): Observable<{ foto_url?: string; avatar_url?: string }> {
+    const fd = new FormData();
+    fd.append('avatar', file); // 👈 usar 'avatar' porque envías a /usuarios/perfil/avatar
 
-  return this.http
-    .post<{ foto_url?: string; avatar_url?: string }>(
-      `${this.base}/perfil/avatar?user_id=${userId}`, // 👈 ruta correcta
-      fd,
-      { }
-    )
-    .pipe(
-      map(r => ({
-        foto_url: r.foto_url ?? r.avatar_url ?? undefined,
-        avatar_url: r.avatar_url ?? r.foto_url ?? undefined
-      }))
-    );
-}
+    console.log(`📡 POST ${this.base}/perfil/avatar`);
 
+    return this.http
+      .post<{ foto_url?: string; avatar_url?: string }>(
+        `${this.base}/perfil/avatar`,
+        fd,
+        { }
+      )
+      .pipe(
+        map(r => ({
+          foto_url: r.foto_url ?? r.avatar_url ?? undefined,
+          avatar_url: r.avatar_url ?? r.foto_url ?? undefined
+        }))
+      );
+  }
 
   /**
-   * ✅ Elimina el avatar del usuario sin token
+   * ✅ CORREGIDO: Elimina el avatar del usuario sin query parameter ?user_id
+   * JWT token en Authorization header es suficiente
    */
   deleteAvatar(userId: number): Observable<{ foto_url: string }> {
+    console.log(`📡 DELETE ${this.base}/perfil/avatar`);
+
     return this.http
-      .delete(`${this.base}/perfil/avatar?user_id=${userId}`)
+      .delete(`${this.base}/perfil/avatar`)
       .pipe(
         map(() => ({ foto_url: this.defaultAvatar }))
       );
