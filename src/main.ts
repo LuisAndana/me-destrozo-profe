@@ -1,6 +1,5 @@
-// src/main.ts
+// src/main.ts - VERSIÓN CORREGIDA
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, withDebugTracing } from '@angular/router';
 import { routes } from './app/app.routes';
 
@@ -34,10 +33,13 @@ if (typeof window !== 'undefined') {
 // ==========================================================================
 
 bootstrapApplication(App, {
-  ...appConfig,
   providers: [
+    // ✅ USAR SOLO los providers de appConfig (que ya incluyen HttpClient con interceptores)
     ...(appConfig.providers ?? []),
-    provideRouter(routes, withDebugTracing()), // quítalo en prod si no quieres tanto log
-    provideHttpClient(),
+    
+    // ✅ AGREGAR el router con debug (quita withDebugTracing() en producción)
+    provideRouter(routes, withDebugTracing()),
+    
+    // ❌ NO duplicar provideHttpClient() aquí - ya está en appConfig
   ],
-}).catch(err => console.error(err));
+}).catch(err => console.error('Error iniciando aplicación:', err));

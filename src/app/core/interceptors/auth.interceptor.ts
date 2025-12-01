@@ -1,3 +1,5 @@
+// src/app/core/interceptors/auth.interceptor.ts - VERSIÓN CORREGIDA
+
 import { Injectable } from '@angular/core';
 import {
   HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
@@ -66,6 +68,56 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   /**
+   * 🔍 Detecta si la petición es un file upload (FormData)
+   */
+  private isFileUpload(req: HttpRequest<any>): boolean {
+    // Método 1: Detectar por tipo de body
+    if (req.body instanceof FormData) {
+      return true;
+    }
+
+    // Método 2: Detectar por URL (endpoints de upload)
+    if (/\/upload\//.test(req.url)) {
+      return true;
+    }
+
+    // Método 3: Verificar si ya tiene Content-Type multipart
+    const contentType = req.headers.get('Content-Type');
+    if (contentType?.includes('multipart/form-data')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Obtiene token del storage con fallback robusto
+   */
+  private obtenerToken(): string | null {
+    // 1. Intentar obtener de localStorage
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('access_token') || 
+                   localStorage.getItem('token') ||
+                   localStorage.getItem('auth_token');
+      if (token) return token;
+    }
+
+    // 2. Intentar obtener de sessionStorage
+    if (typeof sessionStorage !== 'undefined') {
+      const token = sessionStorage.getItem('access_token') ||
+                   sessionStorage.getItem('token');
+      if (token) return token;
+    }
+
+    // 3. Intentar obtener del servicio de auth
+    try {
+      return this.auth.getToken();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Obtiene id_entrenador desde storage para reescrituras de URLs
    */
   private resolveEntrenadorId(): number {
@@ -76,96 +128,57 @@ export class AuthInterceptor implements HttpInterceptor {
     try {
       const gymUser = localStorage.getItem('gym_user');
       const user = gymUser ? JSON.parse(gymUser) : null;
-      if (user?.id_usuario && (user.rol === 'entrenador' || user.rol === 'trainer')) {
-        return Number(user.id_usuario) || 0;
-      }
-    } catch { /* no-op */ }
-
-    return 0;
+      return user?.id_usuario || 0;
+    } catch {
+      return 0;
+    }
   }
 
   /**
-   * Reescribe URLs legacy -> forma correcta con /{id_entrenador}
+   * Reescribe URLs legacy de cliente/entrenador
    */
   private rewriteClienteEntrenadorUrls(req: HttpRequest<any>): HttpRequest<any> {
-    const [baseWithoutQuery, ...qsParts] = req.url.split('?');
-    const cleanBase = baseWithoutQuery.replace(/\/+$/, '');
-    const qs = qsParts.length ? '?' + qsParts.join('?') : '';
+    let url = req.url;
+    const idEntrenador = this.resolveEntrenadorId();
 
-    // Coincide con .../cliente-entrenador/mis-clientes (con o sin /api)
-    const misClientesRegex = /\/(api\/)?cliente-entrenador\/mis-clientes$/i;
+    if (!idEntrenador) return req;
 
-    if (misClientesRegex.test(cleanBase)) {
-      const id = this.resolveEntrenadorId();
-      if (id > 0) {
-        const newUrl = `${cleanBase}/${id}${qs}`;
-        console.log('[AuthInterceptor:rewrite] 🔧 Reescrito:', req.url, '→', newUrl);
-        return req.clone({ url: newUrl });
-      } else {
-        console.warn('[AuthInterceptor:rewrite] ⚠️ No se pudo resolver id_entrenador. URL no reescrita:', req.url);
+    // Reemplazar patrones legacy
+    const patterns = [
+      { from: /\/cliente\/(\d+)\/entrenador$/, to: `/cliente/$1/entrenador/${idEntrenador}` },
+      { from: /\/entrenador\/clientes$/, to: `/entrenador/${idEntrenador}/clientes` },
+      { from: /\/entrenador\/perfil$/, to: `/entrenador/${idEntrenador}/perfil` }
+    ];
+
+    for (const p of patterns) {
+      if (p.from.test(url)) {
+        url = url.replace(p.from, p.to);
+        console.log('[AuthInterceptor] 🔄 URL reescrita:', req.url, '→', url);
+        break;
       }
     }
 
-    return req; // sin cambios
+    return url !== req.url ? req.clone({ url }) : req;
   }
 
   /**
-   * 🔑 OBTENER TOKEN - CON FALLBACK ROBUSTO
-   * Intenta múltiples fuentes para obtener el token
-   * ✅ MEJORADO: Validación más estricta (mínimo 10 caracteres)
+   * 🎯 Interceptor principal
    */
-  private obtenerToken(): string {
-    // 1️⃣ Intenta obtenerlo desde el AuthService
-    const tokenDelServicio = this.auth.getToken?.();
-    if (tokenDelServicio && typeof tokenDelServicio === 'string' && tokenDelServicio.trim().length > 10) {
-      return tokenDelServicio.trim();
-    }
-
-    // 2️⃣ Fallback: localStorage con clave 'gym_token'
-    let tokenDelStorage = localStorage.getItem('gym_token');
-    if (tokenDelStorage && tokenDelStorage.trim().length > 10) {
-      return tokenDelStorage.trim();
-    }
-
-    // 3️⃣ Fallback: localStorage con clave alternativa 'token'
-    let tokenAlt = localStorage.getItem('token');
-    if (tokenAlt && tokenAlt.trim().length > 10) {
-      return tokenAlt.trim();
-    }
-
-    // 4️⃣ Fallback: buscar en gym_user.token (si está guardado como JSON)
-    try {
-      const gymUser = localStorage.getItem('gym_user');
-      if (gymUser) {
-        const user = JSON.parse(gymUser);
-        if (user?.token && typeof user.token === 'string' && user.token.trim().length > 10) {
-          return user.token.trim();
-        }
-      }
-    } catch { /* no-op */ }
-
-    // ❌ No se encontró token en ningún lado
-    return '';
-  }
-
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // 🚫 0) NO tocar rutas de IA (pueden tener su propio manejo)
-    if (req.url.includes('/api/ia/')) {
-      console.log('[AuthInterceptor] Saltando IA endpoint:', req.url);
-      return next.handle(req);
-    }
+    let request = req;
 
-    // 1) Permite forzar el salto del auth en una petición concreta
-    const skipAuth = req.headers.has('X-Skip-Auth');
-    let request = skipAuth ? req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
+    // 1) Saltar si tiene header especial
+    const skipAuth = request.headers.has('X-Skip-Auth');
+    request = skipAuth ?
+      req.clone({ headers: req.headers.delete('X-Skip-Auth') }) : req;
 
-    // 1.5) 🔧 Reescritura de URLs legacy ANTES de adjuntar token
+    // 1.5) Reescritura de URLs legacy ANTES de adjuntar token
     request = this.rewriteClienteEntrenadorUrls(request);
 
-    // 2) 🔑 Obtén el token con fallback robusto
+    // 2) Obtén el token con fallback robusto
     const token = this.obtenerToken();
 
-    // 3) Adjunta Authorization sólo cuando aplica
+    // 3) Determinar si podemos adjuntar el token
     const canAttach =
       !!token &&
       !skipAuth &&
@@ -174,13 +187,30 @@ export class AuthInterceptor implements HttpInterceptor {
       !this.isAuthEndpoint(request);
 
     if (canAttach) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AuthInterceptor] 🔐 Token agregado a:', request.method, request.url);
+      // 🔥 CRÍTICO: Detectar si es file upload
+      const isUpload = this.isFileUpload(request);
+
+      if (isUpload) {
+        // ✅ Para uploads: SOLO agregar Authorization, NO Content-Type
+        // El browser establece automáticamente Content-Type con el boundary correcto
+        request = request.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        console.log('[AuthInterceptor] 📤 File upload detectado - Solo Authorization agregado');
+        console.log('[AuthInterceptor] 🔐 Token agregado a:', request.method, request.url);
+      } else {
+        // ✅ Para requests JSON normales: agregar ambos headers
+        request = request.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('[AuthInterceptor] 🔐 Token y Content-Type agregados a:', request.method, request.url);
+      }
+
       console.log('[AuthInterceptor] 📋 Token (primeros 20 chars):', token.substring(0, 20) + '...');
     } else if (!this.isAuthEndpoint(request)) {
       console.warn('[AuthInterceptor] ⚠️ Token NO agregado a:', request.url, {
@@ -209,6 +239,12 @@ export class AuthInterceptor implements HttpInterceptor {
           // 403 = Acceso prohibido (sin logout)
           if (err.status === 403) {
             console.warn('[AuthInterceptor] 🚫 Acceso prohibido (403)');
+          }
+
+          // 422 = Unprocessable Content (común en file uploads mal configurados)
+          if (err.status === 422) {
+            console.error('[AuthInterceptor] ⚠️ Error 422 - Posible problema con multipart/form-data');
+            console.error('[AuthInterceptor] Headers enviados:', request.headers.keys());
           }
 
           // 0 = Error CORS o de conexión
