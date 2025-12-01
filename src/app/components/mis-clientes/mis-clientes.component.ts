@@ -1,4 +1,4 @@
-// ✅ COMPONENTE FINAL - VERSIÓN ROBUSTA CON TODOS LOS ATRIBUTOS
+// ✅ COMPONENTE FINAL - VERSIÓN CORREGIDA PARA RAILWAY
 // components/mis-clientes/mis-clientes.component.ts
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -33,8 +33,12 @@ export class MisClientesComponent implements OnInit, OnDestroy {
   imagenesError: Set<string> = new Set();
   defaultAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%236366f1" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="40" fill="white" text-anchor="middle" dy=".3em"%3E%3F%3C/text%3E%3C/svg%3E';
 
+  // ✅ URL DEL BACKEND - RAILWAY EN PRODUCCIÓN
+  private readonly BACKEND_URL = 'https://web-production-03d9e.up.railway.app';
+
   ngOnInit(): void {
     console.log('🟦 [INIT] MisClientesComponent inicializado');
+    console.log('🌐 [CONFIG] Backend URL:', this.BACKEND_URL);
     this.cargarClientes();
   }
 
@@ -164,7 +168,7 @@ export class MisClientesComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ Obtiene la foto del cliente - CONSTRUYE URL DIRECTA DEL BACKEND
+   * ✅ CORREGIDO: Obtiene la foto del cliente usando URL de Railway
    */
   getFotoCliente(item: any): string {
     const cliente = item.cliente || item;
@@ -188,16 +192,14 @@ export class MisClientesComponent implements OnInit, OnDestroy {
     
     // 1. Si ya es una URL completa (http/https), devolver tal cual
     if (foto.startsWith('http://') || foto.startsWith('https://')) {
-      console.log(`🖼️ URL http/https: ${foto}`);
+      console.log(`🖼️ URL completa: ${foto}`);
       return foto;
     }
     
-    // 2. Si es ruta relativa /uploads/..., construir URL del backend
+    // 2. Si es ruta relativa /uploads/..., construir URL del backend Railway
     if (foto.startsWith('/uploads/')) {
-      // ✅ IMPORTANTE: Usar la URL del servidor backend
-      const backendUrl = 'http://localhost:8000'; // ajusta si usas proxy o env
-      const urlCompleta = `${backendUrl}${foto}`;
-      console.log(`🖼️ URL construida (uploads): ${urlCompleta}`);
+      const urlCompleta = `${this.BACKEND_URL}${foto}`;
+      console.log(`🖼️ URL Railway construida: ${urlCompleta}`);
       return urlCompleta;
     }
     
@@ -207,15 +209,28 @@ export class MisClientesComponent implements OnInit, OnDestroy {
       return foto;
     }
     
-    // 4. Si contiene localhost o 127.0.0.1
-    if (foto.includes('localhost') || foto.includes('127.0.0.1')) {
-      console.log(`🖼️ Localhost URL: ${foto}`);
-      return foto;
+    // 4. Si contiene localhost o 127.0.0.1 (legacy - reemplazar con Railway)
+    if (foto.includes('localhost') || foto.includes('127.0.0.1') || foto.includes('0.0.0.0')) {
+      console.warn(`⚠️ URL localhost detectada (legacy): ${foto}`);
+      // Intentar extraer el path y reemplazar con Railway
+      const cleanPath = foto.split('localhost:8000')[1] || 
+                       foto.split('127.0.0.1:8000')[1] || 
+                       foto.split('0.0.0.0:8000')[1];
+      if (cleanPath) {
+        const fixedUrl = `${this.BACKEND_URL}${cleanPath}`;
+        console.log(`🔧 URL corregida a Railway: ${fixedUrl}`);
+        return fixedUrl;
+      }
+      // Si no se puede extraer el path, generar avatar
+      const iniciales = `${cliente?.nombre?.[0]?.toUpperCase() || '?'}${cliente?.apellido?.[0]?.toUpperCase() || '?'}`;
+      return this.generarAvatarConIniciales(iniciales);
     }
     
-    // 5. Por defecto, intentar como ruta relativa desde Angular
-    console.log(`🖼️ Ruta relativa: ${foto}`);
-    return foto;
+    // 5. Por defecto, intentar como ruta relativa desde backend Railway
+    console.log(`🖼️ Ruta relativa (fallback): ${foto}`);
+    const finalUrl = foto.startsWith('/') ? `${this.BACKEND_URL}${foto}` : `${this.BACKEND_URL}/${foto}`;
+    console.log(`🖼️ URL final: ${finalUrl}`);
+    return finalUrl;
   }
 
   /**
@@ -232,17 +247,8 @@ export class MisClientesComponent implements OnInit, OnDestroy {
         .find(item => (item.cliente?.id_usuario || item.id_usuario) === clienteId)
         ?.cliente;
       
-      if (cliente && event?.target?.src) {
-        // Intentar con URL completa si la original era relativa
-        const srcActual = event.target.src;
-        if (srcActual && !srcActual.startsWith('http') && srcActual.startsWith('/uploads/')) {
-          console.log('🖼️ Reintentando con URL completa...');
-          const host = window.location.origin;
-          event.target.src = `${host}${srcActual.split(':4200')[1] || srcActual}`;
-          return; // No cambiar a avatar aún, dar otra oportunidad
-        }
-        
-        // Si la URL completa tampoco funciona, usar avatar
+      if (cliente && event?.target) {
+        // Cambiar directamente a avatar con iniciales (sin reintentos)
         const iniciales = `${cliente.nombre?.[0]?.toUpperCase() || '?'}${cliente.apellido?.[0]?.toUpperCase() || '?'}`;
         event.target.src = this.generarAvatarConIniciales(iniciales);
       } else if (event?.target?.src) {
@@ -252,7 +258,7 @@ export class MisClientesComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ NUEVO: Generar avatar con iniciales automático
+   * ✅ Generar avatar con iniciales automático
    */
   generarAvatarConIniciales(iniciales: string): string {
     // Array de colores
@@ -545,6 +551,7 @@ export class MisClientesComponent implements OnInit, OnDestroy {
     console.clear();
     console.log('%c====== DEBUG CLIENTES - COMPLETO ======', 'color: blue; font-weight: bold; font-size: 14px');
     console.log(`Total clientes: ${this.clientes.length}`);
+    console.log(`Backend URL: ${this.BACKEND_URL}`);
     
     if (this.clientes.length === 0) {
       console.warn('⚠️ No hay clientes cargados');
