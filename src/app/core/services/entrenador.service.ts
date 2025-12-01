@@ -1,7 +1,10 @@
+// src/app/core/services/entrenador.service.ts - VERSIÓN CORREGIDA
+// ✅ Avatar y Evidencias funcionan correctamente
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import { TrainersResponse, TrainerDetail, PerfilEntrenador } from '../models/trainer.model';
 
 // ✅ Base de la API - USA RAILWAY EN PRODUCCIÓN
@@ -15,11 +18,35 @@ export class EntrenadorService {
   constructor(private http: HttpClient) {}
 
   /** ================== HEADERS ================== */
-  private authHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token') ?? '';
-    return token
-      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-      : new HttpHeaders();
+  
+  /** Headers para JSON requests */
+  private jsonHeaders(): HttpHeaders {
+    const token = localStorage.getItem('gym_token') || 
+                 localStorage.getItem('token') || '';
+    
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    
+    if (token && token.length > 10) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    
+    return headers;
+  }
+
+  /** ✅ Headers para FormData (NO incluir Content-Type, browser lo calcula) */
+  private formHeaders(): HttpHeaders {
+    const token = localStorage.getItem('gym_token') || 
+                 localStorage.getItem('token') || '';
+    
+    let headers = new HttpHeaders();
+    // ⚠️ NO poner Content-Type aquí para FormData
+    // El browser lo calcula automáticamente como multipart/form-data
+    
+    if (token && token.length > 10) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    
+    return headers;
   }
 
   /** ================== LISTA DE ENTRENADORES ================== */
@@ -43,7 +70,7 @@ export class EntrenadorService {
 
     return this.http.get<TrainersResponse>(TRAINERS_BASE, {
       params: httpParams,
-      headers: this.authHeaders(),
+      headers: this.jsonHeaders(),
     });
   }
 
@@ -51,7 +78,7 @@ export class EntrenadorService {
   getEntrenadorDetalle(id: number): Observable<TrainerDetail> {
     return this.http
       .get<TrainerDetail>(`${TRAINERS_BASE}/${id}`, {
-        headers: this.authHeaders(),
+        headers: this.jsonHeaders(),
       })
       .pipe(
         map((data) => ({
@@ -62,18 +89,31 @@ export class EntrenadorService {
   }
 
   /** ================== PERFIL ================== */
-  // ✅ CORREGIDO: Sin query parameter ?user_id
-  // JWT token en header es suficiente
+  
+  /**
+   * ✅ CORREGIDO: Obtiene el perfil del entrenador autenticado
+   * Usa JWT token en header
+   * Sin query parameters
+   */
   getPerfil(idEntrenador?: number): Observable<PerfilEntrenador> {
     const url = `${USERS_BASE}/entrenador/perfil`;
     console.log(`📡 GET ${url}`);
 
     return this.http.get<PerfilEntrenador>(url, {
-      headers: this.authHeaders(),
-    });
+      headers: this.jsonHeaders(),
+    }).pipe(
+      catchError(err => {
+        console.error('❌ Error en getPerfil:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // ✅ CORREGIDO: Sin query parameter ?user_id
+  /**
+   * ✅ CORREGIDO: Actualiza el perfil del entrenador autenticado
+   * Usa JWT token en header
+   * Sin query parameters
+   */
   updatePerfil(
     data: PerfilEntrenador,
     idEntrenador?: number
@@ -82,57 +122,138 @@ export class EntrenadorService {
     console.log(`📡 PUT ${url}`);
 
     return this.http.put<PerfilEntrenador>(url, data, {
-      headers: this.authHeaders(),
-    });
+      headers: this.jsonHeaders(),
+    }).pipe(
+      catchError(err => {
+        console.error('❌ Error en updatePerfil:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   /** ================== AVATAR ================== */
-  // ✅ CORREGIDO: Sin query parameter ?user_id
+  
+  /**
+   * ✅ CORREGIDO: Sube avatar del entrenador autenticado
+   * 
+   * IMPORTANTE:
+   * - Usa FormData para enviar archivo
+   * - Clave DEBE ser 'avatar' (como espera FastAPI)
+   * - NO incluir Content-Type header (browser lo calcula)
+   * - JWT token en Authorization header
+   * 
+   * @param file Archivo de imagen
+   * @param idEntrenador ID opcional (no necesario con JWT token)
+   * @returns Observable con URL de la foto
+   */
   uploadAvatar(
     file: File,
     idEntrenador?: number
   ): Observable<{ foto_url?: string; url?: string }> {
+    console.log('📸 [uploadAvatar] Iniciando carga de archivo');
+    console.log('   Archivo:', file.name);
+    console.log('   Size:', file.size, 'bytes');
+    console.log('   Type:', file.type);
+
+    // ✅ Crear FormData correctamente
     const formData = new FormData();
-    // ⬅️ Clave correcta que espera /usuarios/perfil/avatar
-    formData.append('avatar', file);
+    formData.append('avatar', file);  // ← CLAVE CORRECTA para /perfil/avatar
 
     const url = `${USERS_BASE}/perfil/avatar`;
     console.log(`📡 POST ${url}`);
 
-    return this.http.post<{ foto_url?: string; url?: string }>(url, formData, {
-      headers: this.authHeaders(),
-    });
+    return this.http.post<{ foto_url?: string; url?: string }>(
+      url,
+      formData,  // ← FormData crudo
+      { headers: this.formHeaders() }  // ← Headers SIN Content-Type
+    ).pipe(
+      map(response => {
+        console.log('✅ Response:', response);
+        return {
+          foto_url: response.foto_url || response.url,
+          url: response.url || response.foto_url
+        };
+      }),
+      catchError(err => {
+        console.error('❌ Error en uploadAvatar:', err);
+        console.error('   Status:', err.status);
+        console.error('   Message:', err.message);
+        return throwError(() => err);
+      })
+    );
   }
 
-  // ✅ CORREGIDO: Sin query parameter ?user_id
+  /**
+   * ✅ CORREGIDO: Elimina avatar del entrenador autenticado
+   */
   deleteAvatar(idEntrenador?: number): Observable<void> {
     const url = `${USERS_BASE}/perfil/avatar`;
     console.log(`📡 DELETE ${url}`);
 
     return this.http.delete<void>(url, {
-      headers: this.authHeaders(),
-    });
+      headers: this.jsonHeaders(),
+    }).pipe(
+      catchError(err => {
+        console.error('❌ Error en deleteAvatar:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   /** ================== EVIDENCIAS ================== */
-  // ✅ CORREGIDO: Sin query parameter ?user_id
+  
+  /**
+   * ✅ CORREGIDO: Sube evidencia/certificado del entrenador autenticado
+   * 
+   * IMPORTANTE:
+   * - Usa FormData para enviar archivo
+   * - Clave DEBE ser 'file' (como espera FastAPI)
+   * - NO incluir Content-Type header (browser lo calcula)
+   * - JWT token en Authorization header
+   * 
+   * @param file Archivo (PDF, imagen, etc.)
+   * @param idEntrenador ID opcional (no necesario con JWT token)
+   * @returns Observable con URL del archivo subido
+   */
   uploadEvidence(
     file: File,
     idEntrenador?: number
-  ): Observable<{ url: string; success: boolean }> {
+  ): Observable<{ url: string; filename?: string; success: boolean }> {
+    console.log('📄 [uploadEvidence] Iniciando carga de evidencia');
+    console.log('   Archivo:', file.name);
+    console.log('   Size:', file.size, 'bytes');
+    console.log('   Type:', file.type);
+
+    // ✅ Crear FormData correctamente
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file);  // ← CLAVE CORRECTA para /entrenador/evidencia
 
     const url = `${USERS_BASE}/entrenador/evidencia`;
     console.log(`📡 POST ${url}`);
 
-    return this.http.post<{ url: string; success: boolean }>(url, formData, {
-      headers: this.authHeaders(),
-    });
+    return this.http.post<{ url: string; filename?: string; success: boolean }>(
+      url,
+      formData,  // ← FormData crudo
+      { headers: this.formHeaders() }  // ← Headers SIN Content-Type
+    ).pipe(
+      map(response => {
+        console.log('✅ Response:', response);
+        return {
+          url: response.url,
+          filename: response.filename,
+          success: response.success ?? true
+        };
+      }),
+      catchError(err => {
+        console.error('❌ Error en uploadEvidence:', err);
+        console.error('   Status:', err.status);
+        console.error('   Message:', err.message);
+        return throwError(() => err);
+      })
+    );
   }
 
   /** ================== CLIENTES DEL ENTRENADOR ================== */
-  // Evita 405 asegurando que siempre se mande el ID de entrenador
   getMisClientes(idEntrenador?: number): Observable<any[]> {
     const resolvedId =
       idEntrenador ?? Number(localStorage.getItem('id_entrenador') || 0);
@@ -144,12 +265,16 @@ export class EntrenadorService {
 
     const url = `${CLIENTE_ENTRENADOR_BASE}/mis-clientes/${resolvedId}`;
     console.log('📡 GET Mis Clientes URL:', url);
-    return this.http.get<any[]>(url, { headers: this.authHeaders() });
+    
+    return this.http.get<any[]>(url, { headers: this.jsonHeaders() }).pipe(
+      catchError(err => {
+        console.error('❌ Error en getMisClientes:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  /** ================== INTEGRIDAD (cliente) ================== */
-  // No existe /usuarios/entrenador/verificar-integridad en el backend.
-  // Devolvemos el shape esperado usando GET perfil.
+  /** ================== INTEGRIDAD ================== */
   verificarIntegridad(): Observable<{
     success: boolean;
     has_json: boolean;
@@ -177,6 +302,14 @@ export class EntrenadorService {
           needs_sync: false,
           synced: true,
         };
+      }),
+      catchError(() => {
+        return of({
+          success: false,
+          has_json: false,
+          needs_sync: false,
+          synced: false,
+        });
       })
     );
   }
