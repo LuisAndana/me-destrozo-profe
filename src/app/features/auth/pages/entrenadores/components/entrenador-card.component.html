@@ -2,9 +2,9 @@
   <!-- ===== HEADER CON AVATAR Y INFO ===== -->
   <div class="media">
     <div class="avatar">
-      <img *ngIf="trainer.foto_url" [src]="trainer.foto_url" [alt]="trainer.nombre" />
-      <div *ngIf="!trainer.foto_url" class="placeholder">
-        {{ (trainer.nombre || 'E') | slice:0:1 }}
+      <img *ngIf="getFotoEntrenador()" [src]="getFotoEntrenador()" [alt]="trainer.nombre" />
+      <div *ngIf="!getFotoEntrenador()" class="placeholder">
+        {{ getIniciales() }}
       </div>
     </div>
 
